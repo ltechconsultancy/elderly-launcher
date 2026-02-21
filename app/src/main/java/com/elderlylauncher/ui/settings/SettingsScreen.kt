@@ -329,6 +329,7 @@ fun SettingsContent(
     var showPasswordChangeDialog by rememberSaveable { mutableStateOf(false) }
     var showColorsDialog by rememberSaveable { mutableStateOf(false) }
     var showAppsDialog by rememberSaveable { mutableStateOf(false) }
+    var showAppsPageDialog by rememberSaveable { mutableStateOf(false) }
     var showContactsDialog by rememberSaveable { mutableStateOf(false) }
 
     // Emergency number state
@@ -465,6 +466,21 @@ fun SettingsContent(
         )
     }
 
+    // Apps Page visibility dialog
+    if (showAppsPageDialog) {
+        val installedApps by viewModel.installedApps.collectAsState()
+        val hiddenApps by viewModel.hiddenApps.collectAsState()
+
+        AppsPageDialog(
+            installedApps = installedApps,
+            hiddenApps = hiddenApps,
+            onDismiss = { showAppsPageDialog = false },
+            onToggleApp = { packageName ->
+                viewModel.toggleAppVisibility(packageName)
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -533,6 +549,14 @@ fun SettingsContent(
                 icon = Icons.Default.Apps,
                 iconColor = LauncherColors.Green500,
                 onClick = { showAppsDialog = true }
+            )
+
+            SettingsItem(
+                title = stringResource(R.string.settings_apps_page),
+                subtitle = stringResource(R.string.settings_apps_page_subtitle),
+                icon = Icons.Default.GridView,
+                iconColor = LauncherColors.Teal500,
+                onClick = { showAppsPageDialog = true }
             )
 
             SettingsItem(
@@ -879,6 +903,97 @@ fun PasswordChangeDialog(
                             fontSize = 16.sp,
                             maxLines = 1
                         )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AppsPageDialog(
+    installedApps: List<AppInfo>,
+    hiddenApps: Set<String>,
+    onDismiss: () -> Unit,
+    onToggleApp: (String) -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.85f)
+                .padding(8.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_apps_page),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = LauncherColors.Gray800
+                    )
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(R.string.cancel),
+                            tint = LauncherColors.Gray600
+                        )
+                    }
+                }
+
+                Text(
+                    text = stringResource(R.string.settings_apps_page_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = LauncherColors.Gray500
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    items(installedApps) { app ->
+                        val isHidden = app.packageName in hiddenApps
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (isHidden) LauncherColors.Gray100 else LauncherColors.Green50)
+                                .clickable { onToggleApp(app.packageName) }
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                bitmap = app.icon.toBitmap(96, 96).asImageBitmap(),
+                                contentDescription = app.label,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                            )
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Text(
+                                text = app.label,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = if (isHidden) LauncherColors.Gray500 else LauncherColors.Gray800,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            Icon(
+                                imageVector = if (isHidden) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = if (isHidden) "Hidden" else "Visible",
+                                tint = if (isHidden) LauncherColors.Gray400 else LauncherColors.Green500
+                            )
+                        }
                     }
                 }
             }

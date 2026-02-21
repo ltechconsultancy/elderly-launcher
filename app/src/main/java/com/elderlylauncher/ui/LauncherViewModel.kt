@@ -68,6 +68,10 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
+    // Hidden apps (package names to hide from Apps page)
+    val hiddenApps: StateFlow<Set<String>> = settingsDataStore.hiddenApps
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
     init {
         loadApps()
         loadContacts()
@@ -223,6 +227,16 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 settingsDataStore.setLanguage(languageCode)
             } catch (e: Exception) {
                 Log.e(TAG, "Error updating language", e)
+            }
+        }
+    }
+
+    fun toggleAppVisibility(packageName: String) {
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                settingsDataStore.toggleAppVisibility(packageName)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error toggling app visibility", e)
             }
         }
     }

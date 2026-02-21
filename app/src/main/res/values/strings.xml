@@ -50,8 +50,11 @@
     <string name="settings_colors">Colors</string>
     <string name="settings_colors_subtitle">Customize colors</string>
     <string name="settings_language">Language</string>
-    <string name="settings_apps">Visible apps</string>
-    <string name="settings_apps_subtitle">Choose which apps are visible</string>
+    <string name="settings_apps">Home screen apps</string>
+    <string name="settings_apps_subtitle">Choose apps for home screen</string>
+    <string name="settings_apps_page">Apps page</string>
+    <string name="settings_apps_page_subtitle">Show or hide apps</string>
+    <string name="settings_apps_page_hint">Tap to toggle visibility</string>
     <string name="settings_apps_choose_slot">Tap a slot to choose an app</string>
     <string name="settings_apps_tap_to_select">Tap to select app</string>
     <string name="settings_apps_clear">Remove app</string>

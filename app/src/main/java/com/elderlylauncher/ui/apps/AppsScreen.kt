@@ -34,6 +34,12 @@ fun AppsScreen(
 ) {
     val context = LocalContext.current
     val installedApps by viewModel.installedApps.collectAsState()
+    val hiddenApps by viewModel.hiddenApps.collectAsState()
+
+    // Filter out hidden apps
+    val visibleApps = remember(installedApps, hiddenApps) {
+        installedApps.filter { it.packageName !in hiddenApps }
+    }
 
     Column(
         modifier = Modifier
@@ -69,7 +75,7 @@ fun AppsScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(installedApps) { app ->
+            items(visibleApps) { app ->
                 AppGridItem(
                     appInfo = app,
                     onClick = {

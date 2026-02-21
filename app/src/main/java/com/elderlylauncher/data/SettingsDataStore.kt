@@ -27,6 +27,7 @@ class SettingsDataStore(private val context: Context) {
         val PRIMARY_COLOR = stringPreferencesKey("primary_color")
         val QUICK_CONTACTS = stringSetPreferencesKey("quick_contacts")
         val VISIBLE_APPS = stringSetPreferencesKey("visible_apps")
+        val HIDDEN_APPS = stringSetPreferencesKey("hidden_apps")
         val FIRST_LAUNCH = booleanPreferencesKey("first_launch")
     }
 
@@ -131,13 +132,33 @@ class SettingsDataStore(private val context: Context) {
         }
     }
 
-    // Visible apps (package names)
+    // Visible apps (package names) - for home screen
     val visibleApps: Flow<Set<String>> = context.dataStore.data
         .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
         .map { it[Keys.VISIBLE_APPS] ?: emptySet() }
 
     suspend fun setVisibleApps(apps: Set<String>) {
         context.dataStore.edit { it[Keys.VISIBLE_APPS] = apps }
+    }
+
+    // Hidden apps (package names) - for apps page
+    val hiddenApps: Flow<Set<String>> = context.dataStore.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .map { it[Keys.HIDDEN_APPS] ?: emptySet() }
+
+    suspend fun setHiddenApps(apps: Set<String>) {
+        context.dataStore.edit { it[Keys.HIDDEN_APPS] = apps }
+    }
+
+    suspend fun toggleAppVisibility(packageName: String) {
+        context.dataStore.edit { prefs ->
+            val current = prefs[Keys.HIDDEN_APPS] ?: emptySet()
+            prefs[Keys.HIDDEN_APPS] = if (packageName in current) {
+                current - packageName
+            } else {
+                current + packageName
+            }
+        }
     }
 
     // First launch flag

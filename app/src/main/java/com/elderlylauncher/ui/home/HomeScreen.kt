@@ -37,6 +37,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
 import com.elderlylauncher.data.AppInfo
+import com.elderlylauncher.data.QuickContact
 import com.elderlylauncher.ui.LauncherViewModel
 import com.elderlylauncher.ui.theme.LauncherColors
 import java.time.LocalDate
@@ -110,6 +111,7 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
 
     val homeApps by viewModel.homeApps.collectAsState()
     val installedApps by viewModel.installedApps.collectAsState()
+    val quickContacts by viewModel.quickContacts.collectAsState()
 
     Column(
         modifier = Modifier
@@ -175,6 +177,19 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
                     modifier = Modifier.weight(1f)
                 )
             }
+        }
+
+        // Quick Contacts Row
+        if (quickContacts.isNotEmpty()) {
+            QuickContactsRow(
+                contacts = quickContacts,
+                onCallContact = { contact ->
+                    viewModel.callContact(contact)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp)
+            )
         }
 
         // Emergency Button
@@ -527,4 +542,82 @@ private fun getCurrentDate(): String {
         .withLocale(Locale.getDefault())
     return LocalDate.now().format(formatter)
         .replaceFirstChar { it.uppercase() }
+}
+
+@Composable
+fun QuickContactsRow(
+    contacts: List<QuickContact>,
+    onCallContact: (QuickContact) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        contacts.take(4).forEach { contact ->
+            QuickContactButton(
+                contact = contact,
+                onClick = { onCallContact(contact) },
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+fun QuickContactButton(
+    contact: QuickContact,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(LauncherColors.Orange50)
+            .border(2.dp, LauncherColors.Orange200, RoundedCornerShape(16.dp))
+            .clickable(
+                indication = ripple(color = LauncherColors.Orange500),
+                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                onClick = onClick
+            )
+            .padding(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Contact avatar
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .shadow(4.dp, CircleShape)
+                .clip(CircleShape)
+                .background(LauncherColors.Orange500),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = contact.name.firstOrNull()?.uppercase() ?: "?",
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // Contact name
+        Text(
+            text = contact.name.split(" ").firstOrNull() ?: contact.name,
+            style = MaterialTheme.typography.bodyMedium,
+            color = LauncherColors.Orange700,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            fontSize = 14.sp
+        )
+
+        // Phone icon
+        Icon(
+            imageVector = Icons.Default.Phone,
+            contentDescription = stringResource(R.string.action_call),
+            tint = LauncherColors.Orange500,
+            modifier = Modifier.size(16.dp)
+        )
+    }
 }

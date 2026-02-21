@@ -50,8 +50,11 @@
     <string name="settings_colors">Kleuren</string>
     <string name="settings_colors_subtitle">Pas kleuren aan</string>
     <string name="settings_language">Taal</string>
-    <string name="settings_apps">Zichtbare apps</string>
-    <string name="settings_apps_subtitle">Kies welke apps zichtbaar zijn</string>
+    <string name="settings_apps">Startscherm apps</string>
+    <string name="settings_apps_subtitle">Kies apps voor startscherm</string>
+    <string name="settings_apps_page">Apps pagina</string>
+    <string name="settings_apps_page_subtitle">Toon of verberg apps</string>
+    <string name="settings_apps_page_hint">Tik om zichtbaarheid te wisselen</string>
     <string name="settings_apps_choose_slot">Tik op een plek om een app te kiezen</string>
     <string name="settings_apps_tap_to_select">Tik om app te kiezen</string>
     <string name="settings_apps_clear">App verwijderen</string>
