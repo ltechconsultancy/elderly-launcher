@@ -41,13 +41,16 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     private val _contacts = MutableStateFlow<List<QuickContact>>(emptyList())
     val contacts: StateFlow<List<QuickContact>> = _contacts.asStateFlow()
 
-    // Quick contacts
-    private val _quickContacts = MutableStateFlow<List<QuickContact>>(emptyList())
-    val quickContacts: StateFlow<List<QuickContact>> = _quickContacts.asStateFlow()
+    // Quick contacts (derived from DataStore flow via stateIn)
+    val quickContacts: StateFlow<List<QuickContact>> = settingsDataStore.quickContacts
+        .map { jsonSet ->
+            jsonSet.mapNotNull { json -> parseQuickContact(json) }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Settings
-    val password: StateFlow<String> = settingsDataStore.password
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsDataStore.DEFAULT_PASSWORD)
+    // Settings (stored password hash)
+    val passwordHash: StateFlow<String> = settingsDataStore.passwordHash
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsDataStore.hashPassword(SettingsDataStore.DEFAULT_PASSWORD))
 
     val emergencyNumber: StateFlow<String> = settingsDataStore.emergencyNumber
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsDataStore.DEFAULT_EMERGENCY_NUMBER)
@@ -58,7 +61,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     init {
         loadApps()
         loadContacts()
-        loadQuickContacts()
     }
 
     fun loadApps() {
@@ -83,16 +85,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 Log.e(TAG, "Error loading contacts", e)
             } finally {
                 _isLoadingContacts.value = false
-            }
-        }
-    }
-
-    private fun loadQuickContacts() {
-        viewModelScope.launch(exceptionHandler) {
-            settingsDataStore.quickContacts.collect { jsonSet ->
-                _quickContacts.value = jsonSet.mapNotNull { json ->
-                    parseQuickContact(json)
-                }
             }
         }
     }
@@ -159,7 +151,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
             try {
                 val json = serializeQuickContact(contact)
                 settingsDataStore.addQuickContact(json)
-                // State will update via loadQuickContacts() collection
+                // State will update via quickContacts stateIn flow
             } catch (e: Exception) {
                 Log.e(TAG, "Error adding quick contact", e)
             }
@@ -169,12 +161,12 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     fun removeQuickContact(contact: QuickContact) {
         viewModelScope.launch(exceptionHandler) {
             try {
-                // Find and remove the contact by ID from stored set
-                settingsDataStore.quickContacts.first().forEach { json ->
-                    val parsed = parseQuickContact(json)
-                    if (parsed?.id == contact.id) {
-                        settingsDataStore.removeQuickContact(json)
-                    }
+                // Atomic read-and-remove within a single DataStore edit to prevent race conditions
+                settingsDataStore.editQuickContacts { currentSet ->
+                    currentSet.filterNot { json ->
+                        val parsed = parseQuickContact(json)
+                        parsed?.id == contact.id
+                    }.toSet()
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error removing quick contact", e)
@@ -183,17 +175,12 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     }
 
     /**
-     * Validate password input against stored password.
-     * Uses constant-time comparison to prevent timing attacks.
+     * Validate password input against stored password hash.
+     * Delegates to SettingsDataStore which uses SHA-256 hashing
+     * and MessageDigest.isEqual for constant-time comparison to prevent timing attacks.
      */
-    fun validatePassword(input: String): Boolean {
-        val stored = password.value
-        if (input.length != stored.length) return false
-        var result = 0
-        for (i in input.indices) {
-            result = result or (input[i].code xor stored[i].code)
-        }
-        return result == 0
+    suspend fun validatePassword(input: String): Boolean {
+        return settingsDataStore.validatePassword(input)
     }
 
     // JSON serialization for QuickContact (safer than pipe-delimited)
@@ -203,7 +190,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
             put("name", contact.name)
             put("phoneNumber", contact.phoneNumber)
             put("photoUri", contact.photoUri ?: "")
-            put("relation", contact.relation ?: "")
+            put("relation", contact.relation)
         }.toString()
     }
 
@@ -217,7 +204,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                     name = obj.getString("name"),
                     phoneNumber = obj.getString("phoneNumber"),
                     photoUri = obj.optString("photoUri").ifBlank { null },
-                    relation = obj.optString("relation").ifBlank { null }
+                    relation = obj.optString("relation").ifBlank { "" }
                 )
             } else {
                 // Legacy pipe-delimited format for backwards compatibility
@@ -228,7 +215,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                         name = parts[1],
                         phoneNumber = parts[2],
                         photoUri = null,
-                        relation = parts.getOrNull(3)
+                        relation = parts.getOrNull(3) ?: ""
                     )
                 } else null
             }

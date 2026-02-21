@@ -13,8 +13,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +41,7 @@ import java.util.Locale
 @Composable
 fun HomeScreen() {
     val context = LocalContext.current
+    var showEmergencyConfirm by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -138,13 +139,60 @@ fun HomeScreen() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 16.dp),
-            onClick = {
-                safeStartActivity(context) {
-                    Intent(Intent.ACTION_DIAL).apply {
-                        data = Uri.parse("tel:112")
-                    }
+            onClick = { showEmergencyConfirm = true }
+        )
+    }
+
+    // Emergency call confirmation dialog
+    if (showEmergencyConfirm) {
+        AlertDialog(
+            onDismissRequest = { showEmergencyConfirm = false },
+            title = {
+                Text(
+                    text = stringResource(R.string.home_emergency_confirm_title),
+                    style = MaterialTheme.typography.headlineMedium
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.home_emergency_confirm_message),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontSize = 20.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showEmergencyConfirm = false
+                        safeStartActivity(context) {
+                            Intent(Intent.ACTION_DIAL).apply {
+                                data = Uri.parse("tel:112")
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = LauncherColors.Red500
+                    )
+                ) {
+                    Text(
+                        text = stringResource(R.string.confirm),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontSize = 20.sp
+                    )
                 }
-            }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { showEmergencyConfirm = false }
+                ) {
+                    Text(
+                        text = stringResource(R.string.cancel),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontSize = 20.sp
+                    )
+                }
+            },
+            shape = RoundedCornerShape(24.dp)
         )
     }
 }
@@ -214,8 +262,9 @@ fun AppTile(
     badgeCount: Int? = null,
     onClick: () -> Unit
 ) {
+    val badgeDescription = stringResource(R.string.home_badge_description, title, badgeCount ?: 0)
     val tileDescription = if (badgeCount != null && badgeCount > 0) {
-        "$title, $badgeCount nieuwe"
+        badgeDescription
     } else {
         title
     }
@@ -227,7 +276,7 @@ fun AppTile(
             .background(backgroundColor)
             .border(2.dp, borderColor, RoundedCornerShape(24.dp))
             .clickable(
-                indication = rememberRipple(color = iconBackgroundColor),
+                indication = ripple(color = iconBackgroundColor),
                 interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
                 onClick = onClick
             )

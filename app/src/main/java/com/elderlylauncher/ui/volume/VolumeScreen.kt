@@ -12,8 +12,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import kotlinx.coroutines.delay
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -48,7 +49,7 @@ fun VolumeScreen() {
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Volume niet beschikbaar",
+                text = stringResource(R.string.volume_unavailable),
                 style = MaterialTheme.typography.headlineMedium,
                 color = LauncherColors.Gray500
             )
@@ -67,6 +68,17 @@ fun VolumeScreen() {
     var ringVolume by remember { mutableIntStateOf(audioManager.getStreamVolume(AudioManager.STREAM_RING)) }
     var notificationVolume by remember { mutableIntStateOf(audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION)) }
     var alarmVolume by remember { mutableIntStateOf(audioManager.getStreamVolume(AudioManager.STREAM_ALARM)) }
+
+    // Periodically sync volume state from system (e.g., if user changes via hardware buttons)
+    LaunchedEffect(audioManager) {
+        while (true) {
+            delay(2000)
+            mediaVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+            ringVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING)
+            notificationVolume = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION)
+            alarmVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM)
+        }
+    }
 
     val decreaseDesc = stringResource(R.string.volume_decrease)
     val increaseDesc = stringResource(R.string.volume_increase)
@@ -317,7 +329,7 @@ fun VolumeControl(
                         .background(Color.White)
                         .border(2.dp, borderColor, RoundedCornerShape(18.dp))
                         .clickable(
-                            indication = rememberRipple(color = accentColor),
+                            indication = ripple(color = accentColor),
                             interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
                             onClick = onVolumeDown
                         )
@@ -350,7 +362,7 @@ fun VolumeControl(
                         .background(Color.White)
                         .border(2.dp, borderColor, RoundedCornerShape(18.dp))
                         .clickable(
-                            indication = rememberRipple(color = accentColor),
+                            indication = ripple(color = accentColor),
                             interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
                             onClick = onVolumeUp
                         )
@@ -374,10 +386,11 @@ fun VolumeControl(
             (currentVolume.toFloat() / maxVolume * 10).toInt()
         } else 0
 
+        val barsDescription = stringResource(R.string.volume_bars_description, filledBars)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = "$filledBars van 10 balkjes gevuld" },
+                .semantics { contentDescription = barsDescription },
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             repeat(10) { index ->

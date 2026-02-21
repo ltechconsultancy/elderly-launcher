@@ -2,6 +2,7 @@ package com.elderlylauncher
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -14,10 +15,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.ui.LauncherApp
 import com.elderlylauncher.ui.LauncherViewModel
@@ -39,17 +43,51 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // Replace deprecated onBackPressed with OnBackPressedCallback
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // Do nothing - we're the home screen
+            }
+        })
+
         setContent {
             ElderlyLauncherTheme {
                 val viewModel: LauncherViewModel = viewModel()
 
-                // Check if we need to show permission request
-                val missingPermissions = remember { PermissionHelper.getMissingPermissions(this) }
+                // Lifecycle observer to re-evaluate permissions on resume
+                val lifecycleOwner = LocalLifecycleOwner.current
+                var lifecycleResumeCount by remember { mutableIntStateOf(0) }
+
+                DisposableEffect(lifecycleOwner) {
+                    val observer = LifecycleEventObserver { _, event ->
+                        if (event == Lifecycle.Event.ON_RESUME) {
+                            lifecycleResumeCount++
+                        }
+                    }
+                    lifecycleOwner.lifecycle.addObserver(observer)
+                    onDispose {
+                        lifecycleOwner.lifecycle.removeObserver(observer)
+                    }
+                }
+
+                // Re-check permissions when lifecycle resumes
+                val missingPermissions = remember(lifecycleResumeCount) {
+                    PermissionHelper.getMissingPermissions(this)
+                }
                 var showPermissionUI by remember { mutableStateOf(missingPermissions.isNotEmpty()) }
 
-                // Re-check permissions when activity resumes
-                LaunchedEffect(Unit) {
-                    showPermissionUI = PermissionHelper.getMissingPermissions(this@MainActivity).isNotEmpty()
+                // Update showPermissionUI when missingPermissions changes
+                LaunchedEffect(missingPermissions) {
+                    showPermissionUI = missingPermissions.isNotEmpty()
+                }
+
+                // Debounce for permission request button
+                var isRequestingPermissions by remember { mutableStateOf(false) }
+                LaunchedEffect(isRequestingPermissions) {
+                    if (isRequestingPermissions) {
+                        kotlinx.coroutines.delay(1000)
+                        isRequestingPermissions = false
+                    }
                 }
 
                 Surface(
@@ -59,7 +97,10 @@ class MainActivity : ComponentActivity() {
                     if (showPermissionUI && missingPermissions.isNotEmpty()) {
                         PermissionRequestScreen(
                             onRequestPermissions = {
-                                permissionLauncher.launch(missingPermissions.toTypedArray())
+                                if (!isRequestingPermissions) {
+                                    isRequestingPermissions = true
+                                    permissionLauncher.launch(missingPermissions.toTypedArray())
+                                }
                             },
                             onSkip = {
                                 showPermissionUI = false
@@ -76,12 +117,6 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         // Reload data when returning to the launcher (e.g., after app install/uninstall)
-    }
-
-    // Override back button to prevent leaving the launcher
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        // Do nothing - we're the home screen
     }
 }
 

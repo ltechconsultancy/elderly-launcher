@@ -6,8 +6,10 @@ import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
+import java.security.MessageDigest
 
 // Extension property for DataStore
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "launcher_settings")
@@ -34,15 +36,38 @@ class SettingsDataStore(private val context: Context) {
         const val DEFAULT_LANGUAGE = "nl"
         const val DEFAULT_EMERGENCY_NUMBER = "112"
         const val DEFAULT_PRIMARY_COLOR = "blue"
+
+        /**
+         * Hash a password using SHA-256.
+         * Returns the hex-encoded hash string.
+         */
+        fun hashPassword(password: String): String {
+            val digest = MessageDigest.getInstance("SHA-256")
+            val hashBytes = digest.digest(password.toByteArray(Charsets.UTF_8))
+            return hashBytes.joinToString("") { "%02x".format(it) }
+        }
     }
 
-    // Password
-    val password: Flow<String> = context.dataStore.data
+    // Password (stored as SHA-256 hash)
+    val passwordHash: Flow<String> = context.dataStore.data
         .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
-        .map { it[Keys.PASSWORD] ?: DEFAULT_PASSWORD }
+        .map { it[Keys.PASSWORD] ?: hashPassword(DEFAULT_PASSWORD) }
 
     suspend fun setPassword(password: String) {
-        context.dataStore.edit { it[Keys.PASSWORD] = password }
+        context.dataStore.edit { it[Keys.PASSWORD] = hashPassword(password) }
+    }
+
+    /**
+     * Validate a plaintext password against the stored hash.
+     * Uses MessageDigest.isEqual for constant-time comparison to prevent timing attacks.
+     */
+    suspend fun validatePassword(input: String): Boolean {
+        val storedHash = passwordHash.first()
+        val inputHash = hashPassword(input)
+        return MessageDigest.isEqual(
+            storedHash.toByteArray(Charsets.UTF_8),
+            inputHash.toByteArray(Charsets.UTF_8)
+        )
     }
 
     // Language
@@ -92,6 +117,17 @@ class SettingsDataStore(private val context: Context) {
         context.dataStore.edit { prefs ->
             val current = prefs[Keys.QUICK_CONTACTS] ?: emptySet()
             prefs[Keys.QUICK_CONTACTS] = current - contactJson
+        }
+    }
+
+    /**
+     * Atomically read and transform the quick contacts set within a single DataStore edit.
+     * Prevents race conditions from separate read-then-write operations.
+     */
+    suspend fun editQuickContacts(transform: (Set<String>) -> Set<String>) {
+        context.dataStore.edit { prefs ->
+            val current = prefs[Keys.QUICK_CONTACTS] ?: emptySet()
+            prefs[Keys.QUICK_CONTACTS] = transform(current)
         }
     }
 

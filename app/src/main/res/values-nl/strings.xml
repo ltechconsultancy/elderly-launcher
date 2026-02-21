@@ -9,6 +9,9 @@
     <string name="home_photos">Foto\'s</string>
     <string name="home_emergency">NOODGEVAL</string>
     <string name="home_page">Pagina %1$d van %2$d</string>
+    <string name="home_badge_description">%1$s, %2$d nieuwe</string>
+    <string name="home_emergency_confirm_title">112 bellen?</string>
+    <string name="home_emergency_confirm_message">U staat op het punt het alarmnummer 112 te bellen.</string>
 
     <!-- Volume Page -->
     <string name="volume_title">Volume</string>
@@ -23,6 +26,9 @@
     <string name="volume_alarm_desc">Wekker</string>
     <string name="volume_decrease">Volume verlagen</string>
     <string name="volume_increase">Volume verhogen</string>
+    <string name="volume_unavailable">Volume niet beschikbaar</string>
+    <string name="volume_bars_description">%1$d van 10 balkjes gevuld</string>
+    <string name="volume_bars_filled">%1$d van %2$d balkjes gevuld</string>
 
     <!-- Contacts -->
     <string name="contacts_title">Contacten</string>
@@ -50,7 +56,10 @@
     <string name="settings_unlock">Ontgrendelen</string>
     <string name="settings_lock_description">Instellingen zijn vergrendeld</string>
     <string name="settings_locked_out">Te veel pogingen. Even wachten.</string>
-    <string name="settings_attempts_remaining">Nog %1$d pogingen</string>
+    <plurals name="settings_attempts_remaining">
+        <item quantity="one">Nog %1$d poging</item>
+        <item quantity="other">Nog %1$d pogingen</item>
+    </plurals>
 
     <!-- Actions -->
     <string name="action_lock">Vergrendelen</string>
@@ -61,6 +70,7 @@
 
     <!-- Color Picker -->
     <string name="color_picker_title">Kies een kleur</string>
+    <string name="color_option_description">%1$s, %2$s</string>
     <string name="color_blue">Blauw</string>
     <string name="color_green">Groen</string>
     <string name="color_purple">Paars</string>
@@ -93,6 +103,13 @@
     <string name="permission_description">Deze app heeft toestemming nodig om je contacten te openen, te bellen en de camera te gebruiken. Tik op Toestaan om verder te gaan.</string>
     <string name="permission_allow">Toestaan</string>
     <string name="permission_skip">Later</string>
+
+    <!-- Accessibility -->
+    <string name="badge_count_description">%1$s, %2$d nieuwe</string>
+
+    <!-- Emergency Confirmation -->
+    <string name="emergency_confirm_title">Noodoproep</string>
+    <string name="emergency_confirm_message">%1$s bellen?</string>
 
     <!-- Errors -->
     <string name="error_app_not_found">App niet gevonden</string>

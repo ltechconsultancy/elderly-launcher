@@ -10,9 +10,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,6 +21,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -34,20 +36,37 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
 import com.elderlylauncher.ui.LauncherViewModel
 import com.elderlylauncher.ui.theme.LauncherColors
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen(
     viewModel: LauncherViewModel = viewModel()
 ) {
-    var isUnlocked by remember { mutableStateOf(false) }
-    var showPasswordDialog by remember { mutableStateOf(false) }
-    var password by remember { mutableStateOf("") }
-    var showError by remember { mutableStateOf(false) }
-    var failedAttempts by remember { mutableIntStateOf(0) }
-    var lockoutEndTime by remember { mutableLongStateOf(0L) }
+    var isUnlocked by rememberSaveable { mutableStateOf(false) }
+    var showPasswordDialog by rememberSaveable { mutableStateOf(false) }
+    var password by rememberSaveable { mutableStateOf("") }
+    var showError by rememberSaveable { mutableStateOf(false) }
+    var failedAttempts by rememberSaveable { mutableIntStateOf(0) }
+    var lockoutEndTime by rememberSaveable { mutableLongStateOf(0L) }
 
     // Rate limiting: lock for 30 seconds after 5 failed attempts
-    val isLockedOut = System.currentTimeMillis() < lockoutEndTime
+    var isLockedOut by rememberSaveable { mutableStateOf(false) }
+
+    // Coroutine scope for password validation
+    val coroutineScope = rememberCoroutineScope()
+
+    // Auto-refresh lockout timer
+    LaunchedEffect(lockoutEndTime) {
+        if (lockoutEndTime > 0L) {
+            val remaining = lockoutEndTime - System.currentTimeMillis()
+            if (remaining > 0L) {
+                isLockedOut = true
+                delay(remaining)
+            }
+            isLockedOut = false
+        }
+    }
 
     if (showPasswordDialog && !isLockedOut) {
         PasswordDialog(
@@ -57,18 +76,20 @@ fun SettingsScreen(
             failedAttempts = failedAttempts,
             onDismiss = { showPasswordDialog = false; password = "" },
             onConfirm = {
-                if (viewModel.validatePassword(password)) {
-                    isUnlocked = true
-                    showPasswordDialog = false
-                    password = ""
-                    failedAttempts = 0
-                } else {
-                    showError = true
-                    failedAttempts++
-                    if (failedAttempts >= 5) {
-                        lockoutEndTime = System.currentTimeMillis() + 30_000
+                coroutineScope.launch {
+                    if (viewModel.validatePassword(password)) {
+                        isUnlocked = true
                         showPasswordDialog = false
                         password = ""
+                        failedAttempts = 0
+                    } else {
+                        showError = true
+                        failedAttempts++
+                        if (failedAttempts >= 5) {
+                            lockoutEndTime = System.currentTimeMillis() + 30_000
+                            showPasswordDialog = false
+                            password = ""
+                        }
                     }
                 }
             }
@@ -232,8 +253,9 @@ fun PasswordDialog(
                         style = MaterialTheme.typography.bodyLarge
                     )
                     if (failedAttempts >= 3) {
+                        val remaining = 5 - failedAttempts
                         Text(
-                            text = stringResource(R.string.settings_attempts_remaining, 5 - failedAttempts),
+                            text = pluralStringResource(R.plurals.settings_attempts_remaining, remaining, remaining),
                             color = LauncherColors.Orange500,
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -406,7 +428,7 @@ fun SettingsItem(
             .background(LauncherColors.Gray50)
             .border(1.dp, LauncherColors.Gray200, RoundedCornerShape(20.dp))
             .clickable(
-                indication = rememberRipple(color = iconColor),
+                indication = ripple(color = iconColor),
                 interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
                 onClick = onClick
             )

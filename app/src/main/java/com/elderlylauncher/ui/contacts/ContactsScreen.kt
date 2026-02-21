@@ -22,9 +22,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.ripple
 import coil.compose.AsyncImage
 import com.elderlylauncher.R
 import com.elderlylauncher.data.QuickContact
@@ -56,7 +59,7 @@ fun QuickContactsSection(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Geen snelle contacten",
+                    text = stringResource(R.string.contacts_empty),
                     style = MaterialTheme.typography.bodyLarge,
                     color = LauncherColors.Gray400
                 )
@@ -88,6 +91,7 @@ fun QuickContactCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val callDescription = stringResource(R.string.contacts_call_confirm, contact.name)
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(20.dp))
@@ -95,10 +99,11 @@ fun QuickContactCard(
             .border(2.dp, LauncherColors.Green200, RoundedCornerShape(20.dp))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
-                indication = null,
+                indication = ripple(color = LauncherColors.Green500),
                 onClick = onClick
             )
-            .padding(16.dp),
+            .padding(16.dp)
+            .semantics { contentDescription = callDescription },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Avatar
@@ -159,6 +164,7 @@ fun ContactListItem(
     modifier: Modifier = Modifier,
     trailing: @Composable (() -> Unit)? = null
 ) {
+    val itemDescription = "${contact.name}, ${contact.phoneNumber}"
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -166,10 +172,11 @@ fun ContactListItem(
             .background(LauncherColors.Gray50)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
-                indication = null,
+                indication = ripple(color = LauncherColors.Green500),
                 onClick = onClick
             )
-            .padding(16.dp),
+            .padding(16.dp)
+            .semantics { contentDescription = itemDescription },
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Avatar
@@ -220,16 +227,16 @@ fun ContactListItem(
             // Default call icon
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(64.dp)
                     .clip(CircleShape)
                     .background(LauncherColors.Green500),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Phone,
-                    contentDescription = "Call",
+                    contentDescription = stringResource(R.string.action_call),
                     tint = Color.White,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(32.dp)
                 )
             }
         }
@@ -246,7 +253,7 @@ fun ContactPickerDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Kies een contact",
+                text = stringResource(R.string.contacts_picker_title),
                 style = MaterialTheme.typography.headlineMedium
             )
         },
@@ -261,7 +268,7 @@ fun ContactPickerDialog(
                         trailing = {
                             Icon(
                                 imageVector = Icons.Default.Add,
-                                contentDescription = "Add",
+                                contentDescription = stringResource(R.string.action_add),
                                 tint = LauncherColors.Blue500,
                                 modifier = Modifier.size(24.dp)
                             )

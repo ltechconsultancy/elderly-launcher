@@ -1,6 +1,5 @@
 package com.elderlylauncher.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -9,26 +8,34 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.elderlylauncher.R
 import com.elderlylauncher.ui.home.HomeScreen
 import com.elderlylauncher.ui.volume.VolumeScreen
 import com.elderlylauncher.ui.settings.SettingsScreen
 import com.elderlylauncher.ui.theme.LauncherColors
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
     val totalPages = 3
+    var savedPage by rememberSaveable { mutableIntStateOf(0) }
     val pagerState = rememberPagerState(
-        initialPage = 0,
+        initialPage = savedPage,
         pageCount = { totalPages }
     )
+
+    // Save current page across config changes
+    LaunchedEffect(pagerState.currentPage) {
+        savedPage = pagerState.currentPage
+    }
 
     Column(
         modifier = Modifier
@@ -64,7 +71,7 @@ fun PageIndicator(
     totalPages: Int,
     modifier: Modifier = Modifier
 ) {
-    val pageDescription = "Pagina ${currentPage + 1} van $totalPages"
+    val pageDescription = stringResource(R.string.home_page, currentPage + 1, totalPages)
 
     Row(
         modifier = modifier.semantics { contentDescription = pageDescription },
