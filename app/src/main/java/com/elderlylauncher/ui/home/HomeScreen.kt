@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,7 +42,7 @@ import java.util.Locale
 @Composable
 fun HomeScreen() {
     val context = LocalContext.current
-    var showEmergencyConfirm by remember { mutableStateOf(false) }
+    var showEmergencyConfirm by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier

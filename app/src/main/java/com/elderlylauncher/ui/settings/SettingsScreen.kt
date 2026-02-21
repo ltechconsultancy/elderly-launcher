@@ -472,7 +472,7 @@ fun SettingsItem(
         Icon(
             imageVector = Icons.Default.ChevronRight,
             contentDescription = stringResource(R.string.action_open),
-            tint = LauncherColors.Gray400,
+            tint = LauncherColors.Gray600,
             modifier = Modifier.size(32.dp)
         )
     }
