@@ -285,7 +285,8 @@ fun PasswordDialog(
                         Text(
                             text = stringResource(R.string.cancel),
                             style = MaterialTheme.typography.titleMedium,
-                            fontSize = 18.sp
+                            fontSize = 16.sp,
+                            maxLines = 1
                         )
                     }
 
@@ -302,7 +303,8 @@ fun PasswordDialog(
                         Text(
                             text = stringResource(R.string.confirm),
                             style = MaterialTheme.typography.titleMedium,
-                            fontSize = 18.sp
+                            fontSize = 16.sp,
+                            maxLines = 1
                         )
                     }
                 }
@@ -605,7 +607,8 @@ fun EmergencyNumberDialog(
                     ) {
                         Text(
                             text = stringResource(R.string.cancel),
-                            fontSize = 16.sp
+                            fontSize = 16.sp,
+                            maxLines = 1
                         )
                     }
 
@@ -621,7 +624,8 @@ fun EmergencyNumberDialog(
                     ) {
                         Text(
                             text = stringResource(R.string.confirm),
-                            fontSize = 16.sp
+                            fontSize = 16.sp,
+                            maxLines = 1
                         )
                     }
                 }
@@ -833,7 +837,8 @@ fun PasswordChangeDialog(
                     ) {
                         Text(
                             text = stringResource(R.string.cancel),
-                            fontSize = 16.sp
+                            fontSize = 16.sp,
+                            maxLines = 1
                         )
                     }
 
@@ -849,7 +854,8 @@ fun PasswordChangeDialog(
                     ) {
                         Text(
                             text = stringResource(R.string.confirm),
-                            fontSize = 16.sp
+                            fontSize = 16.sp,
+                            maxLines = 1
                         )
                     }
                 }
@@ -913,7 +919,8 @@ fun ComingSoonDialog(
                 ) {
                     Text(
                         text = stringResource(R.string.ok),
-                        fontSize = 18.sp
+                        fontSize = 16.sp,
+                        maxLines = 1
                     )
                 }
             }
