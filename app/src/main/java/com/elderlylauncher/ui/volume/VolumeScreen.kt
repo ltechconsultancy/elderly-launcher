@@ -232,7 +232,8 @@ fun VolumeControl(
     onVolumeDown: () -> Unit
 ) {
     val percentage = if (maxVolume > 0) {
-        ((currentVolume.toFloat() / maxVolume) * 100).toInt()
+        val raw = (currentVolume.toFloat() / maxVolume) * 100
+        ((raw / 5).toInt() * 5) // Round to nearest 5%
     } else 0
 
     val volumeDescription = "$title: $percentage%"
