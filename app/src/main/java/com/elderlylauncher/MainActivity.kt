@@ -63,8 +63,10 @@ class MainActivity : ComponentActivity() {
         })
 
         setContent {
-            ElderlyLauncherTheme {
-                val viewModel: LauncherViewModel = viewModel()
+            val viewModel: LauncherViewModel = viewModel()
+            val primaryColor by viewModel.primaryColor.collectAsState()
+
+            ElderlyLauncherTheme(primaryColor = primaryColor) {
 
                 // Lifecycle observer to re-evaluate permissions on resume
                 val lifecycleOwner = LocalLifecycleOwner.current

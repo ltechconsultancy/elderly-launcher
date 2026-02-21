@@ -447,6 +447,11 @@ fun SettingsContent(
         val quickContacts by viewModel.quickContacts.collectAsState()
         val allContacts by viewModel.contacts.collectAsState()
 
+        // Reload contacts when dialog opens (in case permission was just granted)
+        LaunchedEffect(showContactsDialog) {
+            viewModel.loadContacts()
+        }
+
         QuickContactsDialog(
             quickContacts = quickContacts,
             allContacts = allContacts,

@@ -3,6 +3,8 @@ package com.elderlylauncher.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 // Color definitions
@@ -58,10 +60,28 @@ object LauncherColors {
     val Pink200 = Color(0xFFFBCFE8)
     val Pink500 = Color(0xFFEC4899)
     val Pink700 = Color(0xFFBE185D)
+
+    // Teal
+    val Teal500 = Color(0xFF14B8A6)
 }
 
-private val LightColorScheme = lightColorScheme(
-    primary = LauncherColors.Blue500,
+// Theme accent color - can be changed by user
+val LocalAccentColor = compositionLocalOf { LauncherColors.Blue500 }
+
+fun getAccentColor(colorName: String): Color {
+    return when (colorName) {
+        "blue" -> LauncherColors.Blue500
+        "green" -> LauncherColors.Green500
+        "purple" -> LauncherColors.Purple500
+        "orange" -> LauncherColors.Orange500
+        "red" -> LauncherColors.Red500
+        "teal" -> LauncherColors.Teal500
+        else -> LauncherColors.Blue500
+    }
+}
+
+private fun createColorScheme(primaryColor: Color) = lightColorScheme(
+    primary = primaryColor,
     onPrimary = Color.White,
     secondary = LauncherColors.Green500,
     onSecondary = Color.White,
@@ -75,11 +95,16 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun ElderlyLauncherTheme(
+    primaryColor: String = "blue",
     content: @Composable () -> Unit
 ) {
-    MaterialTheme(
-        colorScheme = LightColorScheme,
-        typography = LauncherTypography,
-        content = content
-    )
+    val accentColor = getAccentColor(primaryColor)
+
+    CompositionLocalProvider(LocalAccentColor provides accentColor) {
+        MaterialTheme(
+            colorScheme = createColorScheme(accentColor),
+            typography = LauncherTypography,
+            content = content
+        )
+    }
 }
