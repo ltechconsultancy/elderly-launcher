@@ -49,6 +49,7 @@ jobs:
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: elderly-launcher-${{ steps.version.outputs.VERSION }}
           path: app/build/outputs/apk/release/elderly-launcher-${{ steps.version.outputs.VERSION }}.apk
