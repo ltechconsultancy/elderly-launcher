@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
+import com.elderlylauncher.ui.apps.AppsScreen
 import com.elderlylauncher.ui.home.HomeScreen
 import com.elderlylauncher.ui.settings.SettingsScreen
 import com.elderlylauncher.ui.theme.LauncherColors
@@ -26,7 +27,7 @@ import com.elderlylauncher.ui.volume.VolumeScreen
 
 @Composable
 fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
-    val totalPages = 3
+    val totalPages = 4
     var savedPage by rememberSaveable { mutableIntStateOf(0) }
     val pagerState = rememberPagerState(
         initialPage = savedPage,
@@ -50,8 +51,9 @@ fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
         ) { page ->
             when (page) {
                 0 -> HomeScreen()
-                1 -> VolumeScreen()
-                2 -> SettingsScreen()
+                1 -> AppsScreen()
+                2 -> VolumeScreen()
+                3 -> SettingsScreen()
             }
         }
 

@@ -23,11 +23,15 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.elderlylauncher.data.SettingsDataStore
 import com.elderlylauncher.ui.LauncherApp
 import com.elderlylauncher.ui.LauncherViewModel
 import com.elderlylauncher.ui.theme.ElderlyLauncherTheme
 import com.elderlylauncher.ui.theme.LauncherColors
+import com.elderlylauncher.util.LocaleHelper
 import com.elderlylauncher.utils.PermissionHelper
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
 
@@ -37,6 +41,14 @@ class MainActivity : ComponentActivity() {
     ) { permissions ->
         // Permissions result handled - UI will update via recomposition
         // No need to do anything here as the UI observes permission state
+    }
+
+    override fun attachBaseContext(newBase: android.content.Context) {
+        // Apply saved language before attaching context
+        val settingsDataStore = SettingsDataStore(newBase)
+        val savedLanguage = runBlocking { settingsDataStore.language.first() }
+        val localizedContext = LocaleHelper.setLocale(newBase, savedLanguage)
+        super.attachBaseContext(localizedContext)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

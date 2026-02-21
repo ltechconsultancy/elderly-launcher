@@ -13,6 +13,10 @@
     <string name="home_emergency_confirm_title">112 bellen?</string>
     <string name="home_emergency_confirm_message">U staat op het punt het alarmnummer 112 te bellen.</string>
 
+    <!-- Apps Page -->
+    <string name="apps_title">Alle Apps</string>
+    <string name="apps_subtitle">Tik om een app te openen</string>
+
     <!-- Volume Page -->
     <string name="volume_title">Volume</string>
     <string name="volume_subtitle">Pas het geluid aan</string>

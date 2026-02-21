@@ -35,6 +35,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
 import com.elderlylauncher.data.AppInfo
+import com.elderlylauncher.data.QuickContact
 import com.elderlylauncher.ui.LauncherViewModel
 import com.elderlylauncher.ui.theme.LauncherColors
 import androidx.compose.foundation.Image
@@ -356,12 +357,13 @@ fun SettingsContent(
         LanguageDialog(
             onDismiss = { showLanguageDialog = false },
             onSelectLanguage = { languageCode ->
-                // Change app locale
-                val locale = java.util.Locale(languageCode)
-                val config = context.resources.configuration
-                config.setLocale(locale)
-                context.createConfigurationContext(config)
+                // Save language preference and apply locale
+                viewModel.updateLanguage(languageCode)
                 showLanguageDialog = false
+                // Recreate activity to apply new locale
+                (context as? android.app.Activity)?.let { activity ->
+                    com.elderlylauncher.util.LocaleHelper.applyLocale(activity, languageCode)
+                }
             }
         )
     }
@@ -409,11 +411,16 @@ fun SettingsContent(
         )
     }
 
-    // Colors Dialog (Coming Soon)
+    // Colors Dialog
     if (showColorsDialog) {
-        ComingSoonDialog(
-            title = stringResource(R.string.settings_colors),
-            onDismiss = { showColorsDialog = false }
+        val currentColor by viewModel.primaryColor.collectAsState()
+        ColorsDialog(
+            currentColor = currentColor,
+            onDismiss = { showColorsDialog = false },
+            onSelectColor = { color ->
+                viewModel.updatePrimaryColor(color)
+                showColorsDialog = false
+            }
         )
     }
 
@@ -435,11 +442,21 @@ fun SettingsContent(
         )
     }
 
-    // Contacts Dialog (Coming Soon)
+    // Contacts Dialog
     if (showContactsDialog) {
-        ComingSoonDialog(
-            title = stringResource(R.string.settings_contacts),
-            onDismiss = { showContactsDialog = false }
+        val quickContacts by viewModel.quickContacts.collectAsState()
+        val allContacts by viewModel.contacts.collectAsState()
+
+        QuickContactsDialog(
+            quickContacts = quickContacts,
+            allContacts = allContacts,
+            onDismiss = { showContactsDialog = false },
+            onAddContact = { contact ->
+                viewModel.addQuickContact(contact)
+            },
+            onRemoveContact = { contact ->
+                viewModel.removeQuickContact(contact)
+            }
         )
     }
 
@@ -858,6 +875,394 @@ fun PasswordChangeDialog(
                             maxLines = 1
                         )
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun QuickContactsDialog(
+    quickContacts: List<QuickContact>,
+    allContacts: List<QuickContact>,
+    onDismiss: () -> Unit,
+    onAddContact: (QuickContact) -> Unit,
+    onRemoveContact: (QuickContact) -> Unit
+) {
+    var showAddScreen by rememberSaveable { mutableStateOf(false) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.85f)
+                .padding(8.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (showAddScreen) {
+                        IconButton(onClick = { showAddScreen = false }) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = stringResource(R.string.back),
+                                tint = LauncherColors.Gray600
+                            )
+                        }
+                        Text(
+                            text = stringResource(R.string.contacts_add),
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = LauncherColors.Gray800
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(R.string.settings_contacts),
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = LauncherColors.Gray800
+                        )
+                    }
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(R.string.cancel),
+                            tint = LauncherColors.Gray600
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (showAddScreen) {
+                    // Show all contacts to add
+                    if (allContacts.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    imageVector = Icons.Default.Contacts,
+                                    contentDescription = null,
+                                    tint = LauncherColors.Gray400,
+                                    modifier = Modifier.size(64.dp)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = stringResource(R.string.contacts_empty),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = LauncherColors.Gray500
+                                )
+                            }
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(allContacts) { contact ->
+                                val isAlreadyAdded = quickContacts.any { it.id == contact.id }
+                                ContactListItem(
+                                    contact = contact,
+                                    isAdded = isAlreadyAdded,
+                                    onClick = {
+                                        if (!isAlreadyAdded) {
+                                            onAddContact(contact)
+                                            showAddScreen = false
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    // Show current quick contacts
+                    if (quickContacts.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    imageVector = Icons.Default.PersonAdd,
+                                    contentDescription = null,
+                                    tint = LauncherColors.Gray400,
+                                    modifier = Modifier.size(64.dp)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = stringResource(R.string.contacts_empty),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = LauncherColors.Gray500,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(quickContacts) { contact ->
+                                QuickContactItem(
+                                    contact = contact,
+                                    onRemove = { onRemoveContact(contact) }
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Add button
+                    Button(
+                        onClick = { showAddScreen = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = LauncherColors.Green500
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PersonAdd,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.contacts_add),
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun QuickContactItem(
+    contact: QuickContact,
+    onRemove: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(LauncherColors.Orange50)
+            .border(1.dp, LauncherColors.Orange200, RoundedCornerShape(16.dp))
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Contact avatar
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(LauncherColors.Orange500),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = contact.name.firstOrNull()?.uppercase() ?: "?",
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = contact.name,
+                style = MaterialTheme.typography.titleMedium,
+                color = LauncherColors.Gray800
+            )
+            Text(
+                text = contact.phoneNumber,
+                style = MaterialTheme.typography.bodyMedium,
+                color = LauncherColors.Gray600
+            )
+        }
+
+        IconButton(
+            onClick = onRemove,
+            modifier = Modifier.size(40.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = stringResource(R.string.settings_apps_clear),
+                tint = LauncherColors.Red500
+            )
+        }
+    }
+}
+
+@Composable
+fun ContactListItem(
+    contact: QuickContact,
+    isAdded: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (isAdded) LauncherColors.Gray100 else Color.Transparent)
+            .clickable(enabled = !isAdded, onClick = onClick)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Contact avatar
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(if (isAdded) LauncherColors.Gray400 else LauncherColors.Blue500),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = contact.name.firstOrNull()?.uppercase() ?: "?",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = contact.name,
+                style = MaterialTheme.typography.titleMedium,
+                color = if (isAdded) LauncherColors.Gray500 else LauncherColors.Gray800
+            )
+            Text(
+                text = contact.phoneNumber,
+                style = MaterialTheme.typography.bodySmall,
+                color = LauncherColors.Gray500
+            )
+        }
+
+        if (isAdded) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = stringResource(R.string.status_selected),
+                tint = LauncherColors.Green500
+            )
+        }
+    }
+}
+
+@Composable
+fun ColorsDialog(
+    currentColor: String,
+    onDismiss: () -> Unit,
+    onSelectColor: (String) -> Unit
+) {
+    val colorOptions = listOf(
+        "blue" to LauncherColors.Blue500,
+        "green" to LauncherColors.Green500,
+        "purple" to LauncherColors.Purple500,
+        "orange" to LauncherColors.Orange500,
+        "red" to LauncherColors.Red500,
+        "teal" to Color(0xFF14B8A6)
+    )
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Palette,
+                    contentDescription = null,
+                    tint = LauncherColors.Purple500,
+                    modifier = Modifier.size(48.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = stringResource(R.string.settings_colors),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = LauncherColors.Gray800
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Color grid - 3 columns
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    for (row in colorOptions.chunked(3)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            for ((colorName, colorValue) in row) {
+                                val isSelected = currentColor == colorName
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .aspectRatio(1f)
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .background(colorValue)
+                                        .then(
+                                            if (isSelected) Modifier.border(
+                                                4.dp,
+                                                LauncherColors.Gray800,
+                                                RoundedCornerShape(16.dp)
+                                            ) else Modifier
+                                        )
+                                        .clickable { onSelectColor(colorName) },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (isSelected) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = stringResource(R.string.status_selected),
+                                            tint = Color.White,
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.cancel),
+                        fontSize = 16.sp
+                    )
                 }
             }
         }

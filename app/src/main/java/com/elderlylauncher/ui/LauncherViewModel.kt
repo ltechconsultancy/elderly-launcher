@@ -58,6 +58,9 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     val primaryColor: StateFlow<String> = settingsDataStore.primaryColor
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsDataStore.DEFAULT_PRIMARY_COLOR)
 
+    val language: StateFlow<String> = settingsDataStore.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsDataStore.DEFAULT_LANGUAGE)
+
     // Home apps (stored as JSON with position -> packageName)
     val homeApps: StateFlow<Map<Int, String>> = settingsDataStore.visibleApps
         .map { jsonSet ->
@@ -210,6 +213,16 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 settingsDataStore.setPrimaryColor(color)
             } catch (e: Exception) {
                 Log.e(TAG, "Error updating primary color", e)
+            }
+        }
+    }
+
+    fun updateLanguage(languageCode: String) {
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                settingsDataStore.setLanguage(languageCode)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error updating language", e)
             }
         }
     }

@@ -13,6 +13,10 @@
     <string name="home_emergency_confirm_title">Call 112?</string>
     <string name="home_emergency_confirm_message">You are about to call the emergency number 112.</string>
 
+    <!-- Apps Page -->
+    <string name="apps_title">All Apps</string>
+    <string name="apps_subtitle">Tap to open an app</string>
+
     <!-- Volume Page -->
     <string name="volume_title">Volume</string>
     <string name="volume_subtitle">Adjust the sound</string>
