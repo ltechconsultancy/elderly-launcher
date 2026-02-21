@@ -22,10 +22,11 @@ import com.elderlylauncher.R
 import com.elderlylauncher.ui.home.HomeScreen
 import com.elderlylauncher.ui.settings.SettingsScreen
 import com.elderlylauncher.ui.theme.LauncherColors
+import com.elderlylauncher.ui.volume.VolumeScreen
 
 @Composable
 fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
-    val totalPages = 2
+    val totalPages = 3
     var savedPage by rememberSaveable { mutableIntStateOf(0) }
     val pagerState = rememberPagerState(
         initialPage = savedPage,
@@ -49,7 +50,8 @@ fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
         ) { page ->
             when (page) {
                 0 -> HomeScreen()
-                1 -> SettingsScreen()
+                1 -> VolumeScreen()
+                2 -> SettingsScreen()
             }
         }
 

@@ -57,15 +57,13 @@ fun VolumeScreen() {
         return
     }
 
-    // Get max volumes for each stream
+    // Get max volumes for each stream (removed STREAM_RING as it didn't work correctly)
     val maxMedia = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-    val maxRing = audioManager.getStreamMaxVolume(AudioManager.STREAM_RING)
     val maxNotification = audioManager.getStreamMaxVolume(AudioManager.STREAM_NOTIFICATION)
     val maxAlarm = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
 
     // Current volumes as state
     var mediaVolume by remember { mutableIntStateOf(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)) }
-    var ringVolume by remember { mutableIntStateOf(audioManager.getStreamVolume(AudioManager.STREAM_RING)) }
     var notificationVolume by remember { mutableIntStateOf(audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION)) }
     var alarmVolume by remember { mutableIntStateOf(audioManager.getStreamVolume(AudioManager.STREAM_ALARM)) }
 
@@ -74,7 +72,6 @@ fun VolumeScreen() {
         while (true) {
             delay(2000)
             mediaVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-            ringVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING)
             notificationVolume = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION)
             alarmVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM)
         }
@@ -139,34 +136,6 @@ fun VolumeScreen() {
                     if (mediaVolume > 0) {
                         mediaVolume--
                         safeSetVolume(audioManager, AudioManager.STREAM_MUSIC, mediaVolume)
-                    }
-                }
-            )
-
-            // Ring Volume
-            VolumeControl(
-                title = stringResource(R.string.volume_calls),
-                subtitle = stringResource(R.string.volume_calls_desc),
-                icon = Icons.Default.Phone,
-                backgroundColor = LauncherColors.Green50,
-                borderColor = LauncherColors.Green200,
-                iconBackgroundColor = LauncherColors.Green500,
-                accentColor = LauncherColors.Green500,
-                textColor = LauncherColors.Green700,
-                currentVolume = ringVolume,
-                maxVolume = maxRing,
-                decreaseDescription = decreaseDesc,
-                increaseDescription = increaseDesc,
-                onVolumeUp = {
-                    if (ringVolume < maxRing) {
-                        ringVolume++
-                        safeSetVolume(audioManager, AudioManager.STREAM_RING, ringVolume)
-                    }
-                },
-                onVolumeDown = {
-                    if (ringVolume > 0) {
-                        ringVolume--
-                        safeSetVolume(audioManager, AudioManager.STREAM_RING, ringVolume)
                     }
                 }
             )
