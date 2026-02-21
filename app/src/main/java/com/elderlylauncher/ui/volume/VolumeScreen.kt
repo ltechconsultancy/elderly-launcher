@@ -277,30 +277,31 @@ fun VolumeControl(
             .padding(20.dp)
             .semantics { contentDescription = volumeDescription }
     ) {
+        // Top row: Icon + Title/Subtitle
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon - 64dp for elderly
+            // Icon - 56dp for better fit
             Box(
                 modifier = Modifier
-                    .size(64.dp)
-                    .shadow(4.dp, RoundedCornerShape(18.dp))
-                    .clip(RoundedCornerShape(18.dp))
+                    .size(56.dp)
+                    .shadow(4.dp, RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(16.dp))
                     .background(iconBackgroundColor),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
-                    contentDescription = null, // Parent has description
+                    contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(28.dp)
                 )
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Title and subtitle
+            // Title and subtitle - takes remaining space
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
@@ -310,72 +311,76 @@ fun VolumeControl(
                 )
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = textColor.copy(alpha = 0.8f),
-                    fontSize = 16.sp
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = textColor.copy(alpha = 0.7f),
+                    fontSize = 14.sp
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Volume controls row - full width, centered
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            // Minus button - 56dp touch target
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White)
+                    .border(2.dp, borderColor, RoundedCornerShape(16.dp))
+                    .clickable(
+                        indication = ripple(color = accentColor),
+                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                        onClick = onVolumeDown
+                    )
+                    .semantics { contentDescription = decreaseDescription },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "−",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
                 )
             }
 
-            // Volume controls - 64dp buttons for elderly
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            // Percentage - centered with fixed width
+            Text(
+                text = "$percentage%",
+                style = MaterialTheme.typography.headlineMedium,
+                color = textColor,
+                modifier = Modifier.padding(horizontal = 24.dp),
+                textAlign = TextAlign.Center,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            // Plus button - 56dp touch target
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White)
+                    .border(2.dp, borderColor, RoundedCornerShape(16.dp))
+                    .clickable(
+                        indication = ripple(color = accentColor),
+                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                        onClick = onVolumeUp
+                    )
+                    .semantics { contentDescription = increaseDescription },
+                contentAlignment = Alignment.Center
             ) {
-                // Minus button - 64dp touch target
-                Box(
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(Color.White)
-                        .border(2.dp, borderColor, RoundedCornerShape(18.dp))
-                        .clickable(
-                            indication = ripple(color = accentColor),
-                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-                            onClick = onVolumeDown
-                        )
-                        .semantics { contentDescription = decreaseDescription },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "−",
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor
-                    )
-                }
-
-                // Percentage
                 Text(
-                    text = "$percentage%",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = textColor,
-                    modifier = Modifier.width(70.dp),
-                    textAlign = TextAlign.Center,
-                    fontSize = 24.sp
+                    text = "+",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
                 )
-
-                // Plus button - 64dp touch target
-                Box(
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(Color.White)
-                        .border(2.dp, borderColor, RoundedCornerShape(18.dp))
-                        .clickable(
-                            indication = ripple(color = accentColor),
-                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-                            onClick = onVolumeUp
-                        )
-                        .semantics { contentDescription = increaseDescription },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "+",
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor
-                    )
-                }
             }
         }
 
@@ -397,8 +402,8 @@ fun VolumeControl(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .height(16.dp) // Larger bars
-                        .clip(RoundedCornerShape(8.dp))
+                        .height(12.dp)
+                        .clip(RoundedCornerShape(6.dp))
                         .background(
                             if (index < filledBars) accentColor
                             else accentColor.copy(alpha = 0.2f)

@@ -126,6 +126,13 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    /**
+     * Change password - alias for updatePassword for clarity in Settings
+     */
+    fun changePassword(newPassword: String) {
+        updatePassword(newPassword)
+    }
+
     fun updateEmergencyNumber(number: String) {
         viewModelScope.launch(exceptionHandler) {
             try {

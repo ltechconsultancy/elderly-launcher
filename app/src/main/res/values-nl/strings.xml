@@ -53,6 +53,13 @@
     <string name="settings_emergency">Noodnummer</string>
     <string name="settings_password_change">Wachtwoord wijzigen</string>
     <string name="settings_password_change_subtitle">Wijzig het wachtwoord</string>
+    <string name="settings_password_current">Huidig wachtwoord</string>
+    <string name="settings_password_new">Nieuw wachtwoord</string>
+    <string name="settings_password_confirm">Bevestig nieuw wachtwoord</string>
+    <string name="settings_password_too_short">Wachtwoord moet minimaal 4 cijfers zijn</string>
+    <string name="settings_password_mismatch">Wachtwoorden komen niet overeen</string>
+    <string name="settings_emergency_hint">Telefoonnummer</string>
+    <string name="settings_coming_soon">Deze functie komt binnenkort</string>
     <string name="settings_unlock">Ontgrendelen</string>
     <string name="settings_lock_description">Instellingen zijn vergrendeld</string>
     <string name="settings_locked_out">Te veel pogingen. Even wachten.</string>
@@ -97,6 +104,7 @@
     <string name="confirm">Bevestigen</string>
     <string name="save">Opslaan</string>
     <string name="back">Terug</string>
+    <string name="ok">OK</string>
 
     <!-- Permissions -->
     <string name="permission_title">Toestemmingen nodig</string>

@@ -311,6 +311,119 @@ fun SettingsContent(
     onLock: () -> Unit
 ) {
     val lockDescription = stringResource(R.string.action_lock)
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    // Dialog states
+    var showEmergencyDialog by rememberSaveable { mutableStateOf(false) }
+    var showLanguageDialog by rememberSaveable { mutableStateOf(false) }
+    var showPasswordChangeDialog by rememberSaveable { mutableStateOf(false) }
+    var showColorsDialog by rememberSaveable { mutableStateOf(false) }
+    var showAppsDialog by rememberSaveable { mutableStateOf(false) }
+    var showContactsDialog by rememberSaveable { mutableStateOf(false) }
+
+    // Emergency number state
+    var emergencyNumber by rememberSaveable { mutableStateOf("112") }
+
+    // Password change state
+    var currentPassword by rememberSaveable { mutableStateOf("") }
+    var newPassword by rememberSaveable { mutableStateOf("") }
+    var confirmPassword by rememberSaveable { mutableStateOf("") }
+    var passwordError by rememberSaveable { mutableStateOf<String?>(null) }
+
+    // Emergency Number Dialog
+    if (showEmergencyDialog) {
+        EmergencyNumberDialog(
+            currentNumber = emergencyNumber,
+            onDismiss = { showEmergencyDialog = false },
+            onConfirm = { newNumber ->
+                emergencyNumber = newNumber
+                showEmergencyDialog = false
+            }
+        )
+    }
+
+    // Language Dialog
+    if (showLanguageDialog) {
+        LanguageDialog(
+            onDismiss = { showLanguageDialog = false },
+            onSelectLanguage = { languageCode ->
+                // Change app locale
+                val locale = java.util.Locale(languageCode)
+                val config = context.resources.configuration
+                config.setLocale(locale)
+                context.createConfigurationContext(config)
+                showLanguageDialog = false
+            }
+        )
+    }
+
+    // Password Change Dialog
+    if (showPasswordChangeDialog) {
+        PasswordChangeDialog(
+            currentPassword = currentPassword,
+            newPassword = newPassword,
+            confirmPassword = confirmPassword,
+            error = passwordError,
+            onCurrentPasswordChange = { currentPassword = it; passwordError = null },
+            onNewPasswordChange = { newPassword = it; passwordError = null },
+            onConfirmPasswordChange = { confirmPassword = it; passwordError = null },
+            onDismiss = {
+                showPasswordChangeDialog = false
+                currentPassword = ""
+                newPassword = ""
+                confirmPassword = ""
+                passwordError = null
+            },
+            onConfirm = {
+                coroutineScope.launch {
+                    when {
+                        !viewModel.validatePassword(currentPassword) -> {
+                            passwordError = context.getString(R.string.settings_password_wrong)
+                        }
+                        newPassword.length < 4 -> {
+                            passwordError = context.getString(R.string.settings_password_too_short)
+                        }
+                        newPassword != confirmPassword -> {
+                            passwordError = context.getString(R.string.settings_password_mismatch)
+                        }
+                        else -> {
+                            viewModel.changePassword(newPassword)
+                            showPasswordChangeDialog = false
+                            currentPassword = ""
+                            newPassword = ""
+                            confirmPassword = ""
+                            passwordError = null
+                        }
+                    }
+                }
+            }
+        )
+    }
+
+    // Colors Dialog (Coming Soon)
+    if (showColorsDialog) {
+        ComingSoonDialog(
+            title = stringResource(R.string.settings_colors),
+            onDismiss = { showColorsDialog = false }
+        )
+    }
+
+    // Apps Dialog (Coming Soon)
+    if (showAppsDialog) {
+        ComingSoonDialog(
+            title = stringResource(R.string.settings_apps),
+            onDismiss = { showAppsDialog = false }
+        )
+    }
+
+    // Contacts Dialog (Coming Soon)
+    if (showContactsDialog) {
+        ComingSoonDialog(
+            title = stringResource(R.string.settings_contacts),
+            onDismiss = { showContactsDialog = false }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -363,7 +476,7 @@ fun SettingsContent(
                 subtitle = stringResource(R.string.settings_colors_subtitle),
                 icon = Icons.Default.Palette,
                 iconColor = LauncherColors.Purple500,
-                onClick = { /* TODO */ }
+                onClick = { showColorsDialog = true }
             )
 
             SettingsItem(
@@ -371,7 +484,7 @@ fun SettingsContent(
                 subtitle = stringResource(R.string.language_current),
                 icon = Icons.Default.Language,
                 iconColor = LauncherColors.Blue500,
-                onClick = { /* TODO */ }
+                onClick = { showLanguageDialog = true }
             )
 
             SettingsItem(
@@ -379,7 +492,7 @@ fun SettingsContent(
                 subtitle = stringResource(R.string.settings_apps_subtitle),
                 icon = Icons.Default.Apps,
                 iconColor = LauncherColors.Green500,
-                onClick = { /* TODO */ }
+                onClick = { showAppsDialog = true }
             )
 
             SettingsItem(
@@ -387,15 +500,15 @@ fun SettingsContent(
                 subtitle = stringResource(R.string.settings_contacts_subtitle),
                 icon = Icons.Default.Contacts,
                 iconColor = LauncherColors.Orange500,
-                onClick = { /* TODO */ }
+                onClick = { showContactsDialog = true }
             )
 
             SettingsItem(
                 title = stringResource(R.string.settings_emergency),
-                subtitle = stringResource(R.string.emergency_number_default),
+                subtitle = emergencyNumber,
                 icon = Icons.Default.Emergency,
                 iconColor = LauncherColors.Red500,
-                onClick = { /* TODO */ }
+                onClick = { showEmergencyDialog = true }
             )
 
             SettingsItem(
@@ -403,10 +516,391 @@ fun SettingsContent(
                 subtitle = stringResource(R.string.settings_password_change_subtitle),
                 icon = Icons.Default.Key,
                 iconColor = LauncherColors.Gray600,
-                onClick = { /* TODO */ }
+                onClick = { showPasswordChangeDialog = true }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+fun EmergencyNumberDialog(
+    currentNumber: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var number by rememberSaveable { mutableStateOf(currentNumber) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Emergency,
+                    contentDescription = null,
+                    tint = LauncherColors.Red500,
+                    modifier = Modifier.size(48.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = stringResource(R.string.settings_emergency),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = LauncherColors.Gray800
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                OutlinedTextField(
+                    value = number,
+                    onValueChange = { if (it.length <= 15) number = it },
+                    label = { Text(stringResource(R.string.settings_emergency_hint)) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    textStyle = MaterialTheme.typography.titleLarge.copy(
+                        textAlign = TextAlign.Center
+                    ),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.cancel),
+                            fontSize = 16.sp
+                        )
+                    }
+
+                    Button(
+                        onClick = { onConfirm(number) },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = LauncherColors.Red500
+                        )
+                    ) {
+                        Text(
+                            text = stringResource(R.string.confirm),
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun LanguageDialog(
+    onDismiss: () -> Unit,
+    onSelectLanguage: (String) -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Language,
+                    contentDescription = null,
+                    tint = LauncherColors.Blue500,
+                    modifier = Modifier.size(48.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = stringResource(R.string.settings_language),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = LauncherColors.Gray800
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Dutch
+                LanguageOption(
+                    flag = "🇳🇱",
+                    name = "Nederlands",
+                    onClick = { onSelectLanguage("nl") }
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // English
+                LanguageOption(
+                    flag = "🇬🇧",
+                    name = "English",
+                    onClick = { onSelectLanguage("en") }
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.cancel),
+                        fontSize = 16.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun LanguageOption(
+    flag: String,
+    name: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(LauncherColors.Gray50)
+            .border(1.dp, LauncherColors.Gray200, RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = flag,
+            fontSize = 32.sp
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = name,
+            style = MaterialTheme.typography.titleLarge,
+            color = LauncherColors.Gray800
+        )
+    }
+}
+
+@Composable
+fun PasswordChangeDialog(
+    currentPassword: String,
+    newPassword: String,
+    confirmPassword: String,
+    error: String?,
+    onCurrentPasswordChange: (String) -> Unit,
+    onNewPasswordChange: (String) -> Unit,
+    onConfirmPasswordChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Key,
+                    contentDescription = null,
+                    tint = LauncherColors.Gray600,
+                    modifier = Modifier.size(48.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = stringResource(R.string.settings_password_change),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = LauncherColors.Gray800
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                OutlinedTextField(
+                    value = currentPassword,
+                    onValueChange = onCurrentPasswordChange,
+                    label = { Text(stringResource(R.string.settings_password_current)) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = newPassword,
+                    onValueChange = onNewPasswordChange,
+                    label = { Text(stringResource(R.string.settings_password_new)) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = onConfirmPasswordChange,
+                    label = { Text(stringResource(R.string.settings_password_confirm)) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    singleLine = true,
+                    isError = error != null
+                )
+
+                if (error != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = error,
+                        color = LauncherColors.Red500,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.cancel),
+                            fontSize = 16.sp
+                        )
+                    }
+
+                    Button(
+                        onClick = onConfirm,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = LauncherColors.Blue500
+                        )
+                    ) {
+                        Text(
+                            text = stringResource(R.string.confirm),
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ComingSoonDialog(
+    title: String,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Construction,
+                    contentDescription = null,
+                    tint = LauncherColors.Orange500,
+                    modifier = Modifier.size(64.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = LauncherColors.Gray800
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = stringResource(R.string.settings_coming_soon),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = LauncherColors.Gray500,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = LauncherColors.Blue500
+                    )
+                ) {
+                    Text(
+                        text = stringResource(R.string.ok),
+                        fontSize = 18.sp
+                    )
+                }
+            }
         }
     }
 }
