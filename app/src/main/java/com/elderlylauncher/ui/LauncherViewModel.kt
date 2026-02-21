@@ -58,6 +58,13 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     val primaryColor: StateFlow<String> = settingsDataStore.primaryColor
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsDataStore.DEFAULT_PRIMARY_COLOR)
 
+    // Home apps (stored as JSON with position -> packageName)
+    val homeApps: StateFlow<Map<Int, String>> = settingsDataStore.visibleApps
+        .map { jsonSet ->
+            jsonSet.mapNotNull { json -> parseHomeApp(json) }.toMap()
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
     init {
         loadApps()
         loadContacts()
@@ -131,6 +138,60 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
      */
     fun changePassword(newPassword: String) {
         updatePassword(newPassword)
+    }
+
+    /**
+     * Set a home app at a specific position (0-3)
+     */
+    fun setHomeApp(position: Int, packageName: String) {
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                val currentApps = homeApps.value.toMutableMap()
+                currentApps[position] = packageName
+                val jsonSet = currentApps.map { (pos, pkg) ->
+                    JSONObject().apply {
+                        put("position", pos)
+                        put("packageName", pkg)
+                    }.toString()
+                }.toSet()
+                settingsDataStore.setVisibleApps(jsonSet)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error setting home app", e)
+            }
+        }
+    }
+
+    /**
+     * Clear a home app at a specific position
+     */
+    fun clearHomeApp(position: Int) {
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                val currentApps = homeApps.value.toMutableMap()
+                currentApps.remove(position)
+                val jsonSet = currentApps.map { (pos, pkg) ->
+                    JSONObject().apply {
+                        put("position", pos)
+                        put("packageName", pkg)
+                    }.toString()
+                }.toSet()
+                settingsDataStore.setVisibleApps(jsonSet)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error clearing home app", e)
+            }
+        }
+    }
+
+    private fun parseHomeApp(json: String): Pair<Int, String>? {
+        return try {
+            val obj = JSONObject(json)
+            val position = obj.getInt("position")
+            val packageName = obj.getString("packageName")
+            position to packageName
+        } catch (e: Exception) {
+            Log.e(TAG, "Error parsing home app: $json", e)
+            null
+        }
     }
 
     fun updateEmergencyNumber(number: String) {

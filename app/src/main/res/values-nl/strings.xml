@@ -48,6 +48,13 @@
     <string name="settings_language">Taal</string>
     <string name="settings_apps">Zichtbare apps</string>
     <string name="settings_apps_subtitle">Kies welke apps zichtbaar zijn</string>
+    <string name="settings_apps_choose_slot">Tik op een plek om een app te kiezen</string>
+    <string name="settings_apps_tap_to_select">Tik om app te kiezen</string>
+    <string name="settings_apps_clear">App verwijderen</string>
+    <string name="settings_app_slot_1">Linksboven</string>
+    <string name="settings_app_slot_2">Rechtsboven</string>
+    <string name="settings_app_slot_3">Linksonder</string>
+    <string name="settings_app_slot_4">Rechtsonder</string>
     <string name="settings_contacts">Snelle contacten</string>
     <string name="settings_contacts_subtitle">Beheer snelle contacten</string>
     <string name="settings_emergency">Noodnummer</string>

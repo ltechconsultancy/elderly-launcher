@@ -34,8 +34,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
+import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.ui.LauncherViewModel
 import com.elderlylauncher.ui.theme.LauncherColors
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.core.graphics.drawable.toBitmap
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -409,11 +415,21 @@ fun SettingsContent(
         )
     }
 
-    // Apps Dialog (Coming Soon)
+    // Apps Dialog - Select home screen apps
     if (showAppsDialog) {
-        ComingSoonDialog(
-            title = stringResource(R.string.settings_apps),
-            onDismiss = { showAppsDialog = false }
+        val installedApps by viewModel.installedApps.collectAsState()
+        val homeApps by viewModel.homeApps.collectAsState()
+
+        HomeAppsDialog(
+            installedApps = installedApps,
+            currentHomeApps = homeApps,
+            onDismiss = { showAppsDialog = false },
+            onAppSelected = { position, packageName ->
+                viewModel.setHomeApp(position, packageName)
+            },
+            onAppCleared = { position ->
+                viewModel.clearHomeApp(position)
+            }
         )
     }
 
@@ -969,5 +985,241 @@ fun SettingsItem(
             tint = LauncherColors.Gray600,
             modifier = Modifier.size(32.dp)
         )
+    }
+}
+
+@Composable
+fun HomeAppsDialog(
+    installedApps: List<AppInfo>,
+    currentHomeApps: Map<Int, String>,
+    onDismiss: () -> Unit,
+    onAppSelected: (Int, String) -> Unit,
+    onAppCleared: (Int) -> Unit
+) {
+    var selectedPosition by rememberSaveable { mutableIntStateOf(-1) }
+    val positionNames = listOf(
+        stringResource(R.string.settings_app_slot_1),
+        stringResource(R.string.settings_app_slot_2),
+        stringResource(R.string.settings_app_slot_3),
+        stringResource(R.string.settings_app_slot_4)
+    )
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.9f)
+                .padding(8.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_apps),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = LauncherColors.Gray800
+                    )
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(R.string.cancel),
+                            tint = LauncherColors.Gray600
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (selectedPosition == -1) {
+                    // Show 4 app slots
+                    Text(
+                        text = stringResource(R.string.settings_apps_choose_slot),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = LauncherColors.Gray600
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        for (position in 0..3) {
+                            val packageName = currentHomeApps[position]
+                            val appInfo = installedApps.find { it.packageName == packageName }
+
+                            AppSlotItem(
+                                slotName = positionNames[position],
+                                appInfo = appInfo,
+                                onClick = { selectedPosition = position },
+                                onClear = if (packageName != null) {
+                                    { onAppCleared(position) }
+                                } else null
+                            )
+                        }
+                    }
+                } else {
+                    // Show app list for selection
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = { selectedPosition = -1 }) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = stringResource(R.string.back),
+                                tint = LauncherColors.Gray600
+                            )
+                        }
+                        Text(
+                            text = positionNames[selectedPosition],
+                            style = MaterialTheme.typography.titleLarge,
+                            color = LauncherColors.Gray800
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        items(installedApps) { app ->
+                            AppListItem(
+                                appInfo = app,
+                                isSelected = currentHomeApps[selectedPosition] == app.packageName,
+                                onClick = {
+                                    onAppSelected(selectedPosition, app.packageName)
+                                    selectedPosition = -1
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AppSlotItem(
+    slotName: String,
+    appInfo: AppInfo?,
+    onClick: () -> Unit,
+    onClear: (() -> Unit)?
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(LauncherColors.Gray50)
+            .border(1.dp, LauncherColors.Gray200, RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // App icon or placeholder
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(if (appInfo != null) Color.Transparent else LauncherColors.Gray200),
+            contentAlignment = Alignment.Center
+        ) {
+            if (appInfo != null) {
+                Image(
+                    bitmap = appInfo.icon.toBitmap(96, 96).asImageBitmap(),
+                    contentDescription = appInfo.label,
+                    modifier = Modifier.size(48.dp)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    tint = LauncherColors.Gray500,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = slotName,
+                style = MaterialTheme.typography.bodyMedium,
+                color = LauncherColors.Gray500,
+                fontSize = 12.sp
+            )
+            Text(
+                text = appInfo?.label ?: stringResource(R.string.settings_apps_tap_to_select),
+                style = MaterialTheme.typography.titleMedium,
+                color = if (appInfo != null) LauncherColors.Gray800 else LauncherColors.Gray500
+            )
+        }
+
+        if (onClear != null) {
+            IconButton(
+                onClick = onClear,
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Clear,
+                    contentDescription = stringResource(R.string.settings_apps_clear),
+                    tint = LauncherColors.Gray500
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AppListItem(
+    appInfo: AppInfo,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (isSelected) LauncherColors.Green50 else Color.Transparent)
+            .border(
+                width = if (isSelected) 2.dp else 0.dp,
+                color = if (isSelected) LauncherColors.Green500 else Color.Transparent,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            bitmap = appInfo.icon.toBitmap(96, 96).asImageBitmap(),
+            contentDescription = appInfo.label,
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(10.dp))
+        )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Text(
+            text = appInfo.label,
+            style = MaterialTheme.typography.titleMedium,
+            color = LauncherColors.Gray800,
+            modifier = Modifier.weight(1f)
+        )
+
+        if (isSelected) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = stringResource(R.string.status_selected),
+                tint = LauncherColors.Green500
+            )
+        }
     }
 }
