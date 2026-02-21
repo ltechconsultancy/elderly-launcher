@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Elderly Launcher</string>
+
+    <!-- Home Screen -->
+    <string name="home_call">Call</string>
+    <string name="home_messages">Messages</string>
+    <string name="home_camera">Camera</string>
+    <string name="home_photos">Photos</string>
+    <string name="home_emergency">EMERGENCY</string>
+    <string name="home_page">Page %1$d of %2$d</string>
+
+    <!-- Volume Page -->
+    <string name="volume_title">Volume</string>
+    <string name="volume_subtitle">Adjust the sound</string>
+    <string name="volume_media">Media</string>
+    <string name="volume_media_desc">Music, videos</string>
+    <string name="volume_calls">Calls</string>
+    <string name="volume_calls_desc">Ringtone</string>
+    <string name="volume_notifications">Notifications</string>
+    <string name="volume_notifications_desc">Messages, apps</string>
+    <string name="volume_alarm">Alarm</string>
+    <string name="volume_alarm_desc">Wake-up alarm</string>
+    <string name="volume_decrease">Decrease volume</string>
+    <string name="volume_increase">Increase volume</string>
+
+    <!-- Contacts -->
+    <string name="contacts_title">Contacts</string>
+    <string name="contacts_quick_call">Quick call</string>
+    <string name="contacts_add">Add contact</string>
+    <string name="contacts_call_confirm">Call %1$s?</string>
+    <string name="contacts_empty">No quick contacts</string>
+    <string name="contacts_picker_title">Choose a contact</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_password_title">Enter password</string>
+    <string name="settings_password_hint">Password</string>
+    <string name="settings_password_wrong">Wrong password</string>
+    <string name="settings_colors">Colors</string>
+    <string name="settings_colors_subtitle">Customize colors</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_apps">Visible apps</string>
+    <string name="settings_apps_subtitle">Choose which apps are visible</string>
+    <string name="settings_contacts">Quick contacts</string>
+    <string name="settings_contacts_subtitle">Manage quick contacts</string>
+    <string name="settings_emergency">Emergency number</string>
+    <string name="settings_password_change">Change password</string>
+    <string name="settings_password_change_subtitle">Change the password</string>
+    <string name="settings_unlock">Unlock</string>
+    <string name="settings_lock_description">Settings are locked</string>
+    <string name="settings_locked_out">Too many attempts. Please wait.</string>
+    <string name="settings_attempts_remaining">%1$d attempts remaining</string>
+
+    <!-- Actions -->
+    <string name="action_lock">Lock</string>
+    <string name="action_call">Call</string>
+    <string name="action_add">Add</string>
+    <string name="action_open">Open</string>
+    <string name="status_selected">Selected</string>
+
+    <!-- Color Picker -->
+    <string name="color_picker_title">Choose a color</string>
+    <string name="color_blue">Blue</string>
+    <string name="color_green">Green</string>
+    <string name="color_purple">Purple</string>
+    <string name="color_orange">Orange</string>
+    <string name="color_pink">Pink</string>
+    <string name="color_red">Red</string>
+    <string name="color_gray">Gray</string>
+    <string name="color_teal">Teal</string>
+    <string name="color_amber">Amber</string>
+    <string name="color_indigo">Indigo</string>
+    <string name="color_cyan">Cyan</string>
+    <string name="color_lime">Lime</string>
+
+    <!-- Language -->
+    <string name="language_current">English</string>
+    <string name="language_dutch">Dutch</string>
+    <string name="language_english">English</string>
+
+    <!-- Emergency -->
+    <string name="emergency_number_default">112</string>
+
+    <!-- General -->
+    <string name="cancel">Cancel</string>
+    <string name="confirm">Confirm</string>
+    <string name="save">Save</string>
+    <string name="back">Back</string>
+
+    <!-- Permissions -->
+    <string name="permission_title">Permissions Required</string>
+    <string name="permission_description">This app needs permission to access your contacts, make phone calls, and use the camera. Tap Allow to continue.</string>
+    <string name="permission_allow">Allow</string>
+    <string name="permission_skip">Skip for now</string>
+
+    <!-- Errors -->
+    <string name="error_app_not_found">App not found</string>
+    <string name="error_no_permission">Permission denied</string>
+</resources>

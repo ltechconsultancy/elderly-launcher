@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Eenvoudige Launcher</string>
+
+    <!-- Home Screen -->
+    <string name="home_call">Bellen</string>
+    <string name="home_messages">Berichten</string>
+    <string name="home_camera">Camera</string>
+    <string name="home_photos">Foto\'s</string>
+    <string name="home_emergency">NOODGEVAL</string>
+    <string name="home_page">Pagina %1$d van %2$d</string>
+
+    <!-- Volume Page -->
+    <string name="volume_title">Volume</string>
+    <string name="volume_subtitle">Pas het geluid aan</string>
+    <string name="volume_media">Media</string>
+    <string name="volume_media_desc">Muziek, video\'s</string>
+    <string name="volume_calls">Oproepen</string>
+    <string name="volume_calls_desc">Beltoon</string>
+    <string name="volume_notifications">Meldingen</string>
+    <string name="volume_notifications_desc">Berichten, apps</string>
+    <string name="volume_alarm">Alarm</string>
+    <string name="volume_alarm_desc">Wekker</string>
+    <string name="volume_decrease">Volume verlagen</string>
+    <string name="volume_increase">Volume verhogen</string>
+
+    <!-- Contacts -->
+    <string name="contacts_title">Contacten</string>
+    <string name="contacts_quick_call">Snel bellen</string>
+    <string name="contacts_add">Contact toevoegen</string>
+    <string name="contacts_call_confirm">%1$s bellen?</string>
+    <string name="contacts_empty">Geen snelle contacten</string>
+    <string name="contacts_picker_title">Kies een contact</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Instellingen</string>
+    <string name="settings_password_title">Voer wachtwoord in</string>
+    <string name="settings_password_hint">Wachtwoord</string>
+    <string name="settings_password_wrong">Verkeerd wachtwoord</string>
+    <string name="settings_colors">Kleuren</string>
+    <string name="settings_colors_subtitle">Pas kleuren aan</string>
+    <string name="settings_language">Taal</string>
+    <string name="settings_apps">Zichtbare apps</string>
+    <string name="settings_apps_subtitle">Kies welke apps zichtbaar zijn</string>
+    <string name="settings_contacts">Snelle contacten</string>
+    <string name="settings_contacts_subtitle">Beheer snelle contacten</string>
+    <string name="settings_emergency">Noodnummer</string>
+    <string name="settings_password_change">Wachtwoord wijzigen</string>
+    <string name="settings_password_change_subtitle">Wijzig het wachtwoord</string>
+    <string name="settings_unlock">Ontgrendelen</string>
+    <string name="settings_lock_description">Instellingen zijn vergrendeld</string>
+    <string name="settings_locked_out">Te veel pogingen. Even wachten.</string>
+    <string name="settings_attempts_remaining">Nog %1$d pogingen</string>
+
+    <!-- Actions -->
+    <string name="action_lock">Vergrendelen</string>
+    <string name="action_call">Bellen</string>
+    <string name="action_add">Toevoegen</string>
+    <string name="action_open">Openen</string>
+    <string name="status_selected">Geselecteerd</string>
+
+    <!-- Color Picker -->
+    <string name="color_picker_title">Kies een kleur</string>
+    <string name="color_blue">Blauw</string>
+    <string name="color_green">Groen</string>
+    <string name="color_purple">Paars</string>
+    <string name="color_orange">Oranje</string>
+    <string name="color_pink">Roze</string>
+    <string name="color_red">Rood</string>
+    <string name="color_gray">Grijs</string>
+    <string name="color_teal">Turquoise</string>
+    <string name="color_amber">Amber</string>
+    <string name="color_indigo">Indigo</string>
+    <string name="color_cyan">Cyaan</string>
+    <string name="color_lime">Limoen</string>
+
+    <!-- Language -->
+    <string name="language_current">Nederlands</string>
+    <string name="language_dutch">Nederlands</string>
+    <string name="language_english">Engels</string>
+
+    <!-- Emergency -->
+    <string name="emergency_number_default">112</string>
+
+    <!-- General -->
+    <string name="cancel">Annuleren</string>
+    <string name="confirm">Bevestigen</string>
+    <string name="save">Opslaan</string>
+    <string name="back">Terug</string>
+
+    <!-- Permissions -->
+    <string name="permission_title">Toestemmingen nodig</string>
+    <string name="permission_description">Deze app heeft toestemming nodig om je contacten te openen, te bellen en de camera te gebruiken. Tik op Toestaan om verder te gaan.</string>
+    <string name="permission_allow">Toestaan</string>
+    <string name="permission_skip">Later</string>
+
+    <!-- Errors -->
+    <string name="error_app_not_found">App niet gevonden</string>
+    <string name="error_no_permission">Geen toestemming</string>
+</resources>

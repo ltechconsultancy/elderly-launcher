@@ -1,0 +1,40 @@
+# Android
+*.iml
+.gradle/
+local.properties
+.idea/
+*.hprof
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Kotlin
+*.kotlin_module
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Mockups (keep for reference but don't build)
+mockups/
+
+# IDE
+*.swp
+*.swo
+*~
+
+# Secrets
+*.jks
+*.keystore
+google-services.json
