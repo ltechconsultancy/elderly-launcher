@@ -20,14 +20,16 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
 import com.elderlylauncher.ui.apps.AppsScreen
+import com.elderlylauncher.ui.games.GamesScreen
 import com.elderlylauncher.ui.home.HomeScreen
+import com.elderlylauncher.ui.photos.PhotoCarouselScreen
 import com.elderlylauncher.ui.settings.SettingsScreen
 import com.elderlylauncher.ui.theme.LauncherColors
 import com.elderlylauncher.ui.volume.VolumeScreen
 
 @Composable
 fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
-    val totalPages = 4
+    val totalPages = 6
     var savedPage by rememberSaveable { mutableIntStateOf(0) }
     val pagerState = rememberPagerState(
         initialPage = savedPage,
@@ -52,8 +54,10 @@ fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
             when (page) {
                 0 -> HomeScreen()
                 1 -> AppsScreen()
-                2 -> VolumeScreen()
-                3 -> SettingsScreen()
+                2 -> GamesScreen()
+                3 -> PhotoCarouselScreen()
+                4 -> VolumeScreen()
+                5 -> SettingsScreen()
             }
         }
 

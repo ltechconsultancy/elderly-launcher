@@ -17,6 +17,23 @@
     <string name="apps_title">Alle Apps</string>
     <string name="apps_subtitle">Tik om een app te openen</string>
 
+    <!-- Games Page -->
+    <string name="games_title">Spelletjes</string>
+    <string name="games_subtitle">Tik om te spelen</string>
+    <string name="games_empty">Geen spelletjes toegevoegd</string>
+    <string name="games_empty_hint">Voeg spelletjes toe via Instellingen</string>
+
+    <!-- Photos Page -->
+    <string name="photos_title">Foto\'s</string>
+    <string name="photos_subtitle">Veeg om te bekijken</string>
+    <string name="photos_empty">Geen foto\'s</string>
+    <string name="photos_empty_hint">Voeg foto\'s toe via Instellingen</string>
+    <string name="photos_previous">Vorige</string>
+    <string name="photos_next">Volgende</string>
+    <string name="photos_add">Foto toevoegen</string>
+    <string name="photos_favorite">Favoriete foto</string>
+    <string name="photos_none_selected">Geen foto\'s geselecteerd</string>
+
     <!-- Volume Page -->
     <string name="volume_title">Volume</string>
     <string name="volume_subtitle">Pas het geluid aan</string>
@@ -64,6 +81,12 @@
     <string name="settings_app_slot_4">Rechtsonder</string>
     <string name="settings_contacts">Snelle contacten</string>
     <string name="settings_contacts_subtitle">Beheer snelle contacten</string>
+    <string name="settings_games">Spelletjes</string>
+    <string name="settings_games_subtitle">Kies spelletje apps</string>
+    <string name="settings_games_hint">Tik om spelletjes toe te voegen of te verwijderen</string>
+    <string name="settings_photos">Foto\'s</string>
+    <string name="settings_photos_subtitle">Beheer foto carrousel</string>
+    <string name="settings_photos_hint">Voeg favoriete foto\'s toe aan de carrousel</string>
     <string name="settings_emergency">Noodnummer</string>
     <string name="settings_password_change">Wachtwoord wijzigen</string>
     <string name="settings_password_change_subtitle">Wijzig het wachtwoord</string>

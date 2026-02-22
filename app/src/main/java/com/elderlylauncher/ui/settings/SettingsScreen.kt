@@ -38,11 +38,17 @@ import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.data.QuickContact
 import com.elderlylauncher.ui.LauncherViewModel
 import com.elderlylauncher.ui.theme.LauncherColors
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.core.graphics.drawable.toBitmap
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -331,6 +337,8 @@ fun SettingsContent(
     var showAppsDialog by rememberSaveable { mutableStateOf(false) }
     var showAppsPageDialog by rememberSaveable { mutableStateOf(false) }
     var showContactsDialog by rememberSaveable { mutableStateOf(false) }
+    var showGamesDialog by rememberSaveable { mutableStateOf(false) }
+    var showPhotosDialog by rememberSaveable { mutableStateOf(false) }
 
     // Emergency number state
     var emergencyNumber by rememberSaveable { mutableStateOf("112") }
@@ -481,6 +489,37 @@ fun SettingsContent(
         )
     }
 
+    // Games selection dialog
+    if (showGamesDialog) {
+        val installedApps by viewModel.installedApps.collectAsState()
+        val gameApps by viewModel.gameApps.collectAsState()
+
+        GamesSelectionDialog(
+            installedApps = installedApps,
+            gameApps = gameApps,
+            onDismiss = { showGamesDialog = false },
+            onToggleApp = { packageName ->
+                viewModel.toggleGameApp(packageName)
+            }
+        )
+    }
+
+    // Photos selection dialog
+    if (showPhotosDialog) {
+        val carouselPhotos by viewModel.carouselPhotos.collectAsState()
+
+        PhotosSelectionDialog(
+            selectedPhotos = carouselPhotos,
+            onDismiss = { showPhotosDialog = false },
+            onAddPhoto = { uri ->
+                viewModel.addCarouselPhoto(uri)
+            },
+            onRemovePhoto = { uri ->
+                viewModel.removeCarouselPhoto(uri)
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -557,6 +596,22 @@ fun SettingsContent(
                 icon = Icons.Default.GridView,
                 iconColor = LauncherColors.Teal500,
                 onClick = { showAppsPageDialog = true }
+            )
+
+            SettingsItem(
+                title = stringResource(R.string.settings_games),
+                subtitle = stringResource(R.string.settings_games_subtitle),
+                icon = Icons.Default.SportsEsports,
+                iconColor = LauncherColors.Purple500,
+                onClick = { showGamesDialog = true }
+            )
+
+            SettingsItem(
+                title = stringResource(R.string.settings_photos),
+                subtitle = stringResource(R.string.settings_photos_subtitle),
+                icon = Icons.Default.PhotoLibrary,
+                iconColor = LauncherColors.Pink500,
+                onClick = { showPhotosDialog = true }
             )
 
             SettingsItem(
@@ -1751,6 +1806,284 @@ fun AppListItem(
                 imageVector = Icons.Default.Check,
                 contentDescription = stringResource(R.string.status_selected),
                 tint = LauncherColors.Green500
+            )
+        }
+    }
+}
+
+@Composable
+fun GamesSelectionDialog(
+    installedApps: List<AppInfo>,
+    gameApps: Set<String>,
+    onDismiss: () -> Unit,
+    onToggleApp: (String) -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.85f)
+                .padding(8.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_games),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = LauncherColors.Gray800
+                    )
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(R.string.cancel),
+                            tint = LauncherColors.Gray600
+                        )
+                    }
+                }
+
+                Text(
+                    text = stringResource(R.string.settings_games_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = LauncherColors.Gray500
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    items(installedApps) { app ->
+                        val isGame = app.packageName in gameApps
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (isGame) LauncherColors.Purple50 else LauncherColors.Gray50)
+                                .clickable { onToggleApp(app.packageName) }
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                bitmap = app.icon.toBitmap(96, 96).asImageBitmap(),
+                                contentDescription = app.label,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                            )
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Text(
+                                text = app.label,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = if (isGame) LauncherColors.Gray800 else LauncherColors.Gray500,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            Icon(
+                                imageVector = if (isGame) Icons.Default.SportsEsports else Icons.Default.Add,
+                                contentDescription = if (isGame) "Game" else "Add",
+                                tint = if (isGame) LauncherColors.Purple500 else LauncherColors.Gray400
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PhotosSelectionDialog(
+    selectedPhotos: Set<String>,
+    onDismiss: () -> Unit,
+    onAddPhoto: (String) -> Unit,
+    onRemovePhoto: (String) -> Unit
+) {
+    val context = LocalContext.current
+
+    // Photo picker launcher
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            // Take persistent permission for the URI
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    it,
+                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (e: Exception) {
+                // Permission might not be available for all content
+            }
+            onAddPhoto(it.toString())
+        }
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.85f)
+                .padding(8.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_photos),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = LauncherColors.Gray800
+                    )
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(R.string.cancel),
+                            tint = LauncherColors.Gray600
+                        )
+                    }
+                }
+
+                Text(
+                    text = stringResource(R.string.settings_photos_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = LauncherColors.Gray500
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Add photo button
+                Button(
+                    onClick = { photoPickerLauncher.launch("image/*") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = LauncherColors.Pink500
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AddPhotoAlternate,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.photos_add),
+                        fontSize = 16.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (selectedPhotos.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.PhotoLibrary,
+                                contentDescription = null,
+                                tint = LauncherColors.Gray400,
+                                modifier = Modifier.size(64.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = stringResource(R.string.photos_none_selected),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = LauncherColors.Gray500,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(selectedPhotos.toList()) { photoUri ->
+                            PhotoListItem(
+                                photoUri = photoUri,
+                                onRemove = { onRemovePhoto(photoUri) }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PhotoListItem(
+    photoUri: String,
+    onRemove: () -> Unit
+) {
+    val context = LocalContext.current
+    val painter = rememberAsyncImagePainter(
+        ImageRequest.Builder(context)
+            .data(Uri.parse(photoUri))
+            .crossfade(true)
+            .build()
+    )
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(LauncherColors.Pink50)
+            .border(1.dp, LauncherColors.Pink200, RoundedCornerShape(16.dp))
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Photo thumbnail
+        Image(
+            painter = painter,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .size(64.dp)
+                .clip(RoundedCornerShape(12.dp))
+        )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Text(
+            text = stringResource(R.string.photos_favorite),
+            style = MaterialTheme.typography.titleMedium,
+            color = LauncherColors.Gray800,
+            modifier = Modifier.weight(1f)
+        )
+
+        IconButton(
+            onClick = onRemove,
+            modifier = Modifier.size(40.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = stringResource(R.string.settings_apps_clear),
+                tint = LauncherColors.Red500
             )
         }
     }

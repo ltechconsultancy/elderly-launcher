@@ -72,6 +72,14 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     val hiddenApps: StateFlow<Set<String>> = settingsDataStore.hiddenApps
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
+    // Game apps (package names for games page)
+    val gameApps: StateFlow<Set<String>> = settingsDataStore.gameApps
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    // Carousel photos (URIs for photo carousel)
+    val carouselPhotos: StateFlow<Set<String>> = settingsDataStore.carouselPhotos
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
     init {
         loadApps()
         loadContacts()
@@ -237,6 +245,36 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 settingsDataStore.toggleAppVisibility(packageName)
             } catch (e: Exception) {
                 Log.e(TAG, "Error toggling app visibility", e)
+            }
+        }
+    }
+
+    fun toggleGameApp(packageName: String) {
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                settingsDataStore.toggleGameApp(packageName)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error toggling game app", e)
+            }
+        }
+    }
+
+    fun addCarouselPhoto(photoUri: String) {
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                settingsDataStore.addCarouselPhoto(photoUri)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error adding carousel photo", e)
+            }
+        }
+    }
+
+    fun removeCarouselPhoto(photoUri: String) {
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                settingsDataStore.removeCarouselPhoto(photoUri)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error removing carousel photo", e)
             }
         }
     }

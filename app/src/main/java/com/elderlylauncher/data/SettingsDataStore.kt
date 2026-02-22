@@ -28,6 +28,8 @@ class SettingsDataStore(private val context: Context) {
         val QUICK_CONTACTS = stringSetPreferencesKey("quick_contacts")
         val VISIBLE_APPS = stringSetPreferencesKey("visible_apps")
         val HIDDEN_APPS = stringSetPreferencesKey("hidden_apps")
+        val GAME_APPS = stringSetPreferencesKey("game_apps")
+        val CAROUSEL_PHOTOS = stringSetPreferencesKey("carousel_photos")
         val FIRST_LAUNCH = booleanPreferencesKey("first_launch")
     }
 
@@ -158,6 +160,49 @@ class SettingsDataStore(private val context: Context) {
             } else {
                 current + packageName
             }
+        }
+    }
+
+    // Game apps (package names for games page)
+    val gameApps: Flow<Set<String>> = context.dataStore.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .map { it[Keys.GAME_APPS] ?: emptySet() }
+
+    suspend fun setGameApps(apps: Set<String>) {
+        context.dataStore.edit { it[Keys.GAME_APPS] = apps }
+    }
+
+    suspend fun toggleGameApp(packageName: String) {
+        context.dataStore.edit { prefs ->
+            val current = prefs[Keys.GAME_APPS] ?: emptySet()
+            prefs[Keys.GAME_APPS] = if (packageName in current) {
+                current - packageName
+            } else {
+                current + packageName
+            }
+        }
+    }
+
+    // Carousel photos (URIs for photo carousel page)
+    val carouselPhotos: Flow<Set<String>> = context.dataStore.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .map { it[Keys.CAROUSEL_PHOTOS] ?: emptySet() }
+
+    suspend fun setCarouselPhotos(photos: Set<String>) {
+        context.dataStore.edit { it[Keys.CAROUSEL_PHOTOS] = photos }
+    }
+
+    suspend fun addCarouselPhoto(photoUri: String) {
+        context.dataStore.edit { prefs ->
+            val current = prefs[Keys.CAROUSEL_PHOTOS] ?: emptySet()
+            prefs[Keys.CAROUSEL_PHOTOS] = current + photoUri
+        }
+    }
+
+    suspend fun removeCarouselPhoto(photoUri: String) {
+        context.dataStore.edit { prefs ->
+            val current = prefs[Keys.CAROUSEL_PHOTOS] ?: emptySet()
+            prefs[Keys.CAROUSEL_PHOTOS] = current - photoUri
         }
     }
 

@@ -17,6 +17,23 @@
     <string name="apps_title">All Apps</string>
     <string name="apps_subtitle">Tap to open an app</string>
 
+    <!-- Games Page -->
+    <string name="games_title">Games</string>
+    <string name="games_subtitle">Tap to play</string>
+    <string name="games_empty">No games added</string>
+    <string name="games_empty_hint">Add games via Settings</string>
+
+    <!-- Photos Page -->
+    <string name="photos_title">Photos</string>
+    <string name="photos_subtitle">Swipe to view</string>
+    <string name="photos_empty">No photos</string>
+    <string name="photos_empty_hint">Add photos via Settings</string>
+    <string name="photos_previous">Previous</string>
+    <string name="photos_next">Next</string>
+    <string name="photos_add">Add Photo</string>
+    <string name="photos_favorite">Favorite photo</string>
+    <string name="photos_none_selected">No photos selected</string>
+
     <!-- Volume Page -->
     <string name="volume_title">Volume</string>
     <string name="volume_subtitle">Adjust the sound</string>
@@ -64,6 +81,12 @@
     <string name="settings_app_slot_4">Bottom right</string>
     <string name="settings_contacts">Quick contacts</string>
     <string name="settings_contacts_subtitle">Manage quick contacts</string>
+    <string name="settings_games">Games</string>
+    <string name="settings_games_subtitle">Choose game apps</string>
+    <string name="settings_games_hint">Tap to add or remove games</string>
+    <string name="settings_photos">Photos</string>
+    <string name="settings_photos_subtitle">Manage photo carousel</string>
+    <string name="settings_photos_hint">Add favorite photos to the carousel</string>
     <string name="settings_emergency">Emergency number</string>
     <string name="settings_password_change">Change password</string>
     <string name="settings_password_change_subtitle">Change the password</string>
