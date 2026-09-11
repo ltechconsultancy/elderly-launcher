@@ -10,9 +10,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -41,6 +38,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
 import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.data.QuickContact
+import com.elderlylauncher.ui.ButtonPagedGrid
 import com.elderlylauncher.ui.LauncherViewModel
 import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
@@ -148,6 +146,7 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
                 layout.isTablet -> 3
                 else -> 2
             },
+            rows = if (layout.isTablet && layout.isLandscape) 1 else 2,
             modifier = Modifier.weight(1f)
         )
 
@@ -381,6 +380,7 @@ fun HomeAppGrid(
     context: Context,
     viewModel: LauncherViewModel,
     columns: Int,
+    rows: Int,
     modifier: Modifier = Modifier
 ) {
     val positions = remember(homeApps) {
@@ -388,23 +388,21 @@ fun HomeAppGrid(
             homeApps.keys.filter { it >= LauncherViewModel.DEFAULT_HOME_SLOTS }.sorted()
     }
 
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(columns),
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(positions, key = { it }) { position ->
-            HomeAppTile(
-                position = position,
-                homeApps = homeApps,
-                installedApps = installedApps,
-                context = context,
-                viewModel = viewModel,
-                modifier = Modifier.aspectRatio(1f)
-            )
-        }
+    ButtonPagedGrid(
+        items = positions,
+        columns = columns,
+        rows = rows,
+        modifier = modifier,
+        fillCells = true
+    ) { position ->
+        HomeAppTile(
+            position = position,
+            homeApps = homeApps,
+            installedApps = installedApps,
+            context = context,
+            viewModel = viewModel,
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
 

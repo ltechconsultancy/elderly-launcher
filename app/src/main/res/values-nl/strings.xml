@@ -9,6 +9,8 @@
     <string name="home_photos">Foto\'s</string>
     <string name="home_emergency">NOODGEVAL</string>
     <string name="home_page">Pagina %1$d van %2$d</string>
+    <string name="nav_previous">Vorige</string>
+    <string name="nav_next">Volgende</string>
     <string name="home_badge_description">%1$s, %2$d nieuwe</string>
     <string name="home_emergency_confirm_title">112 bellen?</string>
     <string name="home_emergency_confirm_message">U staat op het punt het alarmnummer 112 te bellen.</string>
@@ -26,14 +28,16 @@
 
     <!-- Photos Page -->
     <string name="photos_title">Foto\'s</string>
-    <string name="photos_subtitle">Foto\'s wisselen vanzelf</string>
-    <string name="photos_subtitle_playing">Diavoorstelling speelt · tik op een foto om te pauzeren</string>
+    <string name="photos_subtitle">Foto\'s wisselen elke 4 seconden</string>
+    <string name="photos_subtitle_playing">Diavoorstelling speelt · gebruik de knoppen</string>
     <string name="photos_empty">Geen foto\'s</string>
     <string name="photos_empty_hint">Voeg foto\'s toe via Instellingen, of geef toegang tot foto\'s</string>
     <string name="photos_previous">Vorige</string>
     <string name="photos_next">Volgende</string>
     <string name="photos_play">Diavoorstelling afspelen</string>
     <string name="photos_pause">Diavoorstelling pauzeren</string>
+    <string name="photos_pause_short">Pauze</string>
+    <string name="photos_play_short">Start</string>
     <string name="photos_add">Foto toevoegen</string>
     <string name="photos_favorite">Favoriete foto</string>
     <string name="photos_none_selected">Geen foto\'s geselecteerd</string>

@@ -9,19 +9,10 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PhotoLibrary
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -47,10 +38,9 @@ import com.elderlylauncher.ui.LauncherViewModel
 import com.elderlylauncher.ui.theme.LauncherColors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private const val SLIDESHOW_INTERVAL_MS = 8_000L
+private const val SLIDESHOW_INTERVAL_MS = 4_000L
 
 data class PhotoItem(
     val uri: Uri,
@@ -67,7 +57,7 @@ fun PhotoCarouselScreen(
     var recentPhotos by remember { mutableStateOf<List<PhotoItem>>(emptyList()) }
     var reloadToken by remember { mutableIntStateOf(0) }
     var isPlaying by rememberSaveable { mutableStateOf(true) }
-    val coroutineScope = rememberCoroutineScope()
+    var currentIndex by rememberSaveable { mutableIntStateOf(0) }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -92,6 +82,20 @@ fun PhotoCarouselScreen(
         } else {
             recentPhotos
         }
+    }
+
+    LaunchedEffect(allPhotos.size) {
+        if (allPhotos.isEmpty()) {
+            currentIndex = 0
+        } else if (currentIndex >= allPhotos.size) {
+            currentIndex = 0
+        }
+    }
+
+    LaunchedEffect(isPlaying, allPhotos.size, currentIndex) {
+        if (!isPlaying || allPhotos.size <= 1) return@LaunchedEffect
+        delay(SLIDESHOW_INTERVAL_MS)
+        currentIndex = (currentIndex + 1) % allPhotos.size
     }
 
     Column(
@@ -153,112 +157,101 @@ fun PhotoCarouselScreen(
                 }
             }
         } else {
-            val pagerState = rememberPagerState(pageCount = { allPhotos.size })
+            val photo = allPhotos[currentIndex.coerceIn(0, allPhotos.lastIndex)]
 
-            LaunchedEffect(isPlaying, allPhotos.size, pagerState.currentPage) {
-                if (!isPlaying || allPhotos.size <= 1) return@LaunchedEffect
-                delay(SLIDESHOW_INTERVAL_MS)
-                val next = (pagerState.currentPage + 1) % allPhotos.size
-                pagerState.animateScrollToPage(next)
-            }
-
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 8.dp)
             ) {
-                HorizontalPager(
-                    state = pagerState,
-                    userScrollEnabled = false,
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .weight(1f)
+                        .fillMaxWidth()
                         .clip(RoundedCornerShape(24.dp))
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) { isPlaying = !isPlaying }
-                ) { page ->
-                    PhotoPage(photo = allPhotos[page])
+                ) {
+                    PhotoPage(photo = photo)
                 }
 
                 if (allPhotos.size > 1) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "${currentIndex + 1} / ${allPhotos.size}",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = LauncherColors.Gray600,
+                        fontSize = 20.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.Center)
-                            .padding(horizontal = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        IconButton(
+                        Button(
                             onClick = {
-                                coroutineScope.launch {
-                                    val previous = if (pagerState.currentPage > 0) {
-                                        pagerState.currentPage - 1
-                                    } else {
-                                        allPhotos.lastIndex
-                                    }
-                                    pagerState.animateScrollToPage(previous)
+                                currentIndex = if (currentIndex > 0) {
+                                    currentIndex - 1
+                                } else {
+                                    allPhotos.lastIndex
                                 }
                             },
                             modifier = Modifier
-                                .size(72.dp)
-                                .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.45f))
+                                .weight(1f)
+                                .height(64.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = LauncherColors.Gray800
+                            )
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.ChevronLeft,
-                                contentDescription = stringResource(R.string.photos_previous),
-                                tint = Color.White,
-                                modifier = Modifier.size(40.dp)
+                            Text(
+                                text = stringResource(R.string.photos_previous),
+                                fontSize = 18.sp,
+                                maxLines = 1
                             )
                         }
-
-                        IconButton(
-                            onClick = {
-                                coroutineScope.launch {
-                                    val next = (pagerState.currentPage + 1) % allPhotos.size
-                                    pagerState.animateScrollToPage(next)
+                        Button(
+                            onClick = { isPlaying = !isPlaying },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(64.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isPlaying) {
+                                    LauncherColors.Orange500
+                                } else {
+                                    LauncherColors.Green500
                                 }
+                            )
+                        ) {
+                            Text(
+                                text = stringResource(
+                                    if (isPlaying) R.string.photos_pause_short
+                                    else R.string.photos_play_short
+                                ),
+                                fontSize = 18.sp,
+                                maxLines = 1
+                            )
+                        }
+                        Button(
+                            onClick = {
+                                currentIndex = (currentIndex + 1) % allPhotos.size
                             },
                             modifier = Modifier
-                                .size(72.dp)
-                                .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.45f))
+                                .weight(1f)
+                                .height(64.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = LauncherColors.Gray800
+                            )
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.ChevronRight,
-                                contentDescription = stringResource(R.string.photos_next),
-                                tint = Color.White,
-                                modifier = Modifier.size(40.dp)
+                            Text(
+                                text = stringResource(R.string.photos_next),
+                                fontSize = 18.sp,
+                                maxLines = 1
                             )
                         }
-                    }
-
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 16.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color.Black.copy(alpha = 0.5f))
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = stringResource(
-                                if (isPlaying) R.string.photos_pause else R.string.photos_play
-                            ),
-                            tint = Color.White,
-                            modifier = Modifier.size(22.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "${pagerState.currentPage + 1} / ${allPhotos.size}",
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontSize = 18.sp
-                        )
                     }
                 }
             }

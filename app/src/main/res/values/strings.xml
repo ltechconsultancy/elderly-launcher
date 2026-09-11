@@ -9,6 +9,8 @@
     <string name="home_photos">Photos</string>
     <string name="home_emergency">EMERGENCY</string>
     <string name="home_page">Page %1$d of %2$d</string>
+    <string name="nav_previous">Previous</string>
+    <string name="nav_next">Next</string>
     <string name="home_badge_description">%1$s, %2$d new</string>
     <string name="home_emergency_confirm_title">Call 112?</string>
     <string name="home_emergency_confirm_message">You are about to call the emergency number 112.</string>
@@ -26,14 +28,16 @@
 
     <!-- Photos Page -->
     <string name="photos_title">Photos</string>
-    <string name="photos_subtitle">Photos change automatically</string>
-    <string name="photos_subtitle_playing">Slideshow is playing · tap a photo to pause</string>
+    <string name="photos_subtitle">Photos change every 4 seconds</string>
+    <string name="photos_subtitle_playing">Slideshow is playing · use the buttons</string>
     <string name="photos_empty">No photos</string>
     <string name="photos_empty_hint">Add photos via Settings, or allow photo access</string>
     <string name="photos_previous">Previous</string>
     <string name="photos_next">Next</string>
     <string name="photos_play">Play slideshow</string>
     <string name="photos_pause">Pause slideshow</string>
+    <string name="photos_pause_short">Pause</string>
+    <string name="photos_play_short">Play</string>
     <string name="photos_add">Add Photo</string>
     <string name="photos_favorite">Favorite photo</string>
     <string name="photos_none_selected">No photos selected</string>

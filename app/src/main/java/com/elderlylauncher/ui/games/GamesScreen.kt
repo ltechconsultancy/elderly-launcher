@@ -5,9 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SportsEsports
@@ -27,6 +24,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
 import com.elderlylauncher.data.AppInfo
+import com.elderlylauncher.ui.ButtonPagedGrid
 import com.elderlylauncher.ui.LauncherViewModel
 import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
@@ -40,7 +38,6 @@ fun GamesScreen(
     val installedApps by viewModel.installedApps.collectAsState()
     val gameApps by viewModel.gameApps.collectAsState()
 
-    // Filter to only show apps marked as games
     val gamesList = remember(installedApps, gameApps) {
         installedApps.filter { it.packageName in gameApps }
     }
@@ -50,7 +47,6 @@ fun GamesScreen(
             .fillMaxSize()
             .background(LauncherColors.White)
     ) {
-        // Header
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -70,7 +66,6 @@ fun GamesScreen(
         }
 
         if (gamesList.isEmpty()) {
-            // Empty state
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -103,37 +98,33 @@ fun GamesScreen(
                 }
             }
         } else {
-            // Games grid - auto-scaling based on count
             val columns = if (layout.isTablet) {
                 minOf(layout.appGridColumns, maxOf(2, gamesList.size))
             } else {
                 when {
                     gamesList.size <= 4 -> 2
-                    gamesList.size <= 9 -> 3
-                    else -> 4
+                    else -> 3
                 }
             }
+            val rows = 3
 
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(columns),
+            ButtonPagedGrid(
+                items = gamesList,
+                columns = columns,
+                rows = rows,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-                contentPadding = PaddingValues(bottom = 24.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(gamesList) { app ->
-                    GameGridItem(
-                        appInfo = app,
-                        onClick = {
-                            val intent = context.packageManager.getLaunchIntentForPackage(app.packageName)
-                            if (intent != null) {
-                                context.startActivity(intent)
-                            }
+                    .padding(horizontal = 16.dp)
+            ) { app ->
+                GameGridItem(
+                    appInfo = app,
+                    onClick = {
+                        val intent = context.packageManager.getLaunchIntentForPackage(app.packageName)
+                        if (intent != null) {
+                            context.startActivity(intent)
                         }
-                    )
-                }
+                    }
+                )
             }
         }
     }
@@ -146,6 +137,7 @@ fun GameGridItem(
 ) {
     Column(
         modifier = Modifier
+            .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(LauncherColors.Purple50)
             .border(1.dp, LauncherColors.Purple200, RoundedCornerShape(20.dp))
@@ -153,7 +145,6 @@ fun GameGridItem(
             .padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // App icon - large for elderly
         Image(
             bitmap = appInfo.icon.toBitmap(128, 128).asImageBitmap(),
             contentDescription = appInfo.label,
@@ -164,7 +155,6 @@ fun GameGridItem(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // App name
         Text(
             text = appInfo.label,
             style = MaterialTheme.typography.bodyMedium,

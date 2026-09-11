@@ -36,6 +36,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
 import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.data.QuickContact
+import com.elderlylauncher.ui.ButtonPagedColumn
 import com.elderlylauncher.ui.LauncherViewModel
 import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
@@ -47,8 +48,6 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.core.graphics.drawable.toBitmap
@@ -591,99 +590,95 @@ fun SettingsContent(
             }
         }
 
-        // Settings list
-        Column(
+        val settingsKeys = listOf(
+            "colors", "language", "brightness", "apps",
+            "apps_page", "games", "photos", "contacts",
+            "emergency", "password"
+        )
+        ButtonPagedColumn(
+            items = settingsKeys,
+            pageSize = 4,
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            SettingsItem(
-                title = stringResource(R.string.settings_colors),
-                subtitle = stringResource(R.string.settings_colors_subtitle),
-                icon = Icons.Default.Palette,
-                iconColor = LauncherColors.Purple500,
-                onClick = { showColorsDialog = true }
-            )
-
-            SettingsItem(
-                title = stringResource(R.string.settings_language),
-                subtitle = stringResource(R.string.language_current),
-                icon = Icons.Default.Language,
-                iconColor = LauncherColors.Blue500,
-                onClick = { showLanguageDialog = true }
-            )
-
-            SettingsItem(
-                title = stringResource(R.string.settings_brightness),
-                subtitle = if (brightnessLocked) {
-                    stringResource(R.string.settings_brightness_locked_value, brightnessPercent)
-                } else {
-                    stringResource(R.string.settings_brightness_value, brightnessPercent)
-                },
-                icon = Icons.Default.BrightnessHigh,
-                iconColor = LauncherColors.Orange500,
-                onClick = { showBrightnessDialog = true }
-            )
-
-            SettingsItem(
-                title = stringResource(R.string.settings_apps),
-                subtitle = stringResource(R.string.settings_apps_subtitle),
-                icon = Icons.Default.Apps,
-                iconColor = LauncherColors.Green500,
-                onClick = { showAppsDialog = true }
-            )
-
-            SettingsItem(
-                title = stringResource(R.string.settings_apps_page),
-                subtitle = stringResource(R.string.settings_apps_page_subtitle),
-                icon = Icons.Default.GridView,
-                iconColor = LauncherColors.Teal500,
-                onClick = { showAppsPageDialog = true }
-            )
-
-            SettingsItem(
-                title = stringResource(R.string.settings_games),
-                subtitle = stringResource(R.string.settings_games_subtitle),
-                icon = Icons.Default.SportsEsports,
-                iconColor = LauncherColors.Purple500,
-                onClick = { showGamesDialog = true }
-            )
-
-            SettingsItem(
-                title = stringResource(R.string.settings_photos),
-                subtitle = stringResource(R.string.settings_photos_subtitle),
-                icon = Icons.Default.PhotoLibrary,
-                iconColor = LauncherColors.Pink500,
-                onClick = { showPhotosDialog = true }
-            )
-
-            SettingsItem(
-                title = stringResource(R.string.settings_contacts),
-                subtitle = stringResource(R.string.settings_contacts_subtitle),
-                icon = Icons.Default.Contacts,
-                iconColor = LauncherColors.Orange500,
-                onClick = { showContactsDialog = true }
-            )
-
-            SettingsItem(
-                title = stringResource(R.string.settings_emergency),
-                subtitle = storedEmergency,
-                icon = Icons.Default.Emergency,
-                iconColor = LauncherColors.Red500,
-                onClick = { showEmergencyDialog = true }
-            )
-
-            SettingsItem(
-                title = stringResource(R.string.settings_password_change),
-                subtitle = stringResource(R.string.settings_password_change_subtitle),
-                icon = Icons.Default.Key,
-                iconColor = LauncherColors.Gray600,
-                onClick = { showPasswordChangeDialog = true }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
+        ) { key ->
+            when (key) {
+                "colors" -> SettingsItem(
+                    title = stringResource(R.string.settings_colors),
+                    subtitle = stringResource(R.string.settings_colors_subtitle),
+                    icon = Icons.Default.Palette,
+                    iconColor = LauncherColors.Purple500,
+                    onClick = { showColorsDialog = true }
+                )
+                "language" -> SettingsItem(
+                    title = stringResource(R.string.settings_language),
+                    subtitle = stringResource(R.string.language_current),
+                    icon = Icons.Default.Language,
+                    iconColor = LauncherColors.Blue500,
+                    onClick = { showLanguageDialog = true }
+                )
+                "brightness" -> SettingsItem(
+                    title = stringResource(R.string.settings_brightness),
+                    subtitle = if (brightnessLocked) {
+                        stringResource(R.string.settings_brightness_locked_value, brightnessPercent)
+                    } else {
+                        stringResource(R.string.settings_brightness_value, brightnessPercent)
+                    },
+                    icon = Icons.Default.BrightnessHigh,
+                    iconColor = LauncherColors.Orange500,
+                    onClick = { showBrightnessDialog = true }
+                )
+                "apps" -> SettingsItem(
+                    title = stringResource(R.string.settings_apps),
+                    subtitle = stringResource(R.string.settings_apps_subtitle),
+                    icon = Icons.Default.Apps,
+                    iconColor = LauncherColors.Green500,
+                    onClick = { showAppsDialog = true }
+                )
+                "apps_page" -> SettingsItem(
+                    title = stringResource(R.string.settings_apps_page),
+                    subtitle = stringResource(R.string.settings_apps_page_subtitle),
+                    icon = Icons.Default.GridView,
+                    iconColor = LauncherColors.Teal500,
+                    onClick = { showAppsPageDialog = true }
+                )
+                "games" -> SettingsItem(
+                    title = stringResource(R.string.settings_games),
+                    subtitle = stringResource(R.string.settings_games_subtitle),
+                    icon = Icons.Default.SportsEsports,
+                    iconColor = LauncherColors.Purple500,
+                    onClick = { showGamesDialog = true }
+                )
+                "photos" -> SettingsItem(
+                    title = stringResource(R.string.settings_photos),
+                    subtitle = stringResource(R.string.settings_photos_subtitle),
+                    icon = Icons.Default.PhotoLibrary,
+                    iconColor = LauncherColors.Pink500,
+                    onClick = { showPhotosDialog = true }
+                )
+                "contacts" -> SettingsItem(
+                    title = stringResource(R.string.settings_contacts),
+                    subtitle = stringResource(R.string.settings_contacts_subtitle),
+                    icon = Icons.Default.Contacts,
+                    iconColor = LauncherColors.Orange500,
+                    onClick = { showContactsDialog = true }
+                )
+                "emergency" -> SettingsItem(
+                    title = stringResource(R.string.settings_emergency),
+                    subtitle = storedEmergency,
+                    icon = Icons.Default.Emergency,
+                    iconColor = LauncherColors.Red500,
+                    onClick = { showEmergencyDialog = true }
+                )
+                "password" -> SettingsItem(
+                    title = stringResource(R.string.settings_password_change),
+                    subtitle = stringResource(R.string.settings_password_change_subtitle),
+                    icon = Icons.Default.Key,
+                    iconColor = LauncherColors.Gray600,
+                    onClick = { showPasswordChangeDialog = true }
+                )
+            }
         }
     }
     }
@@ -1040,7 +1035,9 @@ fun AppsPageDialog(
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
                 // Header
                 Row(
@@ -1070,10 +1067,12 @@ fun AppsPageDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                LazyColumn(
+                ButtonPagedColumn(
+                    items = installedApps,
+                    pageSize = 6,
+                    modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    items(installedApps) { app ->
+                ) { app ->
                         val isHidden = app.packageName in hiddenApps
                         Row(
                             modifier = Modifier
@@ -1107,7 +1106,6 @@ fun AppsPageDialog(
                                 tint = if (isHidden) LauncherColors.Gray400 else LauncherColors.Green500
                             )
                         }
-                    }
                 }
             }
         }
@@ -1134,7 +1132,9 @@ fun QuickContactsDialog(
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
                 // Header
                 Row(
@@ -1198,11 +1198,12 @@ fun QuickContactsDialog(
                             }
                         }
                     } else {
-                        LazyColumn(
+                        ButtonPagedColumn(
+                            items = allContacts,
+                            pageSize = 6,
                             modifier = Modifier.weight(1f),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(allContacts) { contact ->
+                        ) { contact ->
                                 val isAlreadyAdded = quickContacts.any { it.id == contact.id }
                                 ContactListItem(
                                     contact = contact,
@@ -1214,7 +1215,6 @@ fun QuickContactsDialog(
                                         }
                                     }
                                 )
-                            }
                         }
                     }
                 } else {
@@ -1243,16 +1243,16 @@ fun QuickContactsDialog(
                             }
                         }
                     } else {
-                        LazyColumn(
+                        ButtonPagedColumn(
+                            items = quickContacts,
+                            pageSize = 6,
                             modifier = Modifier.weight(1f),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(quickContacts) { contact ->
+                        ) { contact ->
                                 QuickContactItem(
                                     contact = contact,
                                     onRemove = { onRemoveContact(contact) }
                                 )
-                            }
                         }
                     }
 
@@ -1667,7 +1667,9 @@ fun HomeAppsDialog(
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -1698,11 +1700,12 @@ fun HomeAppsDialog(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    LazyColumn(
+                    ButtonPagedColumn(
+                        items = (0 until LauncherViewModel.DEFAULT_HOME_SLOTS).toList() + extraSlots,
+                        pageSize = 6,
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items((0 until LauncherViewModel.DEFAULT_HOME_SLOTS).toList() + extraSlots) { position ->
+                    ) { position ->
                             val packageName = currentHomeApps[position]
                             val appInfo = installedApps.find { it.packageName == packageName }
 
@@ -1714,7 +1717,6 @@ fun HomeAppsDialog(
                                     { onAppCleared(position) }
                                 } else null
                             )
-                        }
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -1770,11 +1772,12 @@ fun HomeAppsDialog(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    LazyColumn(
+                    ButtonPagedColumn(
+                        items = installedApps,
+                        pageSize = 6,
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        items(installedApps) { app ->
+                    ) { app ->
                             AppListItem(
                                 appInfo = app,
                                 isSelected = currentHomeApps[selectedPosition] == app.packageName,
@@ -1783,7 +1786,6 @@ fun HomeAppsDialog(
                                     selectedPosition = -1
                                 }
                             )
-                        }
                     }
                 }
             }
@@ -1927,7 +1929,9 @@ fun GamesSelectionDialog(
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
                 // Header
                 Row(
@@ -1957,10 +1961,12 @@ fun GamesSelectionDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                LazyColumn(
+                ButtonPagedColumn(
+                    items = installedApps,
+                    pageSize = 6,
+                    modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    items(installedApps) { app ->
+                ) { app ->
                         val isGame = app.packageName in gameApps
                         Row(
                             modifier = Modifier
@@ -1994,7 +2000,6 @@ fun GamesSelectionDialog(
                                 tint = if (isGame) LauncherColors.Purple500 else LauncherColors.Gray400
                             )
                         }
-                    }
                 }
             }
         }
@@ -2037,7 +2042,9 @@ fun PhotosSelectionDialog(
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
                 // Header
                 Row(
@@ -2116,16 +2123,16 @@ fun PhotosSelectionDialog(
                         }
                     }
                 } else {
-                    LazyColumn(
+                    ButtonPagedColumn(
+                        items = selectedPhotos.toList(),
+                        pageSize = 4,
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(selectedPhotos.toList()) { photoUri ->
+                    ) { photoUri ->
                             PhotoListItem(
                                 photoUri = photoUri,
                                 onRemove = { onRemovePhoto(photoUri) }
                             )
-                        }
                     }
                 }
             }
