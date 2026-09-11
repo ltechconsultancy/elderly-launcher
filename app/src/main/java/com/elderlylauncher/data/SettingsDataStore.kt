@@ -31,6 +31,8 @@ class SettingsDataStore(private val context: Context) {
         val GAME_APPS = stringSetPreferencesKey("game_apps")
         val CAROUSEL_PHOTOS = stringSetPreferencesKey("carousel_photos")
         val FIRST_LAUNCH = booleanPreferencesKey("first_launch")
+        val BRIGHTNESS_PERCENT = intPreferencesKey("brightness_percent")
+        val BRIGHTNESS_LOCKED = booleanPreferencesKey("brightness_locked")
     }
 
     // Default values
@@ -39,6 +41,7 @@ class SettingsDataStore(private val context: Context) {
         const val DEFAULT_LANGUAGE = "nl"
         const val DEFAULT_EMERGENCY_NUMBER = "112"
         const val DEFAULT_PRIMARY_COLOR = "blue"
+        const val DEFAULT_BRIGHTNESS_PERCENT = 80
 
         /**
          * Hash a password using SHA-256.
@@ -204,6 +207,24 @@ class SettingsDataStore(private val context: Context) {
             val current = prefs[Keys.CAROUSEL_PHOTOS] ?: emptySet()
             prefs[Keys.CAROUSEL_PHOTOS] = current - photoUri
         }
+    }
+
+    // Brightness (percent 20-100) and lock
+    val brightnessPercent: Flow<Int> = context.dataStore.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .map { it[Keys.BRIGHTNESS_PERCENT] ?: DEFAULT_BRIGHTNESS_PERCENT }
+
+    suspend fun setBrightnessPercent(percent: Int) {
+        val clamped = percent.coerceIn(20, 100)
+        context.dataStore.edit { it[Keys.BRIGHTNESS_PERCENT] = clamped }
+    }
+
+    val brightnessLocked: Flow<Boolean> = context.dataStore.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .map { it[Keys.BRIGHTNESS_LOCKED] ?: false }
+
+    suspend fun setBrightnessLocked(locked: Boolean) {
+        context.dataStore.edit { it[Keys.BRIGHTNESS_LOCKED] = locked }
     }
 
     // First launch flag

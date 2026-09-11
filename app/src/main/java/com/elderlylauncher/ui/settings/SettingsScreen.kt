@@ -37,7 +37,12 @@ import com.elderlylauncher.R
 import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.data.QuickContact
 import com.elderlylauncher.ui.LauncherViewModel
+import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
+import com.elderlylauncher.util.BrightnessHelper
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -129,12 +134,19 @@ fun LockedSettingsScreen(
     isLockedOut: Boolean = false,
     lockoutEndTime: Long = 0L
 ) {
+    val layout = rememberDeviceLayout()
     val lockDescription = stringResource(R.string.settings_lock_description)
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(LauncherColors.White)
+            .background(LauncherColors.White),
+        contentAlignment = Alignment.Center
+    ) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (layout.isTablet) Modifier.widthIn(max = layout.contentMaxWidth) else Modifier)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -211,6 +223,7 @@ fun LockedSettingsScreen(
                 fontSize = 22.sp
             )
         }
+    }
     }
 }
 
@@ -339,9 +352,13 @@ fun SettingsContent(
     var showContactsDialog by rememberSaveable { mutableStateOf(false) }
     var showGamesDialog by rememberSaveable { mutableStateOf(false) }
     var showPhotosDialog by rememberSaveable { mutableStateOf(false) }
+    var showBrightnessDialog by rememberSaveable { mutableStateOf(false) }
 
-    // Emergency number state
-    var emergencyNumber by rememberSaveable { mutableStateOf("112") }
+    val brightnessPercent by viewModel.brightnessPercent.collectAsState()
+    val brightnessLocked by viewModel.brightnessLocked.collectAsState()
+    val layout = rememberDeviceLayout()
+
+    val storedEmergency by viewModel.emergencyNumber.collectAsState()
 
     // Password change state
     var currentPassword by rememberSaveable { mutableStateOf("") }
@@ -352,10 +369,10 @@ fun SettingsContent(
     // Emergency Number Dialog
     if (showEmergencyDialog) {
         EmergencyNumberDialog(
-            currentNumber = emergencyNumber,
+            currentNumber = storedEmergency,
             onDismiss = { showEmergencyDialog = false },
             onConfirm = { newNumber ->
-                emergencyNumber = newNumber
+                viewModel.updateEmergencyNumber(newNumber)
                 showEmergencyDialog = false
             }
         )
@@ -520,10 +537,26 @@ fun SettingsContent(
         )
     }
 
+    if (showBrightnessDialog) {
+        BrightnessDialog(
+            percent = brightnessPercent,
+            locked = brightnessLocked,
+            onDismiss = { showBrightnessDialog = false },
+            onPercentChange = { viewModel.setBrightnessPercent(it) },
+            onLockedChange = { viewModel.setBrightnessLocked(it) }
+        )
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(LauncherColors.White),
+        contentAlignment = Alignment.TopCenter
+    ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(LauncherColors.White)
+            .then(if (layout.isTablet) Modifier.widthIn(max = layout.contentMaxWidth) else Modifier)
     ) {
         // Header with lock button
         Row(
@@ -583,6 +616,18 @@ fun SettingsContent(
             )
 
             SettingsItem(
+                title = stringResource(R.string.settings_brightness),
+                subtitle = if (brightnessLocked) {
+                    stringResource(R.string.settings_brightness_locked_value, brightnessPercent)
+                } else {
+                    stringResource(R.string.settings_brightness_value, brightnessPercent)
+                },
+                icon = Icons.Default.BrightnessHigh,
+                iconColor = LauncherColors.Orange500,
+                onClick = { showBrightnessDialog = true }
+            )
+
+            SettingsItem(
                 title = stringResource(R.string.settings_apps),
                 subtitle = stringResource(R.string.settings_apps_subtitle),
                 icon = Icons.Default.Apps,
@@ -624,7 +669,7 @@ fun SettingsContent(
 
             SettingsItem(
                 title = stringResource(R.string.settings_emergency),
-                subtitle = emergencyNumber,
+                subtitle = storedEmergency,
                 icon = Icons.Default.Emergency,
                 iconColor = LauncherColors.Red500,
                 onClick = { showEmergencyDialog = true }
@@ -640,6 +685,7 @@ fun SettingsContent(
 
             Spacer(modifier = Modifier.height(16.dp))
         }
+    }
     }
 }
 
@@ -1576,6 +1622,15 @@ fun SettingsItem(
 }
 
 @Composable
+private fun homeSlotLabel(position: Int): String = when (position) {
+    0 -> stringResource(R.string.settings_app_slot_1)
+    1 -> stringResource(R.string.settings_app_slot_2)
+    2 -> stringResource(R.string.settings_app_slot_3)
+    3 -> stringResource(R.string.settings_app_slot_4)
+    else -> stringResource(R.string.settings_app_slot_n, position + 1)
+}
+
+@Composable
 fun HomeAppsDialog(
     installedApps: List<AppInfo>,
     currentHomeApps: Map<Int, String>,
@@ -1584,12 +1639,11 @@ fun HomeAppsDialog(
     onAppCleared: (Int) -> Unit
 ) {
     var selectedPosition by rememberSaveable { mutableIntStateOf(-1) }
-    val positionNames = listOf(
-        stringResource(R.string.settings_app_slot_1),
-        stringResource(R.string.settings_app_slot_2),
-        stringResource(R.string.settings_app_slot_3),
-        stringResource(R.string.settings_app_slot_4)
-    )
+    val extraSlots = currentHomeApps.keys
+        .filter { it >= LauncherViewModel.DEFAULT_HOME_SLOTS }
+        .sorted()
+    val nextExtraSlot = (LauncherViewModel.DEFAULT_HOME_SLOTS until LauncherViewModel.MAX_HOME_APPS)
+        .firstOrNull { it !in currentHomeApps }
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -1603,7 +1657,6 @@ fun HomeAppsDialog(
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
-                // Header
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -1626,7 +1679,6 @@ fun HomeAppsDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 if (selectedPosition == -1) {
-                    // Show 4 app slots
                     Text(
                         text = stringResource(R.string.settings_apps_choose_slot),
                         style = MaterialTheme.typography.bodyLarge,
@@ -1634,15 +1686,16 @@ fun HomeAppsDialog(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    Column(
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        for (position in 0..3) {
+                        items((0 until LauncherViewModel.DEFAULT_HOME_SLOTS).toList() + extraSlots) { position ->
                             val packageName = currentHomeApps[position]
                             val appInfo = installedApps.find { it.packageName == packageName }
 
                             AppSlotItem(
-                                slotName = positionNames[position],
+                                slotName = homeSlotLabel(position),
                                 appInfo = appInfo,
                                 onClick = { selectedPosition = position },
                                 onClear = if (packageName != null) {
@@ -1651,8 +1704,41 @@ fun HomeAppsDialog(
                             )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (nextExtraSlot != null) {
+                        Button(
+                            onClick = { selectedPosition = nextExtraSlot },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(64.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = LauncherColors.Green500
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(R.string.settings_apps_add),
+                                fontSize = 20.sp
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = stringResource(R.string.settings_apps_full),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = LauncherColors.Gray500,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 } else {
-                    // Show app list for selection
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -1664,7 +1750,7 @@ fun HomeAppsDialog(
                             )
                         }
                         Text(
-                            text = positionNames[selectedPosition],
+                            text = homeSlotLabel(selectedPosition),
                             style = MaterialTheme.typography.titleLarge,
                             color = LauncherColors.Gray800
                         )
@@ -1673,6 +1759,7 @@ fun HomeAppsDialog(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     LazyColumn(
+                        modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         items(installedApps) { app ->
@@ -1913,19 +2000,18 @@ fun PhotosSelectionDialog(
 
     // Photo picker launcher
     val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            // Take persistent permission for the URI
+        contract = ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris: List<Uri> ->
+        uris.forEach { uri ->
             try {
                 context.contentResolver.takePersistableUriPermission(
-                    it,
+                    uri,
                     android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
-            } catch (e: Exception) {
-                // Permission might not be available for all content
+            } catch (_: Exception) {
+                // Some providers do not support persistable grants
             }
-            onAddPhoto(it.toString())
+            onAddPhoto(uri.toString())
         }
     }
 
@@ -1971,7 +2057,7 @@ fun PhotosSelectionDialog(
 
                 // Add photo button
                 Button(
-                    onClick = { photoPickerLauncher.launch("image/*") },
+                    onClick = { photoPickerLauncher.launch(arrayOf("image/*")) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -2085,6 +2171,201 @@ fun PhotoListItem(
                 contentDescription = stringResource(R.string.settings_apps_clear),
                 tint = LauncherColors.Red500
             )
+        }
+    }
+}
+
+@Composable
+fun BrightnessDialog(
+    percent: Int,
+    locked: Boolean,
+    onDismiss: () -> Unit,
+    onPercentChange: (Int) -> Unit,
+    onLockedChange: (Boolean) -> Unit
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var canWrite by remember { mutableStateOf(BrightnessHelper.canWriteSettings(context)) }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                canWrite = BrightnessHelper.canWriteSettings(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.BrightnessHigh,
+                    contentDescription = null,
+                    tint = LauncherColors.Orange500,
+                    modifier = Modifier.size(48.dp)
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = stringResource(R.string.settings_brightness),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = LauncherColors.Gray800
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = stringResource(R.string.settings_brightness_subtitle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = LauncherColors.Gray500,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                if (!canWrite) {
+                    Text(
+                        text = stringResource(R.string.settings_brightness_permission),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = LauncherColors.Gray700,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = { BrightnessHelper.requestWriteSettings(context) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = LauncherColors.Orange500
+                        )
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_brightness_permission_button),
+                            fontSize = 18.sp
+                        )
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        val decreaseDesc = stringResource(R.string.settings_brightness_decrease)
+                        val increaseDesc = stringResource(R.string.settings_brightness_increase)
+                        IconButton(
+                            onClick = {
+                                onPercentChange(percent - BrightnessHelper.STEP)
+                            },
+                            enabled = percent > BrightnessHelper.MIN_PERCENT,
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(LauncherColors.Gray100)
+                                .semantics { contentDescription = decreaseDesc }
+                        ) {
+                            Text(
+                                text = "−",
+                                fontSize = 32.sp,
+                                color = LauncherColors.Gray800
+                            )
+                        }
+
+                        Text(
+                            text = stringResource(R.string.settings_brightness_value, percent),
+                            style = MaterialTheme.typography.displaySmall,
+                            color = LauncherColors.Gray800,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        IconButton(
+                            onClick = {
+                                onPercentChange(percent + BrightnessHelper.STEP)
+                            },
+                            enabled = percent < BrightnessHelper.MAX_PERCENT,
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(LauncherColors.Gray100)
+                                .semantics { contentDescription = increaseDesc }
+                        ) {
+                            Text(
+                                text = "+",
+                                fontSize = 32.sp,
+                                color = LauncherColors.Gray800
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(if (locked) LauncherColors.Orange50 else LauncherColors.Gray50)
+                            .clickable { onLockedChange(!locked) }
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = if (locked) Icons.Default.Lock else Icons.Default.LockOpen,
+                            contentDescription = null,
+                            tint = if (locked) LauncherColors.Orange500 else LauncherColors.Gray500,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.settings_brightness_lock),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = LauncherColors.Gray800
+                            )
+                            Text(
+                                text = stringResource(R.string.settings_brightness_lock_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = LauncherColors.Gray500
+                            )
+                        }
+                        Switch(
+                            checked = locked,
+                            onCheckedChange = onLockedChange,
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color.White,
+                                checkedTrackColor = LauncherColors.Orange500
+                            )
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.cancel),
+                        fontSize = 16.sp
+                    )
+                }
+            }
         }
     }
 }

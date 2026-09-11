@@ -28,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
 import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.ui.LauncherViewModel
+import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
 
 @Composable
@@ -35,6 +36,7 @@ fun GamesScreen(
     viewModel: LauncherViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val layout = rememberDeviceLayout()
     val installedApps by viewModel.installedApps.collectAsState()
     val gameApps by viewModel.gameApps.collectAsState()
 
@@ -102,10 +104,14 @@ fun GamesScreen(
             }
         } else {
             // Games grid - auto-scaling based on count
-            val columns = when {
-                gamesList.size <= 4 -> 2
-                gamesList.size <= 9 -> 3
-                else -> 4
+            val columns = if (layout.isTablet) {
+                minOf(layout.appGridColumns, maxOf(2, gamesList.size))
+            } else {
+                when {
+                    gamesList.size <= 4 -> 2
+                    gamesList.size <= 9 -> 3
+                    else -> 4
+                }
             }
 
             LazyVerticalGrid(

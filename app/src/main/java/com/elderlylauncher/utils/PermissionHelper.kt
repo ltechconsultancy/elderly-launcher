@@ -74,10 +74,19 @@ object PermissionHelper {
     }
 
     /**
-     * Get all required permissions that are not yet granted
+     * Wi‑Fi tablets (POCO Pad and similar) have no cellular radio.
+     */
+    fun hasTelephony(context: Context): Boolean {
+        return context.packageManager.hasSystemFeature(PackageManager.FEATURE_TELEPHONY)
+    }
+
+    /**
+     * Get all required permissions that are not yet granted.
+     * Skip CALL_PHONE when the device cannot place cellular calls.
      */
     fun getMissingPermissions(context: Context): List<String> {
-        val allPermissions = PHONE_PERMISSIONS + CONTACTS_PERMISSIONS +
+        val phone = if (hasTelephony(context)) PHONE_PERMISSIONS else emptyArray()
+        val allPermissions = phone + CONTACTS_PERMISSIONS +
                 CAMERA_PERMISSIONS + MEDIA_PERMISSIONS
         return allPermissions.filter { !hasPermission(context, it) }
     }

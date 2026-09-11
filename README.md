@@ -6,19 +6,25 @@ Een eenvoudige, toegankelijke Android launcher voor ouderen.
 
 - **Grote knoppen** - Makkelijk te raken touch targets (80dp+)
 - **Duidelijke iconen** - Echte app iconen met namen eronder
-- **Horizontaal swipen** - 3 pagina's met genummerde indicator
+- **Horizontaal swipen** - 6 pagina's, tik op het cijfer om te springen
 - **Volume bediening** - Met + en − knoppen (geen slider)
 - **Snel bellen** - Één-tap contacten met foto's
-- **Noodknop** - Altijd zichtbaar
+- **Noodknop** - Altijd zichtbaar op telefoons met sim
 - **Wachtwoord-beveiligde instellingen** - Voorkom per ongeluk wijzigen
 - **Kleurthema's** - 12 kleuren om uit te kiezen
 - **Meertalig** - Nederlands (primair) + Engels
+- **Tablet** - Landscape + portrait, POCO Pad / Pad X1 / M1 / C1 (HyperOS)
+- **Startscherm** - Tot 12 grote app-tegels, scrollbaar
+- **Foto-slideshow** - Automatisch wisselen (8 seconden), tik om te pauzeren
 
 ## Pagina's
 
-1. **Home** - Klok, 4 app-tegels (Bellen, Berichten, Camera, Foto's), noodknop
-2. **Volume** - Media, Oproepen, Meldingen, Alarm (met echte AudioManager)
-3. **Instellingen** - Beveiligd met wachtwoord (standaard: `1234`)
+1. **Home** - Klok, grote app-tegels, snelcontacten, noodknop
+2. **Apps** - Alle geïnstalleerde apps
+3. **Spelletjes** - Gekozen games
+4. **Foto's** - Diavoorstelling
+5. **Volume** - Media, meldingen, alarm
+6. **Instellingen** - Beveiligd met wachtwoord (standaard: `1234`)
 
 ## Instellingen
 
@@ -108,6 +114,10 @@ Na installatie:
 1. Druk op Home knop
 2. Selecteer "Elderly Launcher" of "Eenvoudige Launcher"
 3. Kies "Altijd"
+
+POCO / Xiaomi HyperOS: **Instellingen → Apps → Standaard-apps → Startscherm-app** (of Launcher).
+
+De meeste POCO-tablets zijn wifi-only. De noodknop wordt dan vervangen door een melding dat bellen niet kan.
 
 ## Mockups
 

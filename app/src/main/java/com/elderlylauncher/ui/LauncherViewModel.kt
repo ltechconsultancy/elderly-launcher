@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.elderlylauncher.data.*
+import com.elderlylauncher.util.BrightnessHelper
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -24,6 +25,11 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     // Coroutine exception handler to prevent crashes
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.e(TAG, "Coroutine exception", throwable)
+    }
+
+    companion object {
+        const val MAX_HOME_APPS = 12
+        const val DEFAULT_HOME_SLOTS = 4
     }
 
     // Loading states
@@ -79,6 +85,12 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     // Carousel photos (URIs for photo carousel)
     val carouselPhotos: StateFlow<Set<String>> = settingsDataStore.carouselPhotos
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    val brightnessPercent: StateFlow<Int> = settingsDataStore.brightnessPercent
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsDataStore.DEFAULT_BRIGHTNESS_PERCENT)
+
+    val brightnessLocked: StateFlow<Boolean> = settingsDataStore.brightnessLocked
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     init {
         loadApps()
@@ -156,24 +168,28 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     }
 
     /**
-     * Set a home app at a specific position (0-3)
+     * Set a home app at a specific position (0 until MAX_HOME_APPS).
      */
     fun setHomeApp(position: Int, packageName: String) {
+        if (position !in 0 until MAX_HOME_APPS) return
         viewModelScope.launch(exceptionHandler) {
             try {
                 val currentApps = homeApps.value.toMutableMap()
                 currentApps[position] = packageName
-                val jsonSet = currentApps.map { (pos, pkg) ->
-                    JSONObject().apply {
-                        put("position", pos)
-                        put("packageName", pkg)
-                    }.toString()
-                }.toSet()
-                settingsDataStore.setVisibleApps(jsonSet)
+                persistHomeApps(currentApps)
             } catch (e: Exception) {
                 Log.e(TAG, "Error setting home app", e)
             }
         }
+    }
+
+    /**
+     * Add an extra app on the home screen after the default 4 tiles.
+     */
+    fun addHomeApp(packageName: String) {
+        val next = (DEFAULT_HOME_SLOTS until MAX_HOME_APPS)
+            .firstOrNull { it !in homeApps.value } ?: return
+        setHomeApp(next, packageName)
     }
 
     /**
@@ -184,17 +200,21 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
             try {
                 val currentApps = homeApps.value.toMutableMap()
                 currentApps.remove(position)
-                val jsonSet = currentApps.map { (pos, pkg) ->
-                    JSONObject().apply {
-                        put("position", pos)
-                        put("packageName", pkg)
-                    }.toString()
-                }.toSet()
-                settingsDataStore.setVisibleApps(jsonSet)
+                persistHomeApps(currentApps)
             } catch (e: Exception) {
                 Log.e(TAG, "Error clearing home app", e)
             }
         }
+    }
+
+    private suspend fun persistHomeApps(apps: Map<Int, String>) {
+        val jsonSet = apps.map { (pos, pkg) ->
+            JSONObject().apply {
+                put("position", pos)
+                put("packageName", pkg)
+            }.toString()
+        }.toSet()
+        settingsDataStore.setVisibleApps(jsonSet)
     }
 
     private fun parseHomeApp(json: String): Pair<Int, String>? {
@@ -265,6 +285,31 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 settingsDataStore.addCarouselPhoto(photoUri)
             } catch (e: Exception) {
                 Log.e(TAG, "Error adding carousel photo", e)
+            }
+        }
+    }
+
+    fun setBrightnessPercent(percent: Int) {
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                val clamped = percent.coerceIn(BrightnessHelper.MIN_PERCENT, BrightnessHelper.MAX_PERCENT)
+                settingsDataStore.setBrightnessPercent(clamped)
+                BrightnessHelper.apply(getApplication(), clamped)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error setting brightness", e)
+            }
+        }
+    }
+
+    fun setBrightnessLocked(locked: Boolean) {
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                settingsDataStore.setBrightnessLocked(locked)
+                if (locked) {
+                    BrightnessHelper.apply(getApplication(), brightnessPercent.value)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error setting brightness lock", e)
             }
         }
     }

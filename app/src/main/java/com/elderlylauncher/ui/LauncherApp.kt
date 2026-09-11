@@ -15,10 +15,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
+import com.elderlylauncher.util.BrightnessHelper
+import com.elderlylauncher.util.BrightnessLockWatcher
 import com.elderlylauncher.ui.apps.AppsScreen
 import com.elderlylauncher.ui.games.GamesScreen
 import com.elderlylauncher.ui.home.HomeScreen
@@ -35,16 +45,45 @@ fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
         initialPage = savedPage,
         pageCount = { totalPages }
     )
+    val coroutineScope = rememberCoroutineScope()
 
     // Save current page across config changes
     LaunchedEffect(pagerState.currentPage) {
         savedPage = pagerState.currentPage
     }
 
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val brightnessLocked by viewModel.brightnessLocked.collectAsState()
+    val brightnessPercent by viewModel.brightnessPercent.collectAsState()
+
+    DisposableEffect(brightnessLocked, brightnessPercent, lifecycleOwner) {
+        val watcher = BrightnessLockWatcher(
+            context = context,
+            isLocked = { brightnessLocked },
+            lockedPercent = { brightnessPercent }
+        )
+        if (brightnessLocked) {
+            BrightnessHelper.apply(context, brightnessPercent)
+            watcher.start()
+        }
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && brightnessLocked) {
+                BrightnessHelper.apply(context, brightnessPercent)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            watcher.stop()
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(LauncherColors.White)
+            .statusBarsPadding()
     ) {
         // Main content with horizontal paging
         HorizontalPager(
@@ -65,6 +104,9 @@ fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
         PageIndicator(
             currentPage = pagerState.currentPage,
             totalPages = totalPages,
+            onPageClick = { page ->
+                coroutineScope.launch { pagerState.animateScrollToPage(page) }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
@@ -77,7 +119,8 @@ fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
 fun PageIndicator(
     currentPage: Int,
     totalPages: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onPageClick: (Int) -> Unit = {}
 ) {
     val pageDescription = stringResource(R.string.home_page, currentPage + 1, totalPages)
 
@@ -91,12 +134,13 @@ fun PageIndicator(
             Box(
                 modifier = Modifier
                     .padding(horizontal = 4.dp)
-                    .size(40.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(
                         if (isSelected) LauncherColors.Gray800
                         else LauncherColors.Gray200
-                    ),
+                    )
+                    .clickable { onPageClick(page) },
                 contentAlignment = Alignment.Center
             ) {
                 Text(

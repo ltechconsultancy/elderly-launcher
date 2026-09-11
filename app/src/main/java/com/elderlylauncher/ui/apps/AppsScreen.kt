@@ -26,6 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
 import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.ui.LauncherViewModel
+import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
 
 @Composable
@@ -33,6 +34,7 @@ fun AppsScreen(
     viewModel: LauncherViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val layout = rememberDeviceLayout()
     val installedApps by viewModel.installedApps.collectAsState()
     val hiddenApps by viewModel.hiddenApps.collectAsState()
 
@@ -67,7 +69,7 @@ fun AppsScreen(
 
         // Apps grid
         LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
+            columns = GridCells.Fixed(layout.appGridColumns),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),

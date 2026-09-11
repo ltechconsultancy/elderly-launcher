@@ -12,6 +12,7 @@
     <string name="home_badge_description">%1$s, %2$d new</string>
     <string name="home_emergency_confirm_title">Call 112?</string>
     <string name="home_emergency_confirm_message">You are about to call the emergency number 112.</string>
+    <string name="tablet_no_telephony">This tablet has no SIM. Calling is not available.</string>
 
     <!-- Apps Page -->
     <string name="apps_title">All Apps</string>
@@ -25,11 +26,14 @@
 
     <!-- Photos Page -->
     <string name="photos_title">Photos</string>
-    <string name="photos_subtitle">Swipe to view</string>
+    <string name="photos_subtitle">Photos change automatically</string>
+    <string name="photos_subtitle_playing">Slideshow is playing · tap a photo to pause</string>
     <string name="photos_empty">No photos</string>
-    <string name="photos_empty_hint">Add photos via Settings</string>
+    <string name="photos_empty_hint">Add photos via Settings, or allow photo access</string>
     <string name="photos_previous">Previous</string>
     <string name="photos_next">Next</string>
+    <string name="photos_play">Play slideshow</string>
+    <string name="photos_pause">Pause slideshow</string>
     <string name="photos_add">Add Photo</string>
     <string name="photos_favorite">Favorite photo</string>
     <string name="photos_none_selected">No photos selected</string>
@@ -67,26 +71,39 @@
     <string name="settings_colors">Colors</string>
     <string name="settings_colors_subtitle">Customize colors</string>
     <string name="settings_language">Language</string>
+    <string name="settings_brightness">Brightness</string>
+    <string name="settings_brightness_subtitle">Set and lock screen brightness</string>
+    <string name="settings_brightness_lock">Lock brightness</string>
+    <string name="settings_brightness_lock_desc">Keep this brightness, even if it is changed in the shade</string>
+    <string name="settings_brightness_permission">Allow changing system settings to lock brightness</string>
+    <string name="settings_brightness_permission_button">Grant permission</string>
+    <string name="settings_brightness_decrease">Decrease brightness</string>
+    <string name="settings_brightness_increase">Increase brightness</string>
+    <string name="settings_brightness_locked_value">Locked · %1$d%%</string>
+    <string name="settings_brightness_value">%1$d%%</string>
     <string name="settings_apps">Home screen apps</string>
     <string name="settings_apps_subtitle">Choose apps for home screen</string>
     <string name="settings_apps_page">Apps page</string>
     <string name="settings_apps_page_subtitle">Show or hide apps</string>
     <string name="settings_apps_page_hint">Tap to toggle visibility</string>
-    <string name="settings_apps_choose_slot">Tap a slot to choose an app</string>
+    <string name="settings_apps_choose_slot">Tap an app to change it, or add more</string>
     <string name="settings_apps_tap_to_select">Tap to select app</string>
     <string name="settings_apps_clear">Remove app</string>
+    <string name="settings_apps_add">Add app</string>
+    <string name="settings_apps_full">Maximum of 12 apps on the home screen</string>
     <string name="settings_app_slot_1">Top left</string>
     <string name="settings_app_slot_2">Top right</string>
     <string name="settings_app_slot_3">Bottom left</string>
     <string name="settings_app_slot_4">Bottom right</string>
+    <string name="settings_app_slot_n">App %1$d</string>
+    <string name="settings_photos_subtitle">Choose photos for the slideshow</string>
+    <string name="settings_photos_hint">Add favorite photos. They will play automatically.</string>
     <string name="settings_contacts">Quick contacts</string>
     <string name="settings_contacts_subtitle">Manage quick contacts</string>
     <string name="settings_games">Games</string>
     <string name="settings_games_subtitle">Choose game apps</string>
     <string name="settings_games_hint">Tap to add or remove games</string>
     <string name="settings_photos">Photos</string>
-    <string name="settings_photos_subtitle">Manage photo carousel</string>
-    <string name="settings_photos_hint">Add favorite photos to the carousel</string>
     <string name="settings_emergency">Emergency number</string>
     <string name="settings_password_change">Change password</string>
     <string name="settings_password_change_subtitle">Change the password</string>
