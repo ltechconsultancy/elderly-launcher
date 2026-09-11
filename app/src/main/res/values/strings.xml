@@ -113,6 +113,7 @@
     <string name="settings_password_too_short">Password must be at least 4 digits</string>
     <string name="settings_password_mismatch">Passwords do not match</string>
     <string name="settings_emergency_hint">Phone number</string>
+    <string name="settings_emergency_invalid">Enter a valid number (at least 3 digits)</string>
     <string name="settings_coming_soon">This feature is coming soon</string>
     <string name="settings_unlock">Unlock</string>
     <string name="settings_lock_description">Settings are locked</string>

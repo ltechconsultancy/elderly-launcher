@@ -9,7 +9,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
-import android.util.Log
+import android.view.WindowManager
 import kotlin.math.roundToInt
 
 private const val TAG = "BrightnessHelper"
@@ -95,6 +95,16 @@ object BrightnessHelper {
         val activity = context.findActivity() ?: return
         val lp = activity.window.attributes
         lp.screenBrightness = percent.coerceIn(MIN_PERCENT, MAX_PERCENT) / 100f
+        activity.window.attributes = lp
+    }
+
+    /**
+     * Stop overriding window brightness so the system slider works again.
+     */
+    fun clearWindow(context: Context) {
+        val activity = context.findActivity() ?: return
+        val lp = activity.window.attributes
+        lp.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
         activity.window.attributes = lp
     }
 }

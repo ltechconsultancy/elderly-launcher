@@ -728,8 +728,16 @@ fun EmergencyNumberDialog(
 
                 OutlinedTextField(
                     value = number,
-                    onValueChange = { if (it.length <= 15) number = it },
+                    onValueChange = {
+                        if (it.length <= 15) number = it.filter { ch -> ch.isDigit() || ch == '+' || ch == ' ' }
+                    },
                     label = { Text(stringResource(R.string.settings_emergency_hint)) },
+                    isError = number.isNotBlank() && LauncherViewModel.sanitizeEmergencyNumber(number) == null,
+                    supportingText = {
+                        if (number.isNotBlank() && LauncherViewModel.sanitizeEmergencyNumber(number) == null) {
+                            Text(stringResource(R.string.settings_emergency_invalid))
+                        }
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -760,7 +768,11 @@ fun EmergencyNumberDialog(
                     }
 
                     Button(
-                        onClick = { onConfirm(number) },
+                        onClick = {
+                            val sanitized = LauncherViewModel.sanitizeEmergencyNumber(number)
+                            if (sanitized != null) onConfirm(sanitized)
+                        },
+                        enabled = LauncherViewModel.sanitizeEmergencyNumber(number) != null,
                         modifier = Modifier
                             .weight(1f)
                             .height(56.dp),

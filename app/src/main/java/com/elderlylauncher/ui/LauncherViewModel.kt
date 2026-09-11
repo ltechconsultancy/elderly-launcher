@@ -30,6 +30,13 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     companion object {
         const val MAX_HOME_APPS = 12
         const val DEFAULT_HOME_SLOTS = 4
+
+        fun sanitizeEmergencyNumber(number: String): String? {
+            val trimmed = number.trim()
+            val digits = trimmed.filter { it.isDigit() }
+            val allowed = trimmed.all { it.isDigit() || it == '+' || it == ' ' }
+            return if (allowed && digits.length in 3..15) trimmed.filter { it != ' ' } else null
+        }
     }
 
     // Loading states
@@ -230,9 +237,10 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun updateEmergencyNumber(number: String) {
+        val sanitized = sanitizeEmergencyNumber(number) ?: return
         viewModelScope.launch(exceptionHandler) {
             try {
-                settingsDataStore.setEmergencyNumber(number)
+                settingsDataStore.setEmergencyNumber(sanitized)
             } catch (e: Exception) {
                 Log.e(TAG, "Error updating emergency number", e)
             }
@@ -307,6 +315,8 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 settingsDataStore.setBrightnessLocked(locked)
                 if (locked) {
                     BrightnessHelper.apply(getApplication(), brightnessPercent.value)
+                } else {
+                    BrightnessHelper.clearWindow(getApplication())
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error setting brightness lock", e)

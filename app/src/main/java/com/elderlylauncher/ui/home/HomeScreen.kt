@@ -120,6 +120,7 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
     val installedApps by viewModel.installedApps.collectAsState()
     val quickContacts by viewModel.quickContacts.collectAsState()
     val emergencyNumber by viewModel.emergencyNumber.collectAsState()
+    val dialNumber = LauncherViewModel.sanitizeEmergencyNumber(emergencyNumber) ?: "112"
     val landscapeTablet = layout.isTablet && layout.isLandscape
 
     Column(
@@ -191,7 +192,7 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
             },
             text = {
                 Text(
-                    text = stringResource(R.string.emergency_confirm_message, emergencyNumber),
+                    text = stringResource(R.string.emergency_confirm_message, dialNumber),
                     style = MaterialTheme.typography.bodyLarge,
                     fontSize = 20.sp
                 )
@@ -202,7 +203,7 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
                         showEmergencyConfirm = false
                         safeStartActivity(context) {
                             Intent(Intent.ACTION_DIAL).apply {
-                                data = Uri.parse("tel:$emergencyNumber")
+                                data = Uri.parse("tel:$dialNumber")
                             }
                         }
                     },
