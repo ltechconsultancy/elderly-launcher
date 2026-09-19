@@ -21,18 +21,18 @@ Een eenvoudige, toegankelijke Android launcher voor ouderen.
 ## Pagina's
 
 1. **Home** - Klok, grote app-tegels, snelcontacten, noodknop
-2. **Apps** - Alle geïnstalleerde apps
+2. **Apps** - Alleen apps die in Instellingen zijn gekozen (leeg tot er apps zijn toegevoegd)
 3. **Spelletjes** - Gekozen games
 4. **Foto's** - Diavoorstelling
 5. **Volume** - Media, meldingen, alarm
-6. **Instellingen** - Beveiligd met wachtwoord (standaard: `1234`)
+6. **Instellingen** - Eerste keer een wachtwoord kiezen; daarna beveiligd
 
 ## Instellingen
 
 - **Update** - Nieuwste GitHub-release downloaden en installeren
 - **Kleuren** - Kies uit 12 thema-kleuren
 - **Taal** - Nederlands / Engels
-- **Zichtbare apps** - Selecteer welke apps getoond worden
+- **Apps-pagina** - Kies welke geïnstalleerde apps in de app-lijst staan
 - **Snelle contacten** - Beheer één-tap bel-contacten
 - **Noodnummer** - Configureer noodoproep nummer
 - **Wachtwoord** - Wijzig het instellingen-wachtwoord
