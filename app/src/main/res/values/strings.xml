@@ -19,6 +19,8 @@
     <!-- Apps Page -->
     <string name="apps_title">All Apps</string>
     <string name="apps_subtitle">Tap to open an app</string>
+    <string name="apps_empty">No apps yet</string>
+    <string name="apps_empty_hint">A caregiver can add apps in Settings.</string>
 
     <!-- Games Page -->
     <string name="games_title">Games</string>
@@ -99,10 +101,10 @@
     <string name="settings_brightness_locked_value">Locked · %1$d%%</string>
     <string name="settings_brightness_value">%1$d%%</string>
     <string name="settings_apps">Home screen apps</string>
-    <string name="settings_apps_subtitle">Choose apps for home screen</string>
+    <string name="settings_apps_subtitle">Large tiles on the home screen</string>
     <string name="settings_apps_page">Apps page</string>
-    <string name="settings_apps_page_subtitle">Show or hide apps</string>
-    <string name="settings_apps_page_hint">Tap to toggle visibility</string>
+    <string name="settings_apps_page_subtitle">Smaller apps on the Apps page</string>
+    <string name="settings_apps_page_hint">Tap to add or remove. The Apps page stays empty until you pick apps.</string>
     <string name="settings_apps_choose_slot">Tap an app to change it, or add more</string>
     <string name="settings_apps_tap_to_select">Tap to select app</string>
     <string name="settings_apps_clear">Remove app</string>
@@ -133,6 +135,9 @@
     <string name="settings_emergency_invalid">Enter a valid number (at least 3 digits)</string>
     <string name="settings_coming_soon">This feature is coming soon</string>
     <string name="settings_unlock">Unlock</string>
+    <string name="settings_choose_password">Choose a password</string>
+    <string name="settings_choose_password_subtitle">Choose a PIN so others cannot change the settings</string>
+    <string name="settings_choose_password_button">Choose password</string>
     <string name="settings_lock_description">Settings are locked</string>
     <string name="settings_locked_out">Too many attempts. Please wait.</string>
     <plurals name="settings_attempts_remaining">

@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.telephony.TelephonyManager
 import androidx.core.content.ContextCompat
 
 /**
@@ -81,11 +82,31 @@ object PermissionHelper {
     }
 
     /**
+     * True when a SIM is inserted and usable (ready, PIN, PUK, or network lock).
+     * Wi-Fi tablets and phones without a SIM return false so calling/SMS UI stays hidden.
+     */
+    fun hasActiveSim(context: Context): Boolean {
+        if (!hasTelephony(context)) return false
+        val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+            ?: return false
+        return try {
+            when (telephony.simState) {
+                TelephonyManager.SIM_STATE_ABSENT,
+                TelephonyManager.SIM_STATE_UNKNOWN,
+                TelephonyManager.SIM_STATE_NOT_READY -> false
+                else -> true
+            }
+        } catch (_: SecurityException) {
+            true
+        }
+    }
+
+    /**
      * Get all required permissions that are not yet granted.
      * Skip CALL_PHONE when the device cannot place cellular calls.
      */
     fun getMissingPermissions(context: Context): List<String> {
-        val phone = if (hasTelephony(context)) PHONE_PERMISSIONS else emptyArray()
+        val phone = if (hasActiveSim(context)) PHONE_PERMISSIONS else emptyArray()
         val allPermissions = phone + CONTACTS_PERMISSIONS +
                 CAMERA_PERMISSIONS + MEDIA_PERMISSIONS
         return allPermissions.filter { !hasPermission(context, it) }

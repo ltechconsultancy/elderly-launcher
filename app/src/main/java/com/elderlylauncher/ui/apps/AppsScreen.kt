@@ -6,6 +6,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,13 +36,13 @@ fun AppsScreen(
     val context = LocalContext.current
     val layout = rememberDeviceLayout()
     val installedApps by viewModel.installedApps.collectAsState()
-    val hiddenApps by viewModel.hiddenApps.collectAsState()
+    val allowedApps by viewModel.appsPageAllowed.collectAsState()
 
-    val visibleApps = remember(installedApps, hiddenApps) {
-        installedApps.filter { it.packageName !in hiddenApps }
+    val visibleApps = remember(installedApps, allowedApps) {
+        installedApps.filter { it.packageName in allowedApps }
     }
     val columns = layout.appGridColumns
-    val rows = 3
+    val rows = layout.appGridRows
 
     Column(
         modifier = Modifier
@@ -50,7 +52,10 @@ fun AppsScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 24.dp)
+                .padding(
+                    horizontal = if (layout.isTablet) 32.dp else 24.dp,
+                    vertical = if (layout.isLandscape) 12.dp else 24.dp
+                )
         ) {
             Text(
                 text = stringResource(R.string.apps_title),
@@ -65,23 +70,56 @@ fun AppsScreen(
             )
         }
 
-        ButtonPagedGrid(
-            items = visibleApps,
-            columns = columns,
-            rows = rows,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-        ) { app ->
-            AppGridItem(
-                appInfo = app,
-                onClick = {
-                    val intent = context.packageManager.getLaunchIntentForPackage(app.packageName)
-                    if (intent != null) {
-                        context.startActivity(intent)
-                    }
+        if (visibleApps.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.Apps,
+                        contentDescription = null,
+                        tint = LauncherColors.Gray300,
+                        modifier = Modifier.size(96.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = stringResource(R.string.apps_empty),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = LauncherColors.Gray500,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.apps_empty_hint),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = LauncherColors.Gray400,
+                        textAlign = TextAlign.Center
+                    )
                 }
-            )
+            }
+        } else {
+            ButtonPagedGrid(
+                items = visibleApps,
+                columns = columns,
+                rows = rows,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp)
+            ) { app ->
+                AppGridItem(
+                    appInfo = app,
+                    compact = true,
+                    onClick = {
+                        val intent = context.packageManager.getLaunchIntentForPackage(app.packageName)
+                        if (intent != null) {
+                            context.startActivity(intent)
+                        }
+                    }
+                )
+            }
         }
     }
 }
@@ -89,8 +127,11 @@ fun AppsScreen(
 @Composable
 fun AppGridItem(
     appInfo: AppInfo,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    compact: Boolean = false
 ) {
+    val iconSize = if (compact) 48.dp else 64.dp
+    val fontSize = if (compact) 16.sp else 14.sp
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -98,15 +139,15 @@ fun AppGridItem(
             .background(LauncherColors.Gray50)
             .border(1.dp, LauncherColors.Gray200, RoundedCornerShape(20.dp))
             .clickable(onClick = onClick)
-            .padding(12.dp),
+            .padding(if (compact) 8.dp else 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
             bitmap = appInfo.icon.toBitmap(128, 128).asImageBitmap(),
             contentDescription = appInfo.label,
             modifier = Modifier
-                .size(64.dp)
-                .clip(RoundedCornerShape(16.dp))
+                .size(iconSize)
+                .clip(RoundedCornerShape(12.dp))
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -115,7 +156,7 @@ fun AppGridItem(
             text = appInfo.label,
             style = MaterialTheme.typography.bodyMedium,
             color = LauncherColors.Gray800,
-            fontSize = 14.sp,
+            fontSize = fontSize,
             textAlign = TextAlign.Center,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis

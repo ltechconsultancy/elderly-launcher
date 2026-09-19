@@ -29,6 +29,7 @@ class SettingsDataStore(private val context: Context) {
         val QUICK_CONTACTS = stringSetPreferencesKey("quick_contacts")
         val VISIBLE_APPS = stringSetPreferencesKey("visible_apps")
         val HIDDEN_APPS = stringSetPreferencesKey("hidden_apps")
+        val APPS_PAGE_ALLOWED = stringSetPreferencesKey("apps_page_allowed")
         val GAME_APPS = stringSetPreferencesKey("game_apps")
         val CAROUSEL_PHOTOS = stringSetPreferencesKey("carousel_photos")
         val FIRST_LAUNCH = booleanPreferencesKey("first_launch")
@@ -38,7 +39,6 @@ class SettingsDataStore(private val context: Context) {
 
     // Default values
     companion object {
-        const val DEFAULT_PASSWORD = "1234"
         const val DEFAULT_LANGUAGE = "nl"
         const val DEFAULT_EMERGENCY_NUMBER = "112"
         const val DEFAULT_PRIMARY_COLOR = "blue"
@@ -55,10 +55,14 @@ class SettingsDataStore(private val context: Context) {
         }
     }
 
-    // Password (stored as SHA-256 hash)
+    // Password (stored as SHA-256 hash). Empty until chosen on first unlock.
     val passwordHash: Flow<String> = context.dataStore.data
         .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
-        .map { it[Keys.PASSWORD] ?: hashPassword(DEFAULT_PASSWORD) }
+        .map { it[Keys.PASSWORD] ?: "" }
+
+    val hasPassword: Flow<Boolean> = context.dataStore.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .map { !it[Keys.PASSWORD].isNullOrBlank() }
 
     suspend fun setPassword(password: String) {
         context.dataStore.edit { it[Keys.PASSWORD] = hashPassword(password) }
@@ -69,7 +73,8 @@ class SettingsDataStore(private val context: Context) {
      * Uses MessageDigest.isEqual for constant-time comparison to prevent timing attacks.
      */
     suspend fun validatePassword(input: String): Boolean {
-        val storedHash = passwordHash.first()
+        val storedHash = context.dataStore.data.first()[Keys.PASSWORD]
+        if (storedHash.isNullOrBlank()) return false
         val inputHash = hashPassword(input)
         return MessageDigest.isEqual(
             storedHash.toByteArray(Charsets.UTF_8),
@@ -156,10 +161,18 @@ class SettingsDataStore(private val context: Context) {
         context.dataStore.edit { it[Keys.HIDDEN_APPS] = apps }
     }
 
+    val appsPageAllowed: Flow<Set<String>> = context.dataStore.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .map { it[Keys.APPS_PAGE_ALLOWED] ?: emptySet() }
+
+    suspend fun setAppsPageAllowed(apps: Set<String>) {
+        context.dataStore.edit { it[Keys.APPS_PAGE_ALLOWED] = apps }
+    }
+
     suspend fun toggleAppVisibility(packageName: String) {
         context.dataStore.edit { prefs ->
-            val current = prefs[Keys.HIDDEN_APPS] ?: emptySet()
-            prefs[Keys.HIDDEN_APPS] = if (packageName in current) {
+            val current = prefs[Keys.APPS_PAGE_ALLOWED] ?: emptySet()
+            prefs[Keys.APPS_PAGE_ALLOWED] = if (packageName in current) {
                 current - packageName
             } else {
                 current + packageName

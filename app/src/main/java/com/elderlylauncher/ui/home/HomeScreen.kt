@@ -56,7 +56,8 @@ data class DefaultAppConfig(
     val borderColor: Color,
     val iconBackgroundColor: Color,
     val textColor: Color,
-    val launchIntent: () -> Intent
+    val launchIntent: () -> Intent,
+    val requiresTelephony: Boolean = false
 )
 
 private val defaultApps = listOf(
@@ -67,7 +68,8 @@ private val defaultApps = listOf(
         borderColor = LauncherColors.Green200,
         iconBackgroundColor = LauncherColors.Green500,
         textColor = LauncherColors.Green700,
-        launchIntent = { Intent(Intent.ACTION_DIAL) }
+        launchIntent = { Intent(Intent.ACTION_DIAL) },
+        requiresTelephony = true
     ),
     DefaultAppConfig(
         title = R.string.home_messages,
@@ -76,7 +78,8 @@ private val defaultApps = listOf(
         borderColor = LauncherColors.Blue200,
         iconBackgroundColor = LauncherColors.Blue500,
         textColor = LauncherColors.Blue700,
-        launchIntent = { Intent(Intent.ACTION_MAIN).apply { addCategory(Intent.CATEGORY_APP_MESSAGING) } }
+        launchIntent = { Intent(Intent.ACTION_MAIN).apply { addCategory(Intent.CATEGORY_APP_MESSAGING) } },
+        requiresTelephony = true
     ),
     DefaultAppConfig(
         title = R.string.home_camera,
@@ -141,12 +144,9 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
             installedApps = installedApps,
             context = context,
             viewModel = viewModel,
-            columns = when {
-                layout.isTablet && layout.isLandscape -> 4
-                layout.isTablet -> 3
-                else -> 2
-            },
-            rows = if (layout.isTablet && layout.isLandscape) 1 else 2,
+            hasTelephony = layout.hasTelephony,
+            columns = layout.homeGridColumns,
+            rows = layout.homeGridRows,
             modifier = Modifier.weight(1f)
         )
 
@@ -169,12 +169,6 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
                     .fillMaxWidth()
                     .padding(vertical = 16.dp),
                 onClick = { showEmergencyConfirm = true }
-            )
-        } else {
-            NoTelephonyBanner(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp)
             )
         }
     }
@@ -379,18 +373,29 @@ fun HomeAppGrid(
     installedApps: List<AppInfo>,
     context: Context,
     viewModel: LauncherViewModel,
+    hasTelephony: Boolean,
     columns: Int,
     rows: Int,
     modifier: Modifier = Modifier
 ) {
-    val positions = remember(homeApps) {
-        (0 until LauncherViewModel.DEFAULT_HOME_SLOTS) +
-            homeApps.keys.filter { it >= LauncherViewModel.DEFAULT_HOME_SLOTS }.sorted()
+    val positions = remember(homeApps, hasTelephony) {
+        val defaultSlots = defaultApps.mapIndexedNotNull { index, config ->
+            if (!config.requiresTelephony || hasTelephony) index else null
+        }
+        val extraSlots = homeApps.keys
+            .filter { it !in defaultSlots }
+            .sorted()
+        defaultSlots + extraSlots
+    }
+    val visibleColumns = if (positions.size < columns && rows == 1) {
+        positions.size.coerceAtLeast(1)
+    } else {
+        columns
     }
 
     ButtonPagedGrid(
         items = positions,
-        columns = columns,
+        columns = visibleColumns,
         rows = rows,
         modifier = modifier,
         fillCells = true
@@ -459,7 +464,7 @@ fun HomeAppTile(
                 viewModel.launchApp(customApp.packageName)
             }
         )
-    } else if (position < defaultApps.size) {
+    } else if (customPackage == null && position < defaultApps.size) {
         val defaultConfig = defaultApps[position]
         AppTile(
             title = stringResource(defaultConfig.title),
