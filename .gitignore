@@ -26,8 +26,10 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# Mockups (keep for reference but don't build)
-mockups/
+# Playwright artifacts
+mockups/test-results/
+mockups/playwright-report/
+mockups/node_modules/
 
 # IDE
 *.swp
@@ -37,4 +39,5 @@ mockups/
 # Secrets
 *.jks
 *.keystore
+!app/signing/upload.p12
 google-services.json

@@ -85,7 +85,7 @@ fun VolumeScreen(
     val decreaseDesc = stringResource(R.string.volume_decrease)
     val increaseDesc = stringResource(R.string.volume_increase)
     val layout = rememberDeviceLayout()
-    val twoColumn = layout.isTablet && layout.isLandscape
+    val twoColumn = layout.isLandscape
 
     Column(
         modifier = Modifier

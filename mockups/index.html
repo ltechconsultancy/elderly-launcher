@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Elderly Launcher layout mockup</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1f2937;
+      --muted: #4b5563;
+      --line: #e5e7eb;
+      --green: #d1fae5;
+      --green-b: #6ee7b7;
+      --blue: #dbeafe;
+      --blue-b: #93c5fd;
+      --purple: #ede9fe;
+      --purple-b: #c4b5fd;
+      --pink: #fce7f3;
+      --pink-b: #f9a8d4;
+      --red: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: #111827;
+      color: var(--text);
+      overflow: hidden;
+    }
+    .phone-frame {
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    header.clock {
+      padding: 24px 20px 12px;
+      text-align: center;
+    }
+    .time { font-size: 56px; font-weight: 700; line-height: 1; }
+    .date { font-size: 20px; color: var(--muted); margin-top: 8px; }
+    main {
+      flex: 1;
+      min-height: 0;
+      padding: 8px 16px 12px;
+      display: flex;
+      flex-direction: column;
+    }
+    .grid {
+      flex: 1;
+      display: grid;
+      gap: 12px;
+      min-height: 0;
+    }
+    .tile {
+      border-radius: 24px;
+      border: 2px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      min-height: 0;
+    }
+    .tile-large {
+      font-size: 22px;
+      min-height: 160px;
+    }
+    .tile-small {
+      font-size: 16px;
+      min-height: 72px;
+      border-radius: 16px;
+    }
+    .icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+    .tile-small .icon { width: 40px; height: 40px; font-size: 20px; margin-bottom: 6px; }
+    .emergency {
+      height: 80px;
+      border-radius: 24px;
+      background: var(--red);
+      color: white;
+      font-size: 22px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 12px;
+    }
+    .contacts {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .contact {
+      flex: 1;
+      height: 56px;
+      border-radius: 16px;
+      background: #f3f4f6;
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+    }
+    footer.pages {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 16px 20px;
+    }
+    .page-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 2px solid #93c5fd;
+      background: #eff6ff;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .page-btn[aria-current="page"] {
+      background: #3b82f6;
+      color: white;
+      border-color: #2563eb;
+    }
+    .hidden { display: none !important; }
+    body[data-orientation="landscape"] header.clock { padding-top: 8px; padding-bottom: 8px; }
+    body[data-orientation="landscape"] .time { font-size: 40px; }
+    body[data-device="phone"][data-orientation="landscape"] .tile-large { min-height: 96px; font-size: 18px; }
+    body[data-device="phone"][data-orientation="landscape"] .emergency { height: 56px; font-size: 18px; margin-top: 6px; }
+    body[data-device="phone"][data-orientation="landscape"] .contacts { display: none !important; }
+    h2.page-title { margin: 0 0 8px; font-size: 28px; }
+    p.page-sub { margin: 0 0 12px; color: var(--muted); font-size: 18px; }
+  </style>
+</head>
+<body data-device="phone" data-orientation="portrait" data-sim="1" data-page="home">
+  <div class="phone-frame">
+    <header class="clock" data-testid="clock">
+      <div class="time">10:52</div>
+      <div class="date">zaterdag 19 september</div>
+    </header>
+    <main>
+      <section id="page-home" data-page-panel="home">
+        <div class="grid" id="home-grid" data-testid="home-grid"></div>
+        <div class="contacts" id="quick-contacts" data-testid="quick-contacts">
+          <div class="contact">Anna</div>
+          <div class="contact">Jan</div>
+        </div>
+        <div class="emergency" id="emergency" data-testid="emergency">NOODGEVAL</div>
+      </section>
+      <section id="page-apps" class="hidden" data-page-panel="apps">
+        <h2 class="page-title">Alle Apps</h2>
+        <p class="page-sub">Kleinere knoppen, gekozen in Instellingen</p>
+        <div class="grid" id="apps-grid" data-testid="apps-grid"></div>
+      </section>
+    </main>
+    <footer class="pages" data-testid="page-numbers">
+      <button class="page-btn" data-page="home" aria-current="page">1</button>
+      <button class="page-btn" data-page="apps">2</button>
+      <button class="page-btn" data-page="games">3</button>
+      <button class="page-btn" data-page="photos">4</button>
+      <button class="page-btn" data-page="volume">5</button>
+      <button class="page-btn" data-page="settings">6</button>
+    </footer>
+  </div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const device = params.get("device") || "phone";
+    const orientation = params.get("orientation") || "portrait";
+    const sim = params.get("sim") === "0" ? "0" : "1";
+    const page = params.get("page") || "home";
+    document.body.dataset.device = device;
+    document.body.dataset.orientation = orientation;
+    document.body.dataset.sim = sim;
+    document.body.dataset.page = page;
+
+    const large = [
+      { id: "call", label: "Bellen", bg: "#d1fae5", border: "#6ee7b7", telephony: true },
+      { id: "messages", label: "Berichten", bg: "#dbeafe", border: "#93c5fd", telephony: true },
+      { id: "camera", label: "Camera", bg: "#ede9fe", border: "#c4b5fd" },
+      { id: "photos", label: "Foto's", bg: "#fce7f3", border: "#f9a8d4" }
+    ];
+    const small = ["Kaarten", "Weer", "YouTube", "Nieuws", "Radio", "Kalender"];
+
+    function layoutHome() {
+      const tablet = device === "tablet";
+      const landscape = orientation === "landscape";
+      if (landscape && tablet) return { cols: 4, rows: 1 };
+      if (landscape) return { cols: 3, rows: 1 };
+      if (tablet) return { cols: 3, rows: 2 };
+      return { cols: 2, rows: 2 };
+    }
+    const emptyApps = params.get("apps") === "0";
+
+    function layoutApps() {
+      const width = document.documentElement.clientWidth;
+      const landscape = orientation === "landscape";
+      let cols = 3;
+      if (width >= 1200) cols = 6;
+      else if (width >= 840) cols = 5;
+      else if (width >= 600) cols = 4;
+      else if (landscape) cols = 4;
+      return { cols, rows: landscape ? 2 : 3 };
+    }
+
+    const homeApps = large.filter((a) => sim === "1" || !a.telephony);
+    const homeLayout = layoutHome();
+    const homeCols = homeLayout.rows === 1 ? Math.max(1, Math.min(homeLayout.cols, homeApps.length)) : homeLayout.cols;
+    const homeGrid = document.getElementById("home-grid");
+    homeGrid.style.gridTemplateColumns = `repeat(${homeCols}, 1fr)`;
+    homeGrid.innerHTML = homeApps.map((a) => `
+      <button class="tile tile-large" data-testid="tile-${a.id}" data-size="large" style="background:${a.bg};border-color:${a.border}">
+        <span class="icon">${a.label[0]}</span>${a.label}
+      </button>`).join("");
+
+    const appsLayout = layoutApps();
+    const appsGrid = document.getElementById("apps-grid");
+    appsGrid.style.gridTemplateColumns = `repeat(${appsLayout.cols}, 1fr)`;
+    if (emptyApps) {
+      appsGrid.innerHTML = `<p data-testid="apps-empty">Nog geen apps</p>`;
+    } else {
+      appsGrid.innerHTML = small.map((label, i) => `
+        <button class="tile tile-small" data-testid="app-${i}" data-size="small">
+          <span class="icon">${label[0]}</span>${label}
+        </button>`).join("");
+    }
+
+    const showPhone = sim === "1";
+    document.getElementById("emergency").classList.toggle("hidden", !showPhone);
+    document.getElementById("quick-contacts").classList.toggle("hidden", !showPhone);
+
+    function showPage(name) {
+      document.body.dataset.page = name;
+      document.querySelectorAll("[data-page-panel]").forEach((el) => {
+        el.classList.toggle("hidden", el.dataset.pagePanel !== name);
+      });
+      document.querySelectorAll(".page-btn").forEach((btn) => {
+        btn.setAttribute("aria-current", btn.dataset.page === name ? "page" : "false");
+      });
+    }
+    document.querySelectorAll(".page-btn").forEach((btn) => {
+      btn.addEventListener("click", () => showPage(btn.dataset.page));
+    });
+    showPage(page === "apps" ? "apps" : "home");
+  </script>
+</body>
+</html>

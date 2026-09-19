@@ -63,7 +63,10 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
 
     // Settings (stored password hash)
     val passwordHash: StateFlow<String> = settingsDataStore.passwordHash
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsDataStore.hashPassword(SettingsDataStore.DEFAULT_PASSWORD))
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
+    val hasPassword: StateFlow<Boolean> = settingsDataStore.hasPassword
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     val emergencyNumber: StateFlow<String> = settingsDataStore.emergencyNumber
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsDataStore.DEFAULT_EMERGENCY_NUMBER)
@@ -83,6 +86,9 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
 
     // Hidden apps (package names to hide from Apps page)
     val hiddenApps: StateFlow<Set<String>> = settingsDataStore.hiddenApps
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    val appsPageAllowed: StateFlow<Set<String>> = settingsDataStore.appsPageAllowed
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     // Game apps (package names for games page)
@@ -172,6 +178,10 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
      */
     fun changePassword(newPassword: String) {
         updatePassword(newPassword)
+    }
+
+    suspend fun setPasswordNow(newPassword: String) {
+        settingsDataStore.setPassword(newPassword)
     }
 
     /**

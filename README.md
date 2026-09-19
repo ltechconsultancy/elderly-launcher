@@ -9,7 +9,7 @@ Een eenvoudige, toegankelijke Android launcher voor ouderen.
 - **Pagina's via knoppen** - Tik op nummer 1–6 onderaan; geen swipe
 - **Volume bediening** - Geluid en helderheid met + en − (helderheid minimaal 40%, standaard 100%)
 - **Snel bellen** - Één-tap contacten met foto's
-- **Noodknop** - Altijd zichtbaar op telefoons met sim
+- **Noodknop** - Alleen als er een simkaart is; zonder sim geen bellen/berichten
 - **Wachtwoord-beveiligde instellingen** - Voorkom per ongeluk wijzigen
 - **Kleurthema's** - 12 kleuren om uit te kiezen
 - **Meertalig** - Nederlands (primair) + Engels
@@ -20,12 +20,12 @@ Een eenvoudige, toegankelijke Android launcher voor ouderen.
 
 ## Pagina's
 
-1. **Home** - Klok, grote app-tegels, snelcontacten, noodknop
-2. **Apps** - Alle geïnstalleerde apps
+1. **Home** - Klok en **grote** tegels (camera/foto's; bellen/berichten alleen met sim)
+2. **Apps** - **Kleinere** apps, alleen wat de begeleider kiest
 3. **Spelletjes** - Gekozen games
 4. **Foto's** - Diavoorstelling
 5. **Volume** - Media, meldingen, alarm
-6. **Instellingen** - Beveiligd met wachtwoord (standaard: `1234`)
+6. **Instellingen** - Eerste keer zelf een pincode kiezen; daarna vergrendeld
 
 ## Instellingen
 
@@ -112,9 +112,11 @@ Bestand: `elderly-launcher-v1.0.17.apk`
 # Via Gradle
 ./gradlew installDebug
 
-# Of direct APK via ADB
-adb install app/build/outputs/apk/debug/app-debug.apk
+# Of direct APK via ADB (overschrijft dezelfde app)
+adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
+
+Alle APK's (lokaal én GitHub Releases) gebruiken dezelfde upload-sleutel in `app/signing/upload.p12`, zodat een nieuwe versie de oude **overschrijft**. Als een oude installatie nog met een andere debug-sleutel is gebouwd (GitHub Actions tot v1.0.16), één keer verwijderen en daarna opnieuw installeren.
 
 ## Als Home Screen Instellen
 
@@ -125,12 +127,20 @@ Na installatie:
 
 POCO / Xiaomi HyperOS: **Instellingen → Apps → Standaard-apps → Startscherm-app** (of Launcher).
 
-De meeste POCO-tablets zijn wifi-only. De noodknop wordt dan vervangen door een melding dat bellen niet kan.
+De meeste POCO-tablets zijn wifi-only. Zonder sim verdwijnen bellen, berichten, snelcontacten en de noodknop helemaal. Landscape en portrait hebben eigen rasters.
 
-## Mockups
+## Mockups en Playwright
 
-De `/mockups` folder bevat interactieve HTML prototypes.
-PocketDev panels beschikbaar: `launcher-home`, `launcher-volume`
+HTML-layouts in `mockups/` (Playwright kan geen APK draaien). White-box tests:
+
+```bash
+cd mockups
+npm install
+npx playwright install chromium
+npm test
+```
+
+Varianten via query: `?device=phone|tablet&orientation=portrait|landscape&sim=0|1`.
 
 ## Licentie
 

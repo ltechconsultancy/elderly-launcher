@@ -64,9 +64,15 @@ import kotlinx.coroutines.withContext
 fun SettingsScreen(
     viewModel: LauncherViewModel = viewModel()
 ) {
+    val hasPassword by viewModel.hasPassword.collectAsState()
+    val context = LocalContext.current
     var isUnlocked by rememberSaveable { mutableStateOf(false) }
     var showPasswordDialog by rememberSaveable { mutableStateOf(false) }
+    var showChoosePasswordDialog by rememberSaveable { mutableStateOf(false) }
     var password by rememberSaveable { mutableStateOf("") }
+    var choosePassword by rememberSaveable { mutableStateOf("") }
+    var chooseConfirm by rememberSaveable { mutableStateOf("") }
+    var chooseError by rememberSaveable { mutableStateOf<String?>(null) }
     var showError by rememberSaveable { mutableStateOf(false) }
     var failedAttempts by rememberSaveable { mutableIntStateOf(0) }
     var lockoutEndTime by rememberSaveable { mutableLongStateOf(0L) }
@@ -87,6 +93,42 @@ fun SettingsScreen(
             }
             isLockedOut = false
         }
+    }
+
+    if (showChoosePasswordDialog) {
+        ChoosePasswordDialog(
+            newPassword = choosePassword,
+            confirmPassword = chooseConfirm,
+            error = chooseError,
+            onNewPasswordChange = { choosePassword = it.filter(Char::isDigit); chooseError = null },
+            onConfirmPasswordChange = { chooseConfirm = it.filter(Char::isDigit); chooseError = null },
+            onDismiss = {
+                showChoosePasswordDialog = false
+                choosePassword = ""
+                chooseConfirm = ""
+                chooseError = null
+            },
+            onConfirm = {
+                when {
+                    choosePassword.length < 4 -> {
+                        chooseError = context.getString(R.string.settings_password_too_short)
+                    }
+                    choosePassword != chooseConfirm -> {
+                        chooseError = context.getString(R.string.settings_password_mismatch)
+                    }
+                    else -> {
+                        coroutineScope.launch {
+                            viewModel.setPasswordNow(choosePassword)
+                            isUnlocked = true
+                            showChoosePasswordDialog = false
+                            choosePassword = ""
+                            chooseConfirm = ""
+                            chooseError = null
+                        }
+                    }
+                }
+            }
+        )
     }
 
     if (showPasswordDialog && !isLockedOut) {
@@ -124,9 +166,16 @@ fun SettingsScreen(
         )
     } else {
         LockedSettingsScreen(
-            onUnlockClick = { showPasswordDialog = true },
+            onUnlockClick = {
+                if (hasPassword) {
+                    showPasswordDialog = true
+                } else {
+                    showChoosePasswordDialog = true
+                }
+            },
             isLockedOut = isLockedOut,
-            lockoutEndTime = lockoutEndTime
+            lockoutEndTime = lockoutEndTime,
+            needsSetup = !hasPassword
         )
     }
 }
@@ -135,9 +184,12 @@ fun SettingsScreen(
 fun LockedSettingsScreen(
     onUnlockClick: () -> Unit,
     isLockedOut: Boolean = false,
-    lockoutEndTime: Long = 0L
+    lockoutEndTime: Long = 0L,
+    needsSetup: Boolean = false
 ) {
     val layout = rememberDeviceLayout()
+    val context = LocalContext.current
+    val versionName = remember { AppUpdater.currentVersionName(context) }
     val lockDescription = stringResource(R.string.settings_lock_description)
 
     Box(
@@ -150,7 +202,8 @@ fun LockedSettingsScreen(
         modifier = Modifier
             .fillMaxWidth()
             .then(if (layout.isTablet) Modifier.widthIn(max = layout.contentMaxWidth) else Modifier)
-            .padding(24.dp),
+            .verticalScroll(rememberScrollState())
+            .padding(if (layout.isLandscape) 16.dp else 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -180,10 +233,22 @@ fun LockedSettingsScreen(
             color = LauncherColors.Gray800
         )
 
+        if (versionName.isNotBlank()) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.settings_version, versionName),
+                style = MaterialTheme.typography.bodyLarge,
+                color = LauncherColors.Gray500
+            )
+        }
+
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = stringResource(R.string.settings_password_title),
+            text = stringResource(
+                if (needsSetup) R.string.settings_choose_password_subtitle
+                else R.string.settings_password_title
+            ),
             style = MaterialTheme.typography.bodyLarge,
             color = LauncherColors.Gray500,
             textAlign = TextAlign.Center
@@ -221,7 +286,10 @@ fun LockedSettingsScreen(
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = stringResource(R.string.settings_unlock),
+                text = stringResource(
+                    if (needsSetup) R.string.settings_choose_password_button
+                    else R.string.settings_unlock
+                ),
                 style = MaterialTheme.typography.titleMedium,
                 fontSize = 22.sp
             )
@@ -313,6 +381,117 @@ fun PasswordDialog(
                         )
                     }
 
+                    Button(
+                        onClick = onConfirm,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(64.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = LauncherColors.Blue500
+                        )
+                    ) {
+                        Text(
+                            text = stringResource(R.string.confirm),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontSize = 16.sp,
+                            maxLines = 1
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun ChoosePasswordDialog(
+    newPassword: String,
+    confirmPassword: String,
+    error: String?,
+    onNewPasswordChange: (String) -> Unit,
+    onConfirmPasswordChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_choose_password),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = LauncherColors.Gray800,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.settings_choose_password_subtitle),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = LauncherColors.Gray500,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                OutlinedTextField(
+                    value = newPassword,
+                    onValueChange = onNewPasswordChange,
+                    label = { Text(stringResource(R.string.settings_password_new)) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    singleLine = true
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = onConfirmPasswordChange,
+                    label = { Text(stringResource(R.string.settings_password_confirm)) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    singleLine = true
+                )
+                if (error != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = error,
+                        color = LauncherColors.Red500,
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(64.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.cancel),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontSize = 16.sp,
+                            maxLines = 1
+                        )
+                    }
                     Button(
                         onClick = onConfirm,
                         modifier = Modifier
@@ -555,11 +734,11 @@ fun SettingsContent(
     // Apps Page visibility dialog
     if (showAppsPageDialog) {
         val installedApps by viewModel.installedApps.collectAsState()
-        val hiddenApps by viewModel.hiddenApps.collectAsState()
+        val allowedApps by viewModel.appsPageAllowed.collectAsState()
 
         AppsPageDialog(
             installedApps = installedApps,
-            hiddenApps = hiddenApps,
+            allowedApps = allowedApps,
             onDismiss = { showAppsPageDialog = false },
             onToggleApp = { packageName ->
                 viewModel.toggleAppVisibility(packageName)
@@ -647,6 +826,13 @@ fun SettingsContent(
                     style = MaterialTheme.typography.headlineLarge,
                     color = LauncherColors.Gray800
                 )
+                if (currentVersion.isNotBlank()) {
+                    Text(
+                        text = stringResource(R.string.settings_version, currentVersion),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = LauncherColors.Gray500
+                    )
+                }
             }
 
             // Lock button - 64dp for elderly
@@ -666,14 +852,18 @@ fun SettingsContent(
             }
         }
 
-        val settingsKeys = listOf(
-            "update", "colors", "language", "brightness", "apps",
-            "apps_page", "games", "photos", "contacts",
-            "emergency", "password"
-        )
+        val settingsKeys = buildList {
+            add("update")
+            addAll(listOf("colors", "language", "brightness", "apps", "apps_page", "games", "photos"))
+            if (layout.hasTelephony) {
+                add("contacts")
+                add("emergency")
+            }
+            add("password")
+        }
         ButtonPagedColumn(
             items = settingsKeys,
-            pageSize = 4,
+            pageSize = if (layout.isLandscape) 3 else 4,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
@@ -1242,7 +1432,7 @@ fun PasswordChangeDialog(
 @Composable
 fun AppsPageDialog(
     installedApps: List<AppInfo>,
-    hiddenApps: Set<String>,
+    allowedApps: Set<String>,
     onDismiss: () -> Unit,
     onToggleApp: (String) -> Unit
 ) {
@@ -1294,12 +1484,12 @@ fun AppsPageDialog(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) { app ->
-                        val isHidden = app.packageName in hiddenApps
+                        val isAllowed = app.packageName in allowedApps
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(if (isHidden) LauncherColors.Gray100 else LauncherColors.Green50)
+                                .background(if (isAllowed) LauncherColors.Green50 else LauncherColors.Gray100)
                                 .clickable { onToggleApp(app.packageName) }
                                 .padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
@@ -1317,14 +1507,14 @@ fun AppsPageDialog(
                             Text(
                                 text = app.label,
                                 style = MaterialTheme.typography.titleMedium,
-                                color = if (isHidden) LauncherColors.Gray500 else LauncherColors.Gray800,
+                                color = if (isAllowed) LauncherColors.Gray800 else LauncherColors.Gray500,
                                 modifier = Modifier.weight(1f)
                             )
 
                             Icon(
-                                imageVector = if (isHidden) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = if (isHidden) "Hidden" else "Visible",
-                                tint = if (isHidden) LauncherColors.Gray400 else LauncherColors.Green500
+                                imageVector = if (isAllowed) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                contentDescription = if (isAllowed) "Visible" else "Hidden",
+                                tint = if (isAllowed) LauncherColors.Green500 else LauncherColors.Gray400
                             )
                         }
                 }
