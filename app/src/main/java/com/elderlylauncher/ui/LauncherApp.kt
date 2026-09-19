@@ -63,14 +63,12 @@ fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
             isLocked = { brightnessLocked },
             lockedPercent = { brightnessPercent }
         )
+        BrightnessHelper.apply(context, brightnessPercent)
         if (brightnessLocked) {
-            BrightnessHelper.apply(context, brightnessPercent)
             watcher.start()
-        } else {
-            BrightnessHelper.clearWindow(context)
         }
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME && brightnessLocked) {
+            if (event == Lifecycle.Event.ON_RESUME) {
                 BrightnessHelper.apply(context, brightnessPercent)
             }
         }

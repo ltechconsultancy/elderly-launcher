@@ -43,8 +43,8 @@
     <string name="photos_none_selected">No photos selected</string>
 
     <!-- Volume Page -->
-    <string name="volume_title">Volume</string>
-    <string name="volume_subtitle">Adjust the sound</string>
+    <string name="volume_title">Sound</string>
+    <string name="volume_subtitle">Sound and brightness</string>
     <string name="volume_media">Media</string>
     <string name="volume_media_desc">Music, videos</string>
     <string name="volume_calls">Calls</string>
@@ -57,6 +57,8 @@
     <string name="volume_increase">Increase volume</string>
     <string name="volume_unavailable">Volume not available</string>
     <string name="volume_bars_description">%1$d of 10 bars filled</string>
+    <string name="volume_brightness">Brightness</string>
+    <string name="volume_brightness_desc">Screen, minimum 40%</string>
     <string name="volume_bars_filled">%1$d of %2$d bars filled</string>
 
     <!-- Contacts -->

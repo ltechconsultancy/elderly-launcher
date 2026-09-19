@@ -313,11 +313,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch(exceptionHandler) {
             try {
                 settingsDataStore.setBrightnessLocked(locked)
-                if (locked) {
-                    BrightnessHelper.apply(getApplication(), brightnessPercent.value)
-                } else {
-                    BrightnessHelper.clearWindow(getApplication())
-                }
+                BrightnessHelper.apply(getApplication(), brightnessPercent.value)
             } catch (e: Exception) {
                 Log.e(TAG, "Error setting brightness lock", e)
             }

@@ -35,6 +35,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.elderlylauncher.R
 import com.elderlylauncher.ui.LauncherViewModel
+import com.elderlylauncher.ui.PagedSideNav
 import com.elderlylauncher.ui.theme.LauncherColors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -159,98 +160,64 @@ fun PhotoCarouselScreen(
         } else {
             val photo = allPhotos[currentIndex.coerceIn(0, allPhotos.lastIndex)]
 
-            Column(
+            PagedSideNav(
+                currentPage = currentIndex,
+                pageCount = allPhotos.size,
+                onPageChange = { currentIndex = it },
+                wrap = true,
+                previousLabel = stringResource(R.string.photos_previous),
+                nextLabel = stringResource(R.string.photos_next),
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 8.dp)
                     .padding(bottom = 8.dp)
             ) {
                 Box(
                     modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
+                        .fillMaxSize()
                         .clip(RoundedCornerShape(24.dp))
                 ) {
                     PhotoPage(photo = photo)
-                }
 
-                if (allPhotos.size > 1) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "${currentIndex + 1} / ${allPhotos.size}",
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = LauncherColors.Gray600,
-                        fontSize = 20.sp
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Button(
-                            onClick = {
-                                currentIndex = if (currentIndex > 0) {
-                                    currentIndex - 1
-                                } else {
-                                    allPhotos.lastIndex
-                                }
-                            },
+                    if (allPhotos.size > 1) {
+                        Column(
                             modifier = Modifier
-                                .weight(1f)
-                                .height(64.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = LauncherColors.Gray800
-                            )
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = stringResource(R.string.photos_previous),
-                                fontSize = 18.sp,
-                                maxLines = 1
+                                text = "${currentIndex + 1} / ${allPhotos.size}",
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontSize = 20.sp,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color.Black.copy(alpha = 0.45f))
+                                    .padding(horizontal = 14.dp, vertical = 6.dp)
                             )
-                        }
-                        Button(
-                            onClick = { isPlaying = !isPlaying },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(64.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isPlaying) {
-                                    LauncherColors.Orange500
-                                } else {
-                                    LauncherColors.Green500
-                                }
-                            )
-                        ) {
-                            Text(
-                                text = stringResource(
-                                    if (isPlaying) R.string.photos_pause_short
-                                    else R.string.photos_play_short
-                                ),
-                                fontSize = 18.sp,
-                                maxLines = 1
-                            )
-                        }
-                        Button(
-                            onClick = {
-                                currentIndex = (currentIndex + 1) % allPhotos.size
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(64.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = LauncherColors.Gray800
-                            )
-                        ) {
-                            Text(
-                                text = stringResource(R.string.photos_next),
-                                fontSize = 18.sp,
-                                maxLines = 1
-                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Button(
+                                onClick = { isPlaying = !isPlaying },
+                                modifier = Modifier.height(56.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (isPlaying) {
+                                        LauncherColors.Orange500
+                                    } else {
+                                        LauncherColors.Green500
+                                    }
+                                )
+                            ) {
+                                Text(
+                                    text = stringResource(
+                                        if (isPlaying) R.string.photos_pause_short
+                                        else R.string.photos_play_short
+                                    ),
+                                    fontSize = 18.sp,
+                                    maxLines = 1
+                                )
+                            }
                         }
                     }
                 }
