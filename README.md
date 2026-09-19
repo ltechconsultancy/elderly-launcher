@@ -92,7 +92,7 @@ app/src/main/
 
 De nieuwste debug-APK staat bij de [GitHub Releases](https://github.com/ltechconsultancy/elderly-launcher/releases/latest).
 
-Bestand: `elderly-launcher-v1.0.15.apk`
+Bestand: `elderly-launcher-v1.0.16.apk`
 
 ## Bouwen
 
