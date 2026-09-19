@@ -16,6 +16,7 @@ Een eenvoudige, toegankelijke Android launcher voor ouderen.
 - **Tablet** - Landscape + portrait, POCO Pad / Pad X1 / M1 / C1 (HyperOS)
 - **Startscherm / apps** - Extra tegels via Vorige/Volgende in het midden, niet onderaan
 - **Foto-slideshow** - Wisselt elke 4 seconden; Vorige/Volgende links en rechts in het midden, Pauze op de foto
+- **Update** - In Instellingen: haalt de nieuwste APK van GitHub Releases op en installeert die
 
 ## Pagina's
 
@@ -28,6 +29,7 @@ Een eenvoudige, toegankelijke Android launcher voor ouderen.
 
 ## Instellingen
 
+- **Update** - Nieuwste GitHub-release downloaden en installeren
 - **Kleuren** - Kies uit 12 thema-kleuren
 - **Taal** - Nederlands / Engels
 - **Zichtbare apps** - Selecteer welke apps getoond worden
@@ -92,7 +94,7 @@ app/src/main/
 
 De nieuwste debug-APK staat bij de [GitHub Releases](https://github.com/ltechconsultancy/elderly-launcher/releases/latest).
 
-Bestand: `elderly-launcher-v1.0.16.apk`
+Bestand: `elderly-launcher-v1.0.17.apk`
 
 ## Bouwen
 

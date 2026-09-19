@@ -71,6 +71,17 @@
 
     <!-- Settings -->
     <string name="settings_title">Instellingen</string>
+    <string name="settings_update">Update</string>
+    <string name="settings_update_subtitle">Haal de nieuwste versie op</string>
+    <string name="settings_update_checking">Controleren op update…</string>
+    <string name="settings_update_available">Nieuwe versie %1$s is beschikbaar</string>
+    <string name="settings_update_current">Versie %1$s is de nieuwste</string>
+    <string name="settings_update_downloading">Downloaden… %1$d%%</string>
+    <string name="settings_update_installing">Installeren…</string>
+    <string name="settings_update_failed">Update mislukt. Probeer opnieuw.</string>
+    <string name="settings_update_need_permission">Sta het installeren van apps toe om te updaten</string>
+    <string name="settings_update_permission_button">Toestemming geven</string>
+    <string name="settings_update_now">Update nu</string>
     <string name="settings_password_title">Voer wachtwoord in</string>
     <string name="settings_password_hint">Wachtwoord</string>
     <string name="settings_password_wrong">Verkeerd wachtwoord</string>
