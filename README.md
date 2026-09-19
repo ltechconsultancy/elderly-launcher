@@ -6,7 +6,7 @@ Een eenvoudige, toegankelijke Android launcher voor ouderen.
 
 - **Grote knoppen** - Makkelijk te raken touch targets; geen swipe-gebaren
 - **Duidelijke iconen** - Echte app iconen met namen eronder
-- **Pagina's via knoppen** - Vorige / Volgende plus nummers 1–6
+- **Pagina's via knoppen** - Tik op nummer 1–6 onderaan; geen swipe
 - **Volume bediening** - Met + en − knoppen (geen slider)
 - **Snel bellen** - Één-tap contacten met foto's
 - **Noodknop** - Altijd zichtbaar op telefoons met sim
@@ -92,7 +92,7 @@ app/src/main/
 
 De nieuwste debug-APK staat bij de [GitHub Releases](https://github.com/ltechconsultancy/elderly-launcher/releases/latest).
 
-Bestand: `elderly-launcher-v1.0.14.apk`
+Bestand: `elderly-launcher-v1.0.15.apk`
 
 ## Bouwen
 

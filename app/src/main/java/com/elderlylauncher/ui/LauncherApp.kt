@@ -6,18 +6,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,9 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -128,83 +121,31 @@ fun PageIndicator(
 ) {
     val pageDescription = stringResource(R.string.home_page, currentPage + 1, totalPages)
 
-    Column(
+    Row(
         modifier = modifier.semantics { contentDescription = pageDescription },
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Button(
-                onClick = { onPageClick(currentPage - 1) },
-                enabled = currentPage > 0,
+        for (page in 0 until totalPages) {
+            val isSelected = page == currentPage
+            Box(
                 modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = LauncherColors.Gray800,
-                    disabledContainerColor = LauncherColors.Gray200,
-                    disabledContentColor = LauncherColors.Gray500
-                )
-            ) {
-                Text(
-                    text = stringResource(R.string.nav_previous),
-                    fontSize = 20.sp,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1
-                )
-            }
-            Button(
-                onClick = { onPageClick(currentPage + 1) },
-                enabled = currentPage < totalPages - 1,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = LauncherColors.Gray800,
-                    disabledContainerColor = LauncherColors.Gray200,
-                    disabledContentColor = LauncherColors.Gray500
-                )
-            ) {
-                Text(
-                    text = stringResource(R.string.nav_next),
-                    fontSize = 20.sp,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            for (page in 0 until totalPages) {
-                val isSelected = page == currentPage
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp)
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(
-                            if (isSelected) LauncherColors.Gray800
-                            else LauncherColors.Gray200
-                        )
-                        .clickable { onPageClick(page) },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = (page + 1).toString(),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = if (isSelected) LauncherColors.White
-                        else LauncherColors.Gray500
+                    .padding(horizontal = 4.dp)
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (isSelected) LauncherColors.Gray800
+                        else LauncherColors.Gray200
                     )
-                }
+                    .clickable { onPageClick(page) },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = (page + 1).toString(),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = if (isSelected) LauncherColors.White
+                    else LauncherColors.Gray500
+                )
             }
         }
     }
