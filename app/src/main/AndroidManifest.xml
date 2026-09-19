@@ -77,6 +77,14 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <receiver
+            android:name=".util.UpdateInstallReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.elderlylauncher.INSTALL_COMPLETE" />
+            </intent-filter>
+        </receiver>
+
         <!-- Main Launcher Activity -->
         <activity
             android:name=".MainActivity"

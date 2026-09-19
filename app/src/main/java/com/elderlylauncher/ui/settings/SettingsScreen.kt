@@ -41,8 +41,9 @@ import com.elderlylauncher.ui.LauncherViewModel
 import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
 import com.elderlylauncher.util.AppUpdater
-import com.elderlylauncher.util.BrightnessHelper
 import com.elderlylauncher.util.LatestRelease
+import com.elderlylauncher.util.SignatureMismatchException
+import com.elderlylauncher.util.BrightnessHelper
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -539,6 +540,7 @@ fun SettingsContent(
     var updateBusy by remember { mutableStateOf(false) }
     var updateProgress by remember { mutableIntStateOf(0) }
     var updateError by remember { mutableStateOf(false) }
+    var updateSignatureMismatch by remember { mutableStateOf(false) }
     var needsInstallPermission by remember { mutableStateOf(false) }
     var latestRelease by remember { mutableStateOf<LatestRelease?>(null) }
     val currentVersion = remember { AppUpdater.currentVersionName(context) }
@@ -554,6 +556,7 @@ fun SettingsContent(
             if (updateBusy) return@launch
             updateBusy = true
             updateError = false
+            updateSignatureMismatch = false
             needsInstallPermission = false
             updateProgress = 0
             try {
@@ -569,6 +572,8 @@ fun SettingsContent(
                     }
                 }
                 AppUpdater.installApk(context, file)
+            } catch (_: SignatureMismatchException) {
+                updateSignatureMismatch = true
             } catch (_: Exception) {
                 updateError = true
             } finally {
@@ -794,6 +799,7 @@ fun SettingsContent(
             busy = updateBusy,
             progress = updateProgress,
             error = updateError,
+            signatureMismatch = updateSignatureMismatch,
             needsPermission = needsInstallPermission,
             onDismiss = { if (!updateBusy) showUpdateDialog = false },
             onUpdate = startAppUpdate,
@@ -981,6 +987,7 @@ fun UpdateAppDialog(
     busy: Boolean,
     progress: Int,
     error: Boolean,
+    signatureMismatch: Boolean,
     needsPermission: Boolean,
     onDismiss: () -> Unit,
     onUpdate: () -> Unit,
@@ -988,6 +995,7 @@ fun UpdateAppDialog(
 ) {
     val message = when {
         needsPermission -> stringResource(R.string.settings_update_need_permission)
+        signatureMismatch -> stringResource(R.string.settings_update_signature)
         error -> stringResource(R.string.settings_update_failed)
         busy && progress > 0 -> stringResource(R.string.settings_update_downloading, progress)
         busy && latest != null -> stringResource(R.string.settings_update_installing)
