@@ -388,8 +388,9 @@ fun HomeAppGrid(
             .sorted()
         defaultSlots + extraSlots
     }
-    val visibleColumns = if (positions.size < columns && rows == 1) {
-        positions.size.coerceAtLeast(1)
+    val visibleRows = if (positions.size <= columns) 1 else rows
+    val visibleColumns = if (visibleRows == 1) {
+        positions.size.coerceAtLeast(1).coerceAtMost(columns)
     } else {
         columns
     }
@@ -397,7 +398,7 @@ fun HomeAppGrid(
     ButtonPagedGrid(
         items = positions,
         columns = visibleColumns,
-        rows = rows,
+        rows = visibleRows,
         modifier = modifier,
         fillCells = true
     ) { position ->

@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -105,7 +106,7 @@ fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 8.dp, vertical = 12.dp)
         )
     }
 }
@@ -118,18 +119,28 @@ fun PageIndicator(
     onPageClick: (Int) -> Unit = {}
 ) {
     val pageDescription = stringResource(R.string.home_page, currentPage + 1, totalPages)
+    val compact = LocalConfiguration.current.screenWidthDp < 700
+    val numberSize = if (compact) 40.dp else 56.dp
+    val chevronSize = if (compact) 48.dp else 56.dp
+    val numberPad = if (compact) 1.dp else 4.dp
 
     Row(
         modifier = modifier.semantics { contentDescription = pageDescription },
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        NavIconButton(
+            previous = true,
+            enabled = currentPage > 0,
+            size = chevronSize,
+            onClick = { onPageClick(currentPage - 1) }
+        )
         for (page in 0 until totalPages) {
             val isSelected = page == currentPage
             Box(
                 modifier = Modifier
-                    .padding(horizontal = 4.dp)
-                    .size(56.dp)
+                    .padding(horizontal = numberPad)
+                    .size(numberSize)
                     .clip(CircleShape)
                     .background(
                         if (isSelected) LauncherColors.Gray800
@@ -146,5 +157,11 @@ fun PageIndicator(
                 )
             }
         }
+        NavIconButton(
+            previous = false,
+            enabled = currentPage < totalPages - 1,
+            size = chevronSize,
+            onClick = { onPageClick(currentPage + 1) }
+        )
     }
 }

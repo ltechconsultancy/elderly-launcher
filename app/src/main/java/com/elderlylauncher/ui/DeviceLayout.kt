@@ -42,8 +42,8 @@ fun rememberDeviceLayout(): DeviceLayout {
     val homeGridRows: Int
     when {
         isLandscape && isTablet -> {
-            homeGridColumns = 4
-            homeGridRows = 1
+            homeGridColumns = 2
+            homeGridRows = 2
         }
         isLandscape -> {
             homeGridColumns = 3

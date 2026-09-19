@@ -9,12 +9,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Text
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -24,46 +27,46 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.elderlylauncher.R
 import com.elderlylauncher.ui.theme.LauncherColors
 
 @Composable
-fun SideNavButton(
-    label: String,
+fun NavIconButton(
+    previous: Boolean,
     enabled: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    size: Dp = 56.dp,
+    contentDescription: String? = null
 ) {
+    val label = contentDescription ?: stringResource(
+        if (previous) R.string.nav_previous else R.string.nav_next
+    )
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier
-            .width(88.dp)
-            .height(168.dp),
-        shape = RoundedCornerShape(20.dp),
-        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
+        modifier = modifier.size(size),
+        shape = CircleShape,
+        contentPadding = PaddingValues(0.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = LauncherColors.Gray800,
             disabledContainerColor = LauncherColors.Gray200,
-            disabledContentColor = LauncherColors.Gray500
+            disabledContentColor = LauncherColors.Gray400
         )
     ) {
-        Text(
-            text = label,
-            fontSize = 18.sp,
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            lineHeight = 22.sp
+        Icon(
+            imageVector = if (previous) Icons.Default.ChevronLeft else Icons.Default.ChevronRight,
+            contentDescription = label,
+            modifier = Modifier.size(36.dp)
         )
     }
 }
 
 /**
- * Previous / Next on the left and right, vertically centered.
- * Keeps those buttons away from the page-number bar at the bottom.
+ * Content uses the full width. Previous/Next are icon buttons under the content,
+ * never large text buttons on the sides.
  */
 @Composable
 fun PagedSideNav(
@@ -80,39 +83,44 @@ fun PagedSideNav(
     val canPrev = wrap || currentPage > 0
     val canNext = wrap || currentPage < pageCount - 1
 
-    Row(
-        modifier = modifier.fillMaxSize(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        if (showNav) {
-            SideNavButton(
-                label = previousLabel,
-                enabled = canPrev,
-                onClick = {
-                    val previous = if (currentPage > 0) currentPage - 1 else pageCount - 1
-                    onPageChange(previous)
-                }
-            )
-        }
+    Column(modifier = modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxHeight()
+                .fillMaxWidth()
         ) {
             content()
         }
         if (showNav) {
-            SideNavButton(
-                label = nextLabel,
-                enabled = canNext,
-                onClick = {
-                    onPageChange(
-                        if (wrap) (currentPage + 1) % pageCount
-                        else (currentPage + 1).coerceAtMost(pageCount - 1)
-                    )
-                }
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = 4.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                NavIconButton(
+                    previous = true,
+                    enabled = canPrev,
+                    contentDescription = previousLabel,
+                    onClick = {
+                        val previous = if (currentPage > 0) currentPage - 1 else pageCount - 1
+                        onPageChange(previous)
+                    }
+                )
+                Spacer(modifier = Modifier.size(24.dp))
+                NavIconButton(
+                    previous = false,
+                    enabled = canNext,
+                    contentDescription = nextLabel,
+                    onClick = {
+                        onPageChange(
+                            if (wrap) (currentPage + 1) % pageCount
+                            else (currentPage + 1).coerceAtMost(pageCount - 1)
+                        )
+                    }
+                )
+            }
         }
     }
 }
@@ -140,13 +148,14 @@ fun <T> ButtonPagedColumn(
         modifier = modifier
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .then(if (fillRemaining) Modifier else Modifier),
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = verticalArrangement
         ) {
             pageItems.forEach { item ->
                 itemContent(item)
+            }
+            if (fillRemaining) {
+                Spacer(modifier = Modifier.weight(1f))
             }
         }
     }
@@ -203,6 +212,11 @@ fun <T> ButtonPagedGrid(
                     repeat(columns - rowItems.size) {
                         Spacer(modifier = Modifier.weight(1f))
                     }
+                }
+            }
+            if (fillCells) {
+                repeat((rows - rowChunks.size).coerceAtLeast(0)) {
+                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }
