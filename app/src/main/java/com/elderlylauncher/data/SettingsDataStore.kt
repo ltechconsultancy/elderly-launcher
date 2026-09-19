@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import com.elderlylauncher.util.BrightnessHelper
 import java.io.IOException
 import java.security.MessageDigest
 
@@ -41,7 +42,7 @@ class SettingsDataStore(private val context: Context) {
         const val DEFAULT_LANGUAGE = "nl"
         const val DEFAULT_EMERGENCY_NUMBER = "112"
         const val DEFAULT_PRIMARY_COLOR = "blue"
-        const val DEFAULT_BRIGHTNESS_PERCENT = 80
+        const val DEFAULT_BRIGHTNESS_PERCENT = BrightnessHelper.DEFAULT_PERCENT
 
         /**
          * Hash a password using SHA-256.
@@ -209,13 +210,16 @@ class SettingsDataStore(private val context: Context) {
         }
     }
 
-    // Brightness (percent 20-100) and lock
+    // Brightness (percent 40-100) and lock
     val brightnessPercent: Flow<Int> = context.dataStore.data
         .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
-        .map { it[Keys.BRIGHTNESS_PERCENT] ?: DEFAULT_BRIGHTNESS_PERCENT }
+        .map {
+            (it[Keys.BRIGHTNESS_PERCENT] ?: DEFAULT_BRIGHTNESS_PERCENT)
+                .coerceIn(BrightnessHelper.MIN_PERCENT, BrightnessHelper.MAX_PERCENT)
+        }
 
     suspend fun setBrightnessPercent(percent: Int) {
-        val clamped = percent.coerceIn(20, 100)
+        val clamped = percent.coerceIn(BrightnessHelper.MIN_PERCENT, BrightnessHelper.MAX_PERCENT)
         context.dataStore.edit { it[Keys.BRIGHTNESS_PERCENT] = clamped }
     }
 

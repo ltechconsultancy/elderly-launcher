@@ -28,18 +28,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
+import com.elderlylauncher.ui.LauncherViewModel
 import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
+import com.elderlylauncher.util.BrightnessHelper
 
 private const val TAG = "VolumeScreen"
 
 @Composable
-fun VolumeScreen() {
+fun VolumeScreen(
+    viewModel: LauncherViewModel = viewModel()
+) {
     val context = LocalContext.current
     val audioManager = remember {
         context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
     }
+    val brightnessPercent by viewModel.brightnessPercent.collectAsState()
 
     if (audioManager == null) {
         // Fallback UI if AudioManager is unavailable
@@ -108,9 +114,10 @@ fun VolumeScreen() {
         // Volume controls
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .weight(1f)
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             val mediaControl: @Composable (Modifier) -> Unit = { itemModifier ->
                 VolumeControl(
@@ -199,23 +206,77 @@ fun VolumeScreen() {
                     }
                 )
             }
+            val brightnessControl: @Composable (Modifier) -> Unit = { itemModifier ->
+                VolumeControl(
+                    title = stringResource(R.string.volume_brightness),
+                    subtitle = stringResource(R.string.volume_brightness_desc),
+                    icon = Icons.Default.BrightnessHigh,
+                    backgroundColor = LauncherColors.Green50,
+                    borderColor = LauncherColors.Green200,
+                    iconBackgroundColor = LauncherColors.Green500,
+                    accentColor = LauncherColors.Green500,
+                    textColor = LauncherColors.Green700,
+                    currentVolume = brightnessPercent,
+                    maxVolume = BrightnessHelper.MAX_PERCENT,
+                    decreaseDescription = stringResource(R.string.settings_brightness_decrease),
+                    increaseDescription = stringResource(R.string.settings_brightness_increase),
+                    modifier = itemModifier,
+                    onVolumeUp = {
+                        if (brightnessPercent < BrightnessHelper.MAX_PERCENT) {
+                            viewModel.setBrightnessPercent(
+                                brightnessPercent + BrightnessHelper.STEP
+                            )
+                        }
+                    },
+                    onVolumeDown = {
+                        if (brightnessPercent > BrightnessHelper.MIN_PERCENT) {
+                            viewModel.setBrightnessPercent(
+                                brightnessPercent - BrightnessHelper.STEP
+                            )
+                        }
+                    }
+                )
+            }
 
             if (twoColumn) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     mediaControl(Modifier.weight(1f))
                     notificationControl(Modifier.weight(1f))
                 }
-                alarmControl(Modifier.fillMaxWidth())
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    alarmControl(Modifier.weight(1f))
+                    brightnessControl(Modifier.weight(1f))
+                }
             } else {
-                mediaControl(Modifier.fillMaxWidth())
-                notificationControl(Modifier.fillMaxWidth())
-                alarmControl(Modifier.fillMaxWidth())
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    brightnessControl(Modifier.weight(1f))
+                    mediaControl(Modifier.weight(1f))
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    notificationControl(Modifier.weight(1f))
+                    alarmControl(Modifier.weight(1f))
+                }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

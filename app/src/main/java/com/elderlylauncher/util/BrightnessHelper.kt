@@ -24,10 +24,10 @@ private const val TAG = "BrightnessHelper"
  * - restores that value if something else changes it
  */
 object BrightnessHelper {
-    const val MIN_PERCENT = 20
+    const val MIN_PERCENT = 40
     const val MAX_PERCENT = 100
     const val STEP = 10
-    const val DEFAULT_PERCENT = 80
+    const val DEFAULT_PERCENT = 100
 
     fun canWriteSettings(context: Context): Boolean = Settings.System.canWrite(context)
 

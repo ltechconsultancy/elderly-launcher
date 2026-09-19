@@ -43,8 +43,8 @@
     <string name="photos_none_selected">Geen foto\'s geselecteerd</string>
 
     <!-- Volume Page -->
-    <string name="volume_title">Volume</string>
-    <string name="volume_subtitle">Pas het geluid aan</string>
+    <string name="volume_title">Geluid</string>
+    <string name="volume_subtitle">Geluid en helderheid</string>
     <string name="volume_media">Media</string>
     <string name="volume_media_desc">Muziek, video\'s</string>
     <string name="volume_calls">Oproepen</string>
@@ -57,6 +57,8 @@
     <string name="volume_increase">Volume verhogen</string>
     <string name="volume_unavailable">Volume niet beschikbaar</string>
     <string name="volume_bars_description">%1$d van 10 balkjes gevuld</string>
+    <string name="volume_brightness">Helderheid</string>
+    <string name="volume_brightness_desc">Scherm, minimaal 40%</string>
     <string name="volume_bars_filled">%1$d van %2$d balkjes gevuld</string>
 
     <!-- Contacts -->

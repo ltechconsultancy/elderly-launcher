@@ -7,15 +7,15 @@ Een eenvoudige, toegankelijke Android launcher voor ouderen.
 - **Grote knoppen** - Makkelijk te raken touch targets; geen swipe-gebaren
 - **Duidelijke iconen** - Echte app iconen met namen eronder
 - **Pagina's via knoppen** - Tik op nummer 1–6 onderaan; geen swipe
-- **Volume bediening** - Met + en − knoppen (geen slider)
+- **Volume bediening** - Geluid en helderheid met + en − (helderheid minimaal 40%, standaard 100%)
 - **Snel bellen** - Één-tap contacten met foto's
 - **Noodknop** - Altijd zichtbaar op telefoons met sim
 - **Wachtwoord-beveiligde instellingen** - Voorkom per ongeluk wijzigen
 - **Kleurthema's** - 12 kleuren om uit te kiezen
 - **Meertalig** - Nederlands (primair) + Engels
 - **Tablet** - Landscape + portrait, POCO Pad / Pad X1 / M1 / C1 (HyperOS)
-- **Startscherm** - Tot 12 grote app-tegels, extra apps via Vorige / Volgende
-- **Foto-slideshow** - Wisselt elke 4 seconden; Vorige / Pauze / Volgende-knoppen
+- **Startscherm / apps** - Extra tegels via Vorige/Volgende in het midden, niet onderaan
+- **Foto-slideshow** - Wisselt elke 4 seconden; Vorige/Volgende links en rechts in het midden, Pauze op de foto
 
 ## Pagina's
 
