@@ -122,7 +122,7 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
     val quickContacts by viewModel.quickContacts.collectAsState()
     val emergencyNumber by viewModel.emergencyNumber.collectAsState()
     val dialNumber = LauncherViewModel.sanitizeEmergencyNumber(emergencyNumber) ?: "112"
-    val landscapeTablet = layout.isTablet && layout.isLandscape
+    val landscape = layout.isLandscape
 
     Column(
         modifier = Modifier
@@ -134,8 +134,8 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    top = if (landscapeTablet) 8.dp else 32.dp,
-                    bottom = if (landscapeTablet) 12.dp else 24.dp
+                    top = if (landscape) 8.dp else 32.dp,
+                    bottom = if (landscape) 8.dp else 24.dp
                 )
         )
 
@@ -150,7 +150,7 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
             modifier = Modifier.weight(1f)
         )
 
-        if (layout.hasTelephony && quickContacts.isNotEmpty()) {
+        if (layout.hasTelephony && quickContacts.isNotEmpty() && !(landscape && !layout.isTablet)) {
             QuickContactsRow(
                 contacts = quickContacts,
                 maxVisible = if (layout.isTablet) 6 else 4,
@@ -159,15 +159,16 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 12.dp)
+                    .padding(top = if (landscape) 4.dp else 12.dp)
             )
         }
 
         if (layout.hasTelephony) {
             EmergencyButton(
+                compact = landscape,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp),
+                    .padding(vertical = if (landscape) 8.dp else 16.dp),
                 onClick = { showEmergencyConfirm = true }
             )
         }
@@ -412,35 +413,6 @@ fun HomeAppGrid(
 }
 
 @Composable
-fun NoTelephonyBanner(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier
-            .height(80.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(LauncherColors.Gray100)
-            .border(2.dp, LauncherColors.Gray200, RoundedCornerShape(24.dp))
-            .padding(horizontal = 20.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.PhoneDisabled,
-            contentDescription = null,
-            tint = LauncherColors.Gray500,
-            modifier = Modifier.size(32.dp)
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = stringResource(R.string.tablet_no_telephony),
-            style = MaterialTheme.typography.titleMedium,
-            color = LauncherColors.Gray600,
-            fontSize = 18.sp,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-@Composable
 fun HomeAppTile(
     position: Int,
     homeApps: Map<Int, String>,
@@ -544,6 +516,7 @@ fun CustomAppTile(
 @Composable
 fun EmergencyButton(
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
     onClick: () -> Unit
 ) {
     val emergencyDescription = stringResource(R.string.home_emergency)
@@ -551,7 +524,7 @@ fun EmergencyButton(
     Button(
         onClick = onClick,
         modifier = modifier
-            .height(80.dp) // Even larger for emergency
+            .height(if (compact) 56.dp else 80.dp)
             .semantics { contentDescription = emergencyDescription },
         colors = ButtonDefaults.buttonColors(
             containerColor = LauncherColors.Red500

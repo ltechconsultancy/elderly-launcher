@@ -100,8 +100,8 @@ fun SettingsScreen(
             newPassword = choosePassword,
             confirmPassword = chooseConfirm,
             error = chooseError,
-            onNewPasswordChange = { choosePassword = it; chooseError = null },
-            onConfirmPasswordChange = { chooseConfirm = it; chooseError = null },
+            onNewPasswordChange = { choosePassword = it.filter(Char::isDigit); chooseError = null },
+            onConfirmPasswordChange = { chooseConfirm = it.filter(Char::isDigit); chooseError = null },
             onDismiss = {
                 showChoosePasswordDialog = false
                 choosePassword = ""
@@ -117,12 +117,14 @@ fun SettingsScreen(
                         chooseError = context.getString(R.string.settings_password_mismatch)
                     }
                     else -> {
-                        viewModel.changePassword(choosePassword)
-                        isUnlocked = true
-                        showChoosePasswordDialog = false
-                        choosePassword = ""
-                        chooseConfirm = ""
-                        chooseError = null
+                        coroutineScope.launch {
+                            viewModel.setPasswordNow(choosePassword)
+                            isUnlocked = true
+                            showChoosePasswordDialog = false
+                            choosePassword = ""
+                            chooseConfirm = ""
+                            chooseError = null
+                        }
                     }
                 }
             }
@@ -198,7 +200,8 @@ fun LockedSettingsScreen(
         modifier = Modifier
             .fillMaxWidth()
             .then(if (layout.isTablet) Modifier.widthIn(max = layout.contentMaxWidth) else Modifier)
-            .padding(24.dp),
+            .verticalScroll(rememberScrollState())
+            .padding(if (layout.isLandscape) 16.dp else 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -842,7 +845,7 @@ fun SettingsContent(
         }
         ButtonPagedColumn(
             items = settingsKeys,
-            pageSize = 4,
+            pageSize = if (layout.isLandscape) 3 else 4,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),

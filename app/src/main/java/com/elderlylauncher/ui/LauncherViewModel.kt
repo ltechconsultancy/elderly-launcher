@@ -66,7 +66,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
     val hasPassword: StateFlow<Boolean> = settingsDataStore.hasPassword
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     val emergencyNumber: StateFlow<String> = settingsDataStore.emergencyNumber
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsDataStore.DEFAULT_EMERGENCY_NUMBER)
@@ -178,6 +178,10 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
      */
     fun changePassword(newPassword: String) {
         updatePassword(newPassword)
+    }
+
+    suspend fun setPasswordNow(newPassword: String) {
+        settingsDataStore.setPassword(newPassword)
     }
 
     /**

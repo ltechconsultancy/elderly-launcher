@@ -135,6 +135,9 @@
     .hidden { display: none !important; }
     body[data-orientation="landscape"] header.clock { padding-top: 8px; padding-bottom: 8px; }
     body[data-orientation="landscape"] .time { font-size: 40px; }
+    body[data-device="phone"][data-orientation="landscape"] .tile-large { min-height: 96px; font-size: 18px; }
+    body[data-device="phone"][data-orientation="landscape"] .emergency { height: 56px; font-size: 18px; margin-top: 6px; }
+    body[data-device="phone"][data-orientation="landscape"] .contacts { display: none !important; }
     h2.page-title { margin: 0 0 8px; font-size: 28px; }
     p.page-sub { margin: 0 0 12px; color: var(--muted); font-size: 18px; }
   </style>
@@ -196,13 +199,17 @@
       if (tablet) return { cols: 3, rows: 2 };
       return { cols: 2, rows: 2 };
     }
+    const emptyApps = params.get("apps") === "0";
+
     function layoutApps() {
-      const tablet = device === "tablet";
+      const width = document.documentElement.clientWidth;
       const landscape = orientation === "landscape";
-      if (landscape && tablet) return { cols: 5, rows: 2 };
-      if (landscape) return { cols: 4, rows: 2 };
-      if (tablet) return { cols: 4, rows: 3 };
-      return { cols: 3, rows: 3 };
+      let cols = 3;
+      if (width >= 1200) cols = 6;
+      else if (width >= 840) cols = 5;
+      else if (width >= 600) cols = 4;
+      else if (landscape) cols = 4;
+      return { cols, rows: landscape ? 2 : 3 };
     }
 
     const homeApps = large.filter((a) => sim === "1" || !a.telephony);
@@ -218,10 +225,14 @@
     const appsLayout = layoutApps();
     const appsGrid = document.getElementById("apps-grid");
     appsGrid.style.gridTemplateColumns = `repeat(${appsLayout.cols}, 1fr)`;
-    appsGrid.innerHTML = small.map((label, i) => `
-      <button class="tile tile-small" data-testid="app-${i}" data-size="small">
-        <span class="icon">${label[0]}</span>${label}
-      </button>`).join("");
+    if (emptyApps) {
+      appsGrid.innerHTML = `<p data-testid="apps-empty">Nog geen apps</p>`;
+    } else {
+      appsGrid.innerHTML = small.map((label, i) => `
+        <button class="tile tile-small" data-testid="app-${i}" data-size="small">
+          <span class="icon">${label[0]}</span>${label}
+        </button>`).join("");
+    }
 
     const showPhone = sim === "1";
     document.getElementById("emergency").classList.toggle("hidden", !showPhone);

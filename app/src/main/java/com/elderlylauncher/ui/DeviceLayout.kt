@@ -1,7 +1,6 @@
 package com.elderlylauncher.ui
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
@@ -37,9 +36,7 @@ fun rememberDeviceLayout(): DeviceLayout {
     val shortest = minOf(widthDp, heightDp)
     val isTablet = shortest >= 600
     val isLandscape = widthDp > heightDp
-    val hasTelephony = remember(context) {
-        PermissionHelper.hasActiveSim(context)
-    }
+    val hasTelephony = PermissionHelper.hasActiveSim(context)
 
     val homeGridColumns: Int
     val homeGridRows: Int
