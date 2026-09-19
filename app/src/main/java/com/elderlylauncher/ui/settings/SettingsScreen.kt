@@ -188,6 +188,8 @@ fun LockedSettingsScreen(
     needsSetup: Boolean = false
 ) {
     val layout = rememberDeviceLayout()
+    val context = LocalContext.current
+    val versionName = remember { AppUpdater.currentVersionName(context) }
     val lockDescription = stringResource(R.string.settings_lock_description)
 
     Box(
@@ -230,6 +232,15 @@ fun LockedSettingsScreen(
             style = MaterialTheme.typography.headlineLarge,
             color = LauncherColors.Gray800
         )
+
+        if (versionName.isNotBlank()) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.settings_version, versionName),
+                style = MaterialTheme.typography.bodyLarge,
+                color = LauncherColors.Gray500
+            )
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -815,6 +826,13 @@ fun SettingsContent(
                     style = MaterialTheme.typography.headlineLarge,
                     color = LauncherColors.Gray800
                 )
+                if (currentVersion.isNotBlank()) {
+                    Text(
+                        text = stringResource(R.string.settings_version, currentVersion),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = LauncherColors.Gray500
+                    )
+                }
             }
 
             // Lock button - 64dp for elderly

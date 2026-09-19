@@ -112,9 +112,11 @@ Bestand: `elderly-launcher-v1.0.17.apk`
 # Via Gradle
 ./gradlew installDebug
 
-# Of direct APK via ADB
-adb install app/build/outputs/apk/debug/app-debug.apk
+# Of direct APK via ADB (overschrijft dezelfde app)
+adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
+
+Alle APK's (lokaal én GitHub Releases) gebruiken dezelfde upload-sleutel in `app/signing/upload.p12`, zodat een nieuwe versie de oude **overschrijft**. Als een oude installatie nog met een andere debug-sleutel is gebouwd (GitHub Actions tot v1.0.16), één keer verwijderen en daarna opnieuw installeren.
 
 ## Als Home Screen Instellen
 

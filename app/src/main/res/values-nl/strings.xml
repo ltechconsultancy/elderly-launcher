@@ -135,6 +135,7 @@
     <string name="settings_emergency_invalid">Voer een geldig nummer in (minimaal 3 cijfers)</string>
     <string name="settings_coming_soon">Deze functie komt binnenkort</string>
     <string name="settings_unlock">Ontgrendelen</string>
+    <string name="settings_version">Versie %1$s</string>
     <string name="settings_choose_password">Kies een wachtwoord</string>
     <string name="settings_choose_password_subtitle">Kies een pincode zodat anderen de instellingen niet kunnen wijzigen</string>
     <string name="settings_choose_password_button">Wachtwoord kiezen</string>

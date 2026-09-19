@@ -39,4 +39,5 @@ mockups/node_modules/
 # Secrets
 *.jks
 *.keystore
+!app/signing/upload.p12
 google-services.json
