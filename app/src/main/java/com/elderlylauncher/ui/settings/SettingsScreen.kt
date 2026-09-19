@@ -40,7 +40,9 @@ import com.elderlylauncher.ui.ButtonPagedColumn
 import com.elderlylauncher.ui.LauncherViewModel
 import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
+import com.elderlylauncher.util.AppUpdater
 import com.elderlylauncher.util.BrightnessHelper
+import com.elderlylauncher.util.LatestRelease
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -53,8 +55,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.core.graphics.drawable.toBitmap
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun SettingsScreen(
@@ -352,12 +356,70 @@ fun SettingsContent(
     var showGamesDialog by rememberSaveable { mutableStateOf(false) }
     var showPhotosDialog by rememberSaveable { mutableStateOf(false) }
     var showBrightnessDialog by rememberSaveable { mutableStateOf(false) }
+    var showUpdateDialog by rememberSaveable { mutableStateOf(false) }
+    var updateBusy by remember { mutableStateOf(false) }
+    var updateProgress by remember { mutableIntStateOf(0) }
+    var updateError by remember { mutableStateOf(false) }
+    var needsInstallPermission by remember { mutableStateOf(false) }
+    var latestRelease by remember { mutableStateOf<LatestRelease?>(null) }
+    val currentVersion = remember { AppUpdater.currentVersionName(context) }
 
     val brightnessPercent by viewModel.brightnessPercent.collectAsState()
     val brightnessLocked by viewModel.brightnessLocked.collectAsState()
     val layout = rememberDeviceLayout()
 
     val storedEmergency by viewModel.emergencyNumber.collectAsState()
+
+    val startAppUpdate: () -> Unit = {
+        coroutineScope.launch {
+            if (updateBusy) return@launch
+            updateBusy = true
+            updateError = false
+            needsInstallPermission = false
+            updateProgress = 0
+            try {
+                if (!AppUpdater.canInstallPackages(context)) {
+                    needsInstallPermission = true
+                    return@launch
+                }
+                val latest = withContext(Dispatchers.IO) { AppUpdater.fetchLatest() }
+                latestRelease = latest
+                val file = withContext(Dispatchers.IO) {
+                    AppUpdater.downloadApk(context, latest) { percent ->
+                        updateProgress = percent
+                    }
+                }
+                AppUpdater.installApk(context, file)
+            } catch (_: Exception) {
+                updateError = true
+            } finally {
+                updateBusy = false
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        latestRelease = withContext(Dispatchers.IO) {
+            runCatching { AppUpdater.fetchLatest() }.getOrNull()
+        }
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, showUpdateDialog, needsInstallPermission) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (
+                event == Lifecycle.Event.ON_RESUME &&
+                showUpdateDialog &&
+                needsInstallPermission &&
+                AppUpdater.canInstallPackages(context)
+            ) {
+                needsInstallPermission = false
+                startAppUpdate()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     // Password change state
     var currentPassword by rememberSaveable { mutableStateOf("") }
@@ -546,6 +608,20 @@ fun SettingsContent(
         )
     }
 
+    if (showUpdateDialog) {
+        UpdateAppDialog(
+            currentVersion = currentVersion,
+            latest = latestRelease,
+            busy = updateBusy,
+            progress = updateProgress,
+            error = updateError,
+            needsPermission = needsInstallPermission,
+            onDismiss = { if (!updateBusy) showUpdateDialog = false },
+            onUpdate = startAppUpdate,
+            onGrantPermission = { AppUpdater.requestInstallPermission(context) }
+        )
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -591,7 +667,7 @@ fun SettingsContent(
         }
 
         val settingsKeys = listOf(
-            "colors", "language", "brightness", "apps",
+            "update", "colors", "language", "brightness", "apps",
             "apps_page", "games", "photos", "contacts",
             "emergency", "password"
         )
@@ -604,6 +680,30 @@ fun SettingsContent(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) { key ->
             when (key) {
+                "update" -> {
+                    val release = latestRelease
+                    SettingsItem(
+                        title = stringResource(R.string.settings_update),
+                        subtitle = when {
+                            release == null -> stringResource(R.string.settings_update_subtitle)
+                            AppUpdater.isNewer(release.tagName, currentVersion) ->
+                                stringResource(
+                                    R.string.settings_update_available,
+                                    release.displayVersion
+                                )
+                            else -> stringResource(
+                                R.string.settings_update_current,
+                                release.displayVersion
+                            )
+                        },
+                        icon = Icons.Default.SystemUpdate,
+                        iconColor = LauncherColors.Blue500,
+                        onClick = {
+                            showUpdateDialog = true
+                            startAppUpdate()
+                        }
+                    )
+                }
                 "colors" -> SettingsItem(
                     title = stringResource(R.string.settings_colors),
                     subtitle = stringResource(R.string.settings_colors_subtitle),
@@ -681,6 +781,127 @@ fun SettingsContent(
             }
         }
     }
+    }
+}
+
+@Composable
+fun UpdateAppDialog(
+    currentVersion: String,
+    latest: LatestRelease?,
+    busy: Boolean,
+    progress: Int,
+    error: Boolean,
+    needsPermission: Boolean,
+    onDismiss: () -> Unit,
+    onUpdate: () -> Unit,
+    onGrantPermission: () -> Unit
+) {
+    val message = when {
+        needsPermission -> stringResource(R.string.settings_update_need_permission)
+        error -> stringResource(R.string.settings_update_failed)
+        busy && progress > 0 -> stringResource(R.string.settings_update_downloading, progress)
+        busy && latest != null -> stringResource(R.string.settings_update_installing)
+        busy -> stringResource(R.string.settings_update_checking)
+        latest != null && AppUpdater.isNewer(latest.tagName, currentVersion) ->
+            stringResource(R.string.settings_update_available, latest.displayVersion)
+        latest != null -> stringResource(R.string.settings_update_current, latest.displayVersion)
+        else -> stringResource(R.string.settings_update_subtitle)
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.SystemUpdate,
+                    contentDescription = null,
+                    tint = LauncherColors.Blue500,
+                    modifier = Modifier.size(48.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = stringResource(R.string.settings_update),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = LauncherColors.Gray800
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = LauncherColors.Gray600,
+                    textAlign = TextAlign.Center,
+                    fontSize = 18.sp
+                )
+
+                if (busy) {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    LinearProgressIndicator(
+                        progress = { (progress.coerceIn(0, 100) / 100f) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(12.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                if (needsPermission) {
+                    Button(
+                        onClick = onGrantPermission,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_update_permission_button),
+                            fontSize = 18.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                } else if (!busy) {
+                    Button(
+                        onClick = onUpdate,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_update_now),
+                            fontSize = 18.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                OutlinedButton(
+                    onClick = onDismiss,
+                    enabled = !busy,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.cancel),
+                        fontSize = 18.sp
+                    )
+                }
+            }
+        }
     }
 }
 

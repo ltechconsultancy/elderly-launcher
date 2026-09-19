@@ -71,6 +71,17 @@
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
+    <string name="settings_update">Update</string>
+    <string name="settings_update_subtitle">Download the latest version</string>
+    <string name="settings_update_checking">Checking for update…</string>
+    <string name="settings_update_available">New version %1$s is available</string>
+    <string name="settings_update_current">Version %1$s is the latest</string>
+    <string name="settings_update_downloading">Downloading… %1$d%%</string>
+    <string name="settings_update_installing">Installing…</string>
+    <string name="settings_update_failed">Update failed. Try again.</string>
+    <string name="settings_update_need_permission">Allow installing apps to update</string>
+    <string name="settings_update_permission_button">Grant permission</string>
+    <string name="settings_update_now">Update now</string>
     <string name="settings_password_title">Enter password</string>
     <string name="settings_password_hint">Password</string>
     <string name="settings_password_wrong">Wrong password</string>
