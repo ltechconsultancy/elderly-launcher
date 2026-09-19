@@ -9,19 +9,13 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +27,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -40,8 +37,10 @@ import com.elderlylauncher.R
 import com.elderlylauncher.ui.LauncherViewModel
 import com.elderlylauncher.ui.theme.LauncherColors
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+
+private const val SLIDESHOW_INTERVAL_MS = 4_000L
 
 data class PhotoItem(
     val uri: Uri,
@@ -53,27 +52,50 @@ fun PhotoCarouselScreen(
     viewModel: LauncherViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val carouselPhotos by viewModel.carouselPhotos.collectAsState()
     var recentPhotos by remember { mutableStateOf<List<PhotoItem>>(emptyList()) }
-    val coroutineScope = rememberCoroutineScope()
+    var reloadToken by remember { mutableIntStateOf(0) }
+    var isPlaying by rememberSaveable { mutableStateOf(true) }
+    var currentIndex by rememberSaveable { mutableIntStateOf(0) }
 
-    // Load recent photos from device
-    LaunchedEffect(Unit) {
-        coroutineScope.launch {
-            recentPhotos = loadRecentPhotos(context, 20)
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                reloadToken++
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    LaunchedEffect(reloadToken) {
+        recentPhotos = loadRecentPhotos(context, 40)
+    }
+
+    // Favorites chosen in settings become the slideshow; otherwise recent gallery photos.
+    val allPhotos = remember(carouselPhotos, recentPhotos) {
+        if (carouselPhotos.isNotEmpty()) {
+            carouselPhotos.map { uriString ->
+                PhotoItem(uri = Uri.parse(uriString), isFromSettings = true)
+            }
+        } else {
+            recentPhotos
         }
     }
 
-    // Combine settings photos with recent photos
-    val allPhotos = remember(carouselPhotos, recentPhotos) {
-        val settingsPhotoItems = carouselPhotos.map { uriString ->
-            PhotoItem(uri = Uri.parse(uriString), isFromSettings = true)
+    LaunchedEffect(allPhotos.size) {
+        if (allPhotos.isEmpty()) {
+            currentIndex = 0
+        } else if (currentIndex >= allPhotos.size) {
+            currentIndex = 0
         }
-        // Combine and remove duplicates (settings photos first)
-        val combinedList = settingsPhotoItems + recentPhotos.filter { recentPhoto ->
-            !carouselPhotos.contains(recentPhoto.uri.toString())
-        }
-        combinedList
+    }
+
+    LaunchedEffect(isPlaying, allPhotos.size, currentIndex) {
+        if (!isPlaying || allPhotos.size <= 1) return@LaunchedEffect
+        delay(SLIDESHOW_INTERVAL_MS)
+        currentIndex = (currentIndex + 1) % allPhotos.size
     }
 
     Column(
@@ -81,11 +103,10 @@ fun PhotoCarouselScreen(
             .fillMaxSize()
             .background(LauncherColors.White)
     ) {
-        // Header
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 24.dp)
+                .padding(horizontal = 24.dp, vertical = 16.dp)
         ) {
             Text(
                 text = stringResource(R.string.photos_title),
@@ -93,7 +114,10 @@ fun PhotoCarouselScreen(
                 color = LauncherColors.Gray800
             )
             Text(
-                text = stringResource(R.string.photos_subtitle),
+                text = stringResource(
+                    if (isPlaying && allPhotos.size > 1) R.string.photos_subtitle_playing
+                    else R.string.photos_subtitle
+                ),
                 style = MaterialTheme.typography.bodyLarge,
                 color = LauncherColors.Gray600,
                 fontSize = 18.sp
@@ -101,7 +125,6 @@ fun PhotoCarouselScreen(
         }
 
         if (allPhotos.isEmpty()) {
-            // Empty state
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -134,108 +157,101 @@ fun PhotoCarouselScreen(
                 }
             }
         } else {
-            // Photo carousel
-            val pagerState = rememberPagerState(pageCount = { allPhotos.size })
+            val photo = allPhotos[currentIndex.coerceIn(0, allPhotos.lastIndex)]
 
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 8.dp)
             ) {
-                // Main photo pager
-                HorizontalPager(
-                    state = pagerState,
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .weight(1f)
+                        .fillMaxWidth()
                         .clip(RoundedCornerShape(24.dp))
-                ) { page ->
-                    PhotoPage(photo = allPhotos[page])
+                ) {
+                    PhotoPage(photo = photo)
                 }
 
-                // Navigation arrows
                 if (allPhotos.size > 1) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "${currentIndex + 1} / ${allPhotos.size}",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = LauncherColors.Gray600,
+                        fontSize = 20.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.Center)
-                            .padding(horizontal = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Previous button
-                        val coroutineScopeNav = rememberCoroutineScope()
-                        IconButton(
+                        Button(
                             onClick = {
-                                coroutineScopeNav.launch {
-                                    if (pagerState.currentPage > 0) {
-                                        pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                                    }
+                                currentIndex = if (currentIndex > 0) {
+                                    currentIndex - 1
+                                } else {
+                                    allPhotos.lastIndex
                                 }
                             },
-                            enabled = pagerState.currentPage > 0,
                             modifier = Modifier
-                                .size(64.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    if (pagerState.currentPage > 0)
-                                        Color.Black.copy(alpha = 0.5f)
-                                    else
-                                        Color.Transparent
-                                )
+                                .weight(1f)
+                                .height(64.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = LauncherColors.Gray800
+                            )
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.ChevronLeft,
-                                contentDescription = stringResource(R.string.photos_previous),
-                                tint = Color.White,
-                                modifier = Modifier.size(40.dp)
+                            Text(
+                                text = stringResource(R.string.photos_previous),
+                                fontSize = 18.sp,
+                                maxLines = 1
                             )
                         }
-
-                        // Next button
-                        IconButton(
-                            onClick = {
-                                coroutineScopeNav.launch {
-                                    if (pagerState.currentPage < allPhotos.size - 1) {
-                                        pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                                    }
+                        Button(
+                            onClick = { isPlaying = !isPlaying },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(64.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isPlaying) {
+                                    LauncherColors.Orange500
+                                } else {
+                                    LauncherColors.Green500
                                 }
-                            },
-                            enabled = pagerState.currentPage < allPhotos.size - 1,
-                            modifier = Modifier
-                                .size(64.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    if (pagerState.currentPage < allPhotos.size - 1)
-                                        Color.Black.copy(alpha = 0.5f)
-                                    else
-                                        Color.Transparent
-                                )
+                            )
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.ChevronRight,
-                                contentDescription = stringResource(R.string.photos_next),
-                                tint = Color.White,
-                                modifier = Modifier.size(40.dp)
+                            Text(
+                                text = stringResource(
+                                    if (isPlaying) R.string.photos_pause_short
+                                    else R.string.photos_play_short
+                                ),
+                                fontSize = 18.sp,
+                                maxLines = 1
                             )
                         }
-                    }
-
-                    // Page indicator
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 16.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color.Black.copy(alpha = 0.5f))
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "${pagerState.currentPage + 1} / ${allPhotos.size}",
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontSize = 18.sp
-                        )
+                        Button(
+                            onClick = {
+                                currentIndex = (currentIndex + 1) % allPhotos.size
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(64.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = LauncherColors.Gray800
+                            )
+                        ) {
+                            Text(
+                                text = stringResource(R.string.photos_next),
+                                fontSize = 18.sp,
+                                maxLines = 1
+                            )
+                        }
                     }
                 }
             }
@@ -265,7 +281,6 @@ fun PhotoPage(photo: PhotoItem) {
             modifier = Modifier.fillMaxSize()
         )
 
-        // Show badge if from settings
         if (photo.isFromSettings) {
             Box(
                 modifier = Modifier
@@ -289,7 +304,6 @@ fun PhotoPage(photo: PhotoItem) {
  * Load recent photos from the device media store
  */
 suspend fun loadRecentPhotos(context: Context, limit: Int): List<PhotoItem> = withContext(Dispatchers.IO) {
-    // Check permission
     val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         Manifest.permission.READ_MEDIA_IMAGES
     } else {

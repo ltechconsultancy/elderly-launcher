@@ -5,9 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,7 +22,9 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
 import com.elderlylauncher.data.AppInfo
+import com.elderlylauncher.ui.ButtonPagedGrid
 import com.elderlylauncher.ui.LauncherViewModel
+import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
 
 @Composable
@@ -33,20 +32,21 @@ fun AppsScreen(
     viewModel: LauncherViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val layout = rememberDeviceLayout()
     val installedApps by viewModel.installedApps.collectAsState()
     val hiddenApps by viewModel.hiddenApps.collectAsState()
 
-    // Filter out hidden apps
     val visibleApps = remember(installedApps, hiddenApps) {
         installedApps.filter { it.packageName !in hiddenApps }
     }
+    val columns = layout.appGridColumns
+    val rows = 3
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(LauncherColors.White)
     ) {
-        // Header
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -65,27 +65,23 @@ fun AppsScreen(
             )
         }
 
-        // Apps grid
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
+        ButtonPagedGrid(
+            items = visibleApps,
+            columns = columns,
+            rows = rows,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(bottom = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(visibleApps) { app ->
-                AppGridItem(
-                    appInfo = app,
-                    onClick = {
-                        val intent = context.packageManager.getLaunchIntentForPackage(app.packageName)
-                        if (intent != null) {
-                            context.startActivity(intent)
-                        }
+                .padding(horizontal = 16.dp)
+        ) { app ->
+            AppGridItem(
+                appInfo = app,
+                onClick = {
+                    val intent = context.packageManager.getLaunchIntentForPackage(app.packageName)
+                    if (intent != null) {
+                        context.startActivity(intent)
                     }
-                )
-            }
+                }
+            )
         }
     }
 }
@@ -97,6 +93,7 @@ fun AppGridItem(
 ) {
     Column(
         modifier = Modifier
+            .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(LauncherColors.Gray50)
             .border(1.dp, LauncherColors.Gray200, RoundedCornerShape(20.dp))
@@ -104,7 +101,6 @@ fun AppGridItem(
             .padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // App icon - large for elderly
         Image(
             bitmap = appInfo.icon.toBitmap(128, 128).asImageBitmap(),
             contentDescription = appInfo.label,
@@ -115,7 +111,6 @@ fun AppGridItem(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // App name
         Text(
             text = appInfo.label,
             style = MaterialTheme.typography.bodyMedium,

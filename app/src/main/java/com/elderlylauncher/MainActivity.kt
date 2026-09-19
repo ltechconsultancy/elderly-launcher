@@ -26,6 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.data.SettingsDataStore
 import com.elderlylauncher.ui.LauncherApp
 import com.elderlylauncher.ui.LauncherViewModel
+import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.ElderlyLauncherTheme
 import com.elderlylauncher.ui.theme.LauncherColors
 import com.elderlylauncher.util.LocaleHelper
@@ -142,10 +143,18 @@ fun PermissionRequestScreen(
     onRequestPermissions: () -> Unit,
     onSkip: () -> Unit
 ) {
-    Column(
+    val layout = rememberDeviceLayout()
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(LauncherColors.White)
+            .background(LauncherColors.White),
+        contentAlignment = Alignment.Center
+    ) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (layout.isTablet) Modifier.widthIn(max = 560.dp) else Modifier)
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -221,5 +230,6 @@ fun PermissionRequestScreen(
                 color = LauncherColors.Gray500
             )
         }
+    }
     }
 }

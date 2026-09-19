@@ -9,9 +9,12 @@
     <string name="home_photos">Foto\'s</string>
     <string name="home_emergency">NOODGEVAL</string>
     <string name="home_page">Pagina %1$d van %2$d</string>
+    <string name="nav_previous">Vorige</string>
+    <string name="nav_next">Volgende</string>
     <string name="home_badge_description">%1$s, %2$d nieuwe</string>
     <string name="home_emergency_confirm_title">112 bellen?</string>
     <string name="home_emergency_confirm_message">U staat op het punt het alarmnummer 112 te bellen.</string>
+    <string name="tablet_no_telephony">Dit tablet heeft geen simkaart. Bellen is niet mogelijk.</string>
 
     <!-- Apps Page -->
     <string name="apps_title">Alle Apps</string>
@@ -25,11 +28,16 @@
 
     <!-- Photos Page -->
     <string name="photos_title">Foto\'s</string>
-    <string name="photos_subtitle">Veeg om te bekijken</string>
+    <string name="photos_subtitle">Foto\'s wisselen elke 4 seconden</string>
+    <string name="photos_subtitle_playing">Diavoorstelling speelt · gebruik de knoppen</string>
     <string name="photos_empty">Geen foto\'s</string>
-    <string name="photos_empty_hint">Voeg foto\'s toe via Instellingen</string>
+    <string name="photos_empty_hint">Voeg foto\'s toe via Instellingen, of geef toegang tot foto\'s</string>
     <string name="photos_previous">Vorige</string>
     <string name="photos_next">Volgende</string>
+    <string name="photos_play">Diavoorstelling afspelen</string>
+    <string name="photos_pause">Diavoorstelling pauzeren</string>
+    <string name="photos_pause_short">Pauze</string>
+    <string name="photos_play_short">Start</string>
     <string name="photos_add">Foto toevoegen</string>
     <string name="photos_favorite">Favoriete foto</string>
     <string name="photos_none_selected">Geen foto\'s geselecteerd</string>
@@ -67,26 +75,39 @@
     <string name="settings_colors">Kleuren</string>
     <string name="settings_colors_subtitle">Pas kleuren aan</string>
     <string name="settings_language">Taal</string>
+    <string name="settings_brightness">Helderheid</string>
+    <string name="settings_brightness_subtitle">Schermhelderheid instellen en vastzetten</string>
+    <string name="settings_brightness_lock">Helderheid vergrendelen</string>
+    <string name="settings_brightness_lock_desc">Houd deze helderheid, ook als die via het gordijn wordt veranderd</string>
+    <string name="settings_brightness_permission">Sta systeeminstellingen toe om helderheid vast te zetten</string>
+    <string name="settings_brightness_permission_button">Toestemming geven</string>
+    <string name="settings_brightness_decrease">Helderheid lager</string>
+    <string name="settings_brightness_increase">Helderheid hoger</string>
+    <string name="settings_brightness_locked_value">Vergrendeld · %1$d%%</string>
+    <string name="settings_brightness_value">%1$d%%</string>
     <string name="settings_apps">Startscherm apps</string>
     <string name="settings_apps_subtitle">Kies apps voor startscherm</string>
     <string name="settings_apps_page">Apps pagina</string>
     <string name="settings_apps_page_subtitle">Toon of verberg apps</string>
     <string name="settings_apps_page_hint">Tik om zichtbaarheid te wisselen</string>
-    <string name="settings_apps_choose_slot">Tik op een plek om een app te kiezen</string>
+    <string name="settings_apps_choose_slot">Tik op een app om te wijzigen, of voeg er meer toe</string>
     <string name="settings_apps_tap_to_select">Tik om app te kiezen</string>
     <string name="settings_apps_clear">App verwijderen</string>
+    <string name="settings_apps_add">App toevoegen</string>
+    <string name="settings_apps_full">Maximaal 12 apps op het startscherm</string>
     <string name="settings_app_slot_1">Linksboven</string>
     <string name="settings_app_slot_2">Rechtsboven</string>
     <string name="settings_app_slot_3">Linksonder</string>
     <string name="settings_app_slot_4">Rechtsonder</string>
+    <string name="settings_app_slot_n">App %1$d</string>
+    <string name="settings_photos_subtitle">Kies foto\'s voor de diavoorstelling</string>
+    <string name="settings_photos_hint">Voeg favoriete foto\'s toe. Die wisselen daarna vanzelf.</string>
     <string name="settings_contacts">Snelle contacten</string>
     <string name="settings_contacts_subtitle">Beheer snelle contacten</string>
     <string name="settings_games">Spelletjes</string>
     <string name="settings_games_subtitle">Kies spelletje apps</string>
     <string name="settings_games_hint">Tik om spelletjes toe te voegen of te verwijderen</string>
     <string name="settings_photos">Foto\'s</string>
-    <string name="settings_photos_subtitle">Beheer foto carrousel</string>
-    <string name="settings_photos_hint">Voeg favoriete foto\'s toe aan de carrousel</string>
     <string name="settings_emergency">Noodnummer</string>
     <string name="settings_password_change">Wachtwoord wijzigen</string>
     <string name="settings_password_change_subtitle">Wijzig het wachtwoord</string>
@@ -96,6 +117,7 @@
     <string name="settings_password_too_short">Wachtwoord moet minimaal 4 cijfers zijn</string>
     <string name="settings_password_mismatch">Wachtwoorden komen niet overeen</string>
     <string name="settings_emergency_hint">Telefoonnummer</string>
+    <string name="settings_emergency_invalid">Voer een geldig nummer in (minimaal 3 cijfers)</string>
     <string name="settings_coming_soon">Deze functie komt binnenkort</string>
     <string name="settings_unlock">Ontgrendelen</string>
     <string name="settings_lock_description">Instellingen zijn vergrendeld</string>

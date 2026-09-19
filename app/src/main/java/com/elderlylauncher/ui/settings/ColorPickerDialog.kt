@@ -5,9 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -83,20 +80,31 @@ fun ColorPickerDialog(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(4),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(availableThemeColors) { color ->
-                        ColorOption(
-                            color = color,
-                            isSelected = color.name == currentColor,
-                            onClick = {
-                                onColorSelected(color.name)
-                                onDismiss()
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    availableThemeColors.chunked(4).forEach { rowColors ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            rowColors.forEach { color ->
+                                Box(
+                                    modifier = Modifier.weight(1f),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    ColorOption(
+                                        color = color,
+                                        isSelected = color.name == currentColor,
+                                        onClick = {
+                                            onColorSelected(color.name)
+                                            onDismiss()
+                                        }
+                                    )
+                                }
                             }
-                        )
+                            repeat(4 - rowColors.size) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
                     }
                 }
 

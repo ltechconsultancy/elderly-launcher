@@ -7,9 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -31,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.elderlylauncher.R
+import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
 
 private const val TAG = "VolumeScreen"
@@ -79,6 +78,8 @@ fun VolumeScreen() {
 
     val decreaseDesc = stringResource(R.string.volume_decrease)
     val increaseDesc = stringResource(R.string.volume_increase)
+    val layout = rememberDeviceLayout()
+    val twoColumn = layout.isTablet && layout.isLandscape
 
     Column(
         modifier = Modifier
@@ -108,93 +109,111 @@ fun VolumeScreen() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Media Volume
-            VolumeControl(
-                title = stringResource(R.string.volume_media),
-                subtitle = stringResource(R.string.volume_media_desc),
-                icon = Icons.Default.MusicNote,
-                backgroundColor = LauncherColors.Blue50,
-                borderColor = LauncherColors.Blue200,
-                iconBackgroundColor = LauncherColors.Blue500,
-                accentColor = LauncherColors.Blue500,
-                textColor = LauncherColors.Blue700,
-                currentVolume = mediaVolume,
-                maxVolume = maxMedia,
-                decreaseDescription = decreaseDesc,
-                increaseDescription = increaseDesc,
-                onVolumeUp = {
-                    if (mediaVolume < maxMedia) {
-                        mediaVolume++
-                        safeSetVolume(audioManager, AudioManager.STREAM_MUSIC, mediaVolume)
+            val mediaControl: @Composable (Modifier) -> Unit = { itemModifier ->
+                VolumeControl(
+                    title = stringResource(R.string.volume_media),
+                    subtitle = stringResource(R.string.volume_media_desc),
+                    icon = Icons.Default.MusicNote,
+                    backgroundColor = LauncherColors.Blue50,
+                    borderColor = LauncherColors.Blue200,
+                    iconBackgroundColor = LauncherColors.Blue500,
+                    accentColor = LauncherColors.Blue500,
+                    textColor = LauncherColors.Blue700,
+                    currentVolume = mediaVolume,
+                    maxVolume = maxMedia,
+                    decreaseDescription = decreaseDesc,
+                    increaseDescription = increaseDesc,
+                    modifier = itemModifier,
+                    onVolumeUp = {
+                        if (mediaVolume < maxMedia) {
+                            mediaVolume++
+                            safeSetVolume(audioManager, AudioManager.STREAM_MUSIC, mediaVolume)
+                        }
+                    },
+                    onVolumeDown = {
+                        if (mediaVolume > 0) {
+                            mediaVolume--
+                            safeSetVolume(audioManager, AudioManager.STREAM_MUSIC, mediaVolume)
+                        }
                     }
-                },
-                onVolumeDown = {
-                    if (mediaVolume > 0) {
-                        mediaVolume--
-                        safeSetVolume(audioManager, AudioManager.STREAM_MUSIC, mediaVolume)
+                )
+            }
+            val notificationControl: @Composable (Modifier) -> Unit = { itemModifier ->
+                VolumeControl(
+                    title = stringResource(R.string.volume_notifications),
+                    subtitle = stringResource(R.string.volume_notifications_desc),
+                    icon = Icons.Default.Notifications,
+                    backgroundColor = LauncherColors.Orange50,
+                    borderColor = LauncherColors.Orange200,
+                    iconBackgroundColor = LauncherColors.Orange500,
+                    accentColor = LauncherColors.Orange500,
+                    textColor = LauncherColors.Orange700,
+                    currentVolume = notificationVolume,
+                    maxVolume = maxNotification,
+                    decreaseDescription = decreaseDesc,
+                    increaseDescription = increaseDesc,
+                    modifier = itemModifier,
+                    onVolumeUp = {
+                        if (notificationVolume < maxNotification) {
+                            notificationVolume++
+                            safeSetVolume(audioManager, AudioManager.STREAM_NOTIFICATION, notificationVolume)
+                        }
+                    },
+                    onVolumeDown = {
+                        if (notificationVolume > 0) {
+                            notificationVolume--
+                            safeSetVolume(audioManager, AudioManager.STREAM_NOTIFICATION, notificationVolume)
+                        }
                     }
-                }
-            )
+                )
+            }
+            val alarmControl: @Composable (Modifier) -> Unit = { itemModifier ->
+                VolumeControl(
+                    title = stringResource(R.string.volume_alarm),
+                    subtitle = stringResource(R.string.volume_alarm_desc),
+                    icon = Icons.Default.Alarm,
+                    backgroundColor = LauncherColors.Red50,
+                    borderColor = LauncherColors.Red200,
+                    iconBackgroundColor = LauncherColors.Red500,
+                    accentColor = LauncherColors.Red500,
+                    textColor = LauncherColors.Red700,
+                    currentVolume = alarmVolume,
+                    maxVolume = maxAlarm,
+                    decreaseDescription = decreaseDesc,
+                    increaseDescription = increaseDesc,
+                    modifier = itemModifier,
+                    onVolumeUp = {
+                        if (alarmVolume < maxAlarm) {
+                            alarmVolume++
+                            safeSetVolume(audioManager, AudioManager.STREAM_ALARM, alarmVolume)
+                        }
+                    },
+                    onVolumeDown = {
+                        if (alarmVolume > 0) {
+                            alarmVolume--
+                            safeSetVolume(audioManager, AudioManager.STREAM_ALARM, alarmVolume)
+                        }
+                    }
+                )
+            }
 
-            // Notification Volume
-            VolumeControl(
-                title = stringResource(R.string.volume_notifications),
-                subtitle = stringResource(R.string.volume_notifications_desc),
-                icon = Icons.Default.Notifications,
-                backgroundColor = LauncherColors.Orange50,
-                borderColor = LauncherColors.Orange200,
-                iconBackgroundColor = LauncherColors.Orange500,
-                accentColor = LauncherColors.Orange500,
-                textColor = LauncherColors.Orange700,
-                currentVolume = notificationVolume,
-                maxVolume = maxNotification,
-                decreaseDescription = decreaseDesc,
-                increaseDescription = increaseDesc,
-                onVolumeUp = {
-                    if (notificationVolume < maxNotification) {
-                        notificationVolume++
-                        safeSetVolume(audioManager, AudioManager.STREAM_NOTIFICATION, notificationVolume)
-                    }
-                },
-                onVolumeDown = {
-                    if (notificationVolume > 0) {
-                        notificationVolume--
-                        safeSetVolume(audioManager, AudioManager.STREAM_NOTIFICATION, notificationVolume)
-                    }
+            if (twoColumn) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    mediaControl(Modifier.weight(1f))
+                    notificationControl(Modifier.weight(1f))
                 }
-            )
-
-            // Alarm Volume
-            VolumeControl(
-                title = stringResource(R.string.volume_alarm),
-                subtitle = stringResource(R.string.volume_alarm_desc),
-                icon = Icons.Default.Alarm,
-                backgroundColor = LauncherColors.Red50,
-                borderColor = LauncherColors.Red200,
-                iconBackgroundColor = LauncherColors.Red500,
-                accentColor = LauncherColors.Red500,
-                textColor = LauncherColors.Red700,
-                currentVolume = alarmVolume,
-                maxVolume = maxAlarm,
-                decreaseDescription = decreaseDesc,
-                increaseDescription = increaseDesc,
-                onVolumeUp = {
-                    if (alarmVolume < maxAlarm) {
-                        alarmVolume++
-                        safeSetVolume(audioManager, AudioManager.STREAM_ALARM, alarmVolume)
-                    }
-                },
-                onVolumeDown = {
-                    if (alarmVolume > 0) {
-                        alarmVolume--
-                        safeSetVolume(audioManager, AudioManager.STREAM_ALARM, alarmVolume)
-                    }
-                }
-            )
+                alarmControl(Modifier.fillMaxWidth())
+            } else {
+                mediaControl(Modifier.fillMaxWidth())
+                notificationControl(Modifier.fillMaxWidth())
+                alarmControl(Modifier.fillMaxWidth())
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -228,6 +247,7 @@ fun VolumeControl(
     maxVolume: Int,
     decreaseDescription: String,
     increaseDescription: String,
+    modifier: Modifier = Modifier,
     onVolumeUp: () -> Unit,
     onVolumeDown: () -> Unit
 ) {
@@ -239,7 +259,7 @@ fun VolumeControl(
     val volumeDescription = "$title: $percentage%"
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
             .background(backgroundColor)

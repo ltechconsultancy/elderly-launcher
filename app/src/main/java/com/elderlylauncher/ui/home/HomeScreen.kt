@@ -38,7 +38,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
 import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.data.QuickContact
+import com.elderlylauncher.ui.ButtonPagedGrid
 import com.elderlylauncher.ui.LauncherViewModel
+import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
 import java.time.LocalDate
 import java.time.LocalTime
@@ -101,88 +103,57 @@ private val appColorSchemes = listOf(
     Triple(LauncherColors.Green50, LauncherColors.Green200, LauncherColors.Green500),
     Triple(LauncherColors.Blue50, LauncherColors.Blue200, LauncherColors.Blue500),
     Triple(LauncherColors.Purple50, LauncherColors.Purple200, LauncherColors.Purple500),
-    Triple(LauncherColors.Pink50, LauncherColors.Pink200, LauncherColors.Pink500)
+    Triple(LauncherColors.Pink50, LauncherColors.Pink200, LauncherColors.Pink500),
+    Triple(LauncherColors.Orange50, LauncherColors.Orange200, LauncherColors.Orange500),
+    Triple(LauncherColors.Red50, LauncherColors.Red200, LauncherColors.Red500)
 )
 
 @Composable
 fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
     val context = LocalContext.current
+    val layout = rememberDeviceLayout()
     var showEmergencyConfirm by rememberSaveable { mutableStateOf(false) }
 
     val homeApps by viewModel.homeApps.collectAsState()
     val installedApps by viewModel.installedApps.collectAsState()
     val quickContacts by viewModel.quickContacts.collectAsState()
+    val emergencyNumber by viewModel.emergencyNumber.collectAsState()
+    val dialNumber = LauncherViewModel.sanitizeEmergencyNumber(emergencyNumber) ?: "112"
+    val landscapeTablet = layout.isTablet && layout.isLandscape
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(LauncherColors.White)
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = if (layout.isTablet) 24.dp else 16.dp)
     ) {
-        // Clock & Date
         ClockDisplay(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 32.dp, bottom = 24.dp)
+                .padding(
+                    top = if (landscapeTablet) 8.dp else 32.dp,
+                    bottom = if (landscapeTablet) 12.dp else 24.dp
+                )
         )
 
-        // 2x2 App Grid
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Row(
-                modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Position 0 - Top Left
-                HomeAppTile(
-                    position = 0,
-                    homeApps = homeApps,
-                    installedApps = installedApps,
-                    context = context,
-                    viewModel = viewModel,
-                    modifier = Modifier.weight(1f)
-                )
-                // Position 1 - Top Right
-                HomeAppTile(
-                    position = 1,
-                    homeApps = homeApps,
-                    installedApps = installedApps,
-                    context = context,
-                    viewModel = viewModel,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-            Row(
-                modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Position 2 - Bottom Left
-                HomeAppTile(
-                    position = 2,
-                    homeApps = homeApps,
-                    installedApps = installedApps,
-                    context = context,
-                    viewModel = viewModel,
-                    modifier = Modifier.weight(1f)
-                )
-                // Position 3 - Bottom Right
-                HomeAppTile(
-                    position = 3,
-                    homeApps = homeApps,
-                    installedApps = installedApps,
-                    context = context,
-                    viewModel = viewModel,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
+        HomeAppGrid(
+            homeApps = homeApps,
+            installedApps = installedApps,
+            context = context,
+            viewModel = viewModel,
+            columns = when {
+                layout.isTablet && layout.isLandscape -> 4
+                layout.isTablet -> 3
+                else -> 2
+            },
+            rows = if (layout.isTablet && layout.isLandscape) 1 else 2,
+            modifier = Modifier.weight(1f)
+        )
 
-        // Quick Contacts Row
-        if (quickContacts.isNotEmpty()) {
+        if (layout.hasTelephony && quickContacts.isNotEmpty()) {
             QuickContactsRow(
                 contacts = quickContacts,
+                maxVisible = if (layout.isTablet) 6 else 4,
                 onCallContact = { contact ->
                     viewModel.callContact(contact)
                 },
@@ -192,13 +163,20 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
             )
         }
 
-        // Emergency Button
-        EmergencyButton(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp),
-            onClick = { showEmergencyConfirm = true }
-        )
+        if (layout.hasTelephony) {
+            EmergencyButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                onClick = { showEmergencyConfirm = true }
+            )
+        } else {
+            NoTelephonyBanner(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp)
+            )
+        }
     }
 
     // Emergency call confirmation dialog
@@ -207,13 +185,13 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
             onDismissRequest = { showEmergencyConfirm = false },
             title = {
                 Text(
-                    text = stringResource(R.string.home_emergency_confirm_title),
+                    text = stringResource(R.string.emergency_confirm_title),
                     style = MaterialTheme.typography.headlineMedium
                 )
             },
             text = {
                 Text(
-                    text = stringResource(R.string.home_emergency_confirm_message),
+                    text = stringResource(R.string.emergency_confirm_message, dialNumber),
                     style = MaterialTheme.typography.bodyLarge,
                     fontSize = 20.sp
                 )
@@ -224,7 +202,7 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
                         showEmergencyConfirm = false
                         safeStartActivity(context) {
                             Intent(Intent.ACTION_DIAL).apply {
-                                data = Uri.parse("tel:112")
+                                data = Uri.parse("tel:$dialNumber")
                             }
                         }
                     },
@@ -329,7 +307,7 @@ fun AppTile(
 
     Box(
         modifier = modifier
-            .fillMaxHeight()
+            .fillMaxSize()
             .clip(RoundedCornerShape(24.dp))
             .background(backgroundColor)
             .border(2.dp, borderColor, RoundedCornerShape(24.dp))
@@ -396,6 +374,68 @@ fun AppTile(
 }
 
 @Composable
+fun HomeAppGrid(
+    homeApps: Map<Int, String>,
+    installedApps: List<AppInfo>,
+    context: Context,
+    viewModel: LauncherViewModel,
+    columns: Int,
+    rows: Int,
+    modifier: Modifier = Modifier
+) {
+    val positions = remember(homeApps) {
+        (0 until LauncherViewModel.DEFAULT_HOME_SLOTS) +
+            homeApps.keys.filter { it >= LauncherViewModel.DEFAULT_HOME_SLOTS }.sorted()
+    }
+
+    ButtonPagedGrid(
+        items = positions,
+        columns = columns,
+        rows = rows,
+        modifier = modifier,
+        fillCells = true
+    ) { position ->
+        HomeAppTile(
+            position = position,
+            homeApps = homeApps,
+            installedApps = installedApps,
+            context = context,
+            viewModel = viewModel,
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+}
+
+@Composable
+fun NoTelephonyBanner(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .height(80.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(LauncherColors.Gray100)
+            .border(2.dp, LauncherColors.Gray200, RoundedCornerShape(24.dp))
+            .padding(horizontal = 20.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.PhoneDisabled,
+            contentDescription = null,
+            tint = LauncherColors.Gray500,
+            modifier = Modifier.size(32.dp)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = stringResource(R.string.tablet_no_telephony),
+            style = MaterialTheme.typography.titleMedium,
+            color = LauncherColors.Gray600,
+            fontSize = 18.sp,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
 fun HomeAppTile(
     position: Int,
     homeApps: Map<Int, String>,
@@ -406,10 +446,9 @@ fun HomeAppTile(
 ) {
     val customPackage = homeApps[position]
     val customApp = customPackage?.let { pkg -> installedApps.find { it.packageName == pkg } }
-    val colorScheme = appColorSchemes[position]
+    val colorScheme = appColorSchemes[position % appColorSchemes.size]
 
     if (customApp != null) {
-        // Custom app configured
         CustomAppTile(
             appInfo = customApp,
             backgroundColor = colorScheme.first,
@@ -420,8 +459,7 @@ fun HomeAppTile(
                 viewModel.launchApp(customApp.packageName)
             }
         )
-    } else {
-        // Default app
+    } else if (position < defaultApps.size) {
         val defaultConfig = defaultApps[position]
         AppTile(
             title = stringResource(defaultConfig.title),
@@ -451,7 +489,7 @@ fun CustomAppTile(
 ) {
     Box(
         modifier = modifier
-            .fillMaxHeight()
+            .fillMaxSize()
             .clip(RoundedCornerShape(24.dp))
             .background(backgroundColor)
             .border(2.dp, borderColor, RoundedCornerShape(24.dp))
@@ -548,13 +586,14 @@ private fun getCurrentDate(): String {
 fun QuickContactsRow(
     contacts: List<QuickContact>,
     onCallContact: (QuickContact) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    maxVisible: Int = 4
 ) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        contacts.take(4).forEach { contact ->
+        contacts.take(maxVisible).forEach { contact ->
             QuickContactButton(
                 contact = contact,
                 onClick = { onCallContact(contact) },

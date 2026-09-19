@@ -5,8 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -31,6 +29,7 @@ import androidx.compose.material3.ripple
 import coil.compose.AsyncImage
 import com.elderlylauncher.R
 import com.elderlylauncher.data.QuickContact
+import com.elderlylauncher.ui.ButtonPagedColumn
 import com.elderlylauncher.ui.theme.LauncherColors
 
 @Composable
@@ -258,10 +257,12 @@ fun ContactPickerDialog(
             )
         },
         text = {
-            LazyColumn(
+            ButtonPagedColumn(
+                items = contacts,
+                pageSize = 5,
+                fillRemaining = false,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(contacts) { contact ->
+            ) { contact ->
                     ContactListItem(
                         contact = contact,
                         onClick = { onContactSelected(contact) },
@@ -274,7 +275,6 @@ fun ContactPickerDialog(
                             )
                         }
                     )
-                }
             }
         },
         confirmButton = {},
