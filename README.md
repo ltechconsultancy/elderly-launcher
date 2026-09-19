@@ -4,9 +4,9 @@ Een eenvoudige, toegankelijke Android launcher voor ouderen.
 
 ## Features
 
-- **Grote knoppen** - Makkelijk te raken touch targets (80dp+)
+- **Grote knoppen** - Makkelijk te raken touch targets; geen swipe-gebaren
 - **Duidelijke iconen** - Echte app iconen met namen eronder
-- **Horizontaal swipen** - 6 pagina's, tik op het cijfer om te springen
+- **Pagina's via knoppen** - Vorige / Volgende plus nummers 1–6
 - **Volume bediening** - Met + en − knoppen (geen slider)
 - **Snel bellen** - Één-tap contacten met foto's
 - **Noodknop** - Altijd zichtbaar op telefoons met sim
@@ -14,8 +14,8 @@ Een eenvoudige, toegankelijke Android launcher voor ouderen.
 - **Kleurthema's** - 12 kleuren om uit te kiezen
 - **Meertalig** - Nederlands (primair) + Engels
 - **Tablet** - Landscape + portrait, POCO Pad / Pad X1 / M1 / C1 (HyperOS)
-- **Startscherm** - Tot 12 grote app-tegels, scrollbaar
-- **Foto-slideshow** - Automatisch wisselen (8 seconden), tik om te pauzeren
+- **Startscherm** - Tot 12 grote app-tegels, extra apps via Vorige / Volgende
+- **Foto-slideshow** - Wisselt elke 4 seconden; Vorige / Pauze / Volgende-knoppen
 
 ## Pagina's
 
@@ -87,6 +87,12 @@ app/src/main/
 <uses-permission android:name="android.permission.READ_CONTACTS" />
 <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 ```
+
+## Download APK
+
+De nieuwste debug-APK staat bij de [GitHub Releases](https://github.com/ltechconsultancy/elderly-launcher/releases/latest).
+
+Bestand: `elderly-launcher-v1.0.14.apk`
 
 ## Bouwen
 
