@@ -81,6 +81,8 @@
     <string name="settings_update_downloading">Downloading… %1$d%%</string>
     <string name="settings_update_installing">Installing…</string>
     <string name="settings_update_failed">Update failed. Try again.</string>
+    <string name="settings_update_success">Update installed</string>
+    <string name="settings_update_signature">Uninstall the old launcher first, then install this APK again. Android blocks the install because the previous version used a different signing key.</string>
     <string name="settings_update_need_permission">Allow installing apps to update</string>
     <string name="settings_update_permission_button">Grant permission</string>
     <string name="settings_update_now">Update now</string>

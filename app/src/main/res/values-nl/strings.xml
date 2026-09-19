@@ -81,6 +81,8 @@
     <string name="settings_update_downloading">Downloaden… %1$d%%</string>
     <string name="settings_update_installing">Installeren…</string>
     <string name="settings_update_failed">Update mislukt. Probeer opnieuw.</string>
+    <string name="settings_update_success">Update geïnstalleerd</string>
+    <string name="settings_update_signature">Verwijder eerst de oude launcher en installeer daarna deze APK opnieuw. Android weigert de installatie omdat de vorige versie met een andere sleutel is ondertekend.</string>
     <string name="settings_update_need_permission">Sta het installeren van apps toe om te updaten</string>
     <string name="settings_update_permission_button">Toestemming geven</string>
     <string name="settings_update_now">Update nu</string>
