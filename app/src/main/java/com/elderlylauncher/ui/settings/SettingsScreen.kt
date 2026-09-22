@@ -38,6 +38,7 @@ import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.data.QuickContact
 import com.elderlylauncher.ui.ButtonPagedColumn
 import com.elderlylauncher.ui.LauncherViewModel
+import com.elderlylauncher.ui.notifications.NotificationAppsDialog
 import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
 import com.elderlylauncher.util.AppUpdater
@@ -536,6 +537,8 @@ fun SettingsContent(
     var showGamesDialog by rememberSaveable { mutableStateOf(false) }
     var showPhotosDialog by rememberSaveable { mutableStateOf(false) }
     var showBrightnessDialog by rememberSaveable { mutableStateOf(false) }
+    var showNotificationsDialog by rememberSaveable { mutableStateOf(false) }
+    var showScreenTimeoutDialog by rememberSaveable { mutableStateOf(false) }
     var showUpdateDialog by rememberSaveable { mutableStateOf(false) }
     var updateBusy by remember { mutableStateOf(false) }
     var updateProgress by remember { mutableIntStateOf(0) }
@@ -782,6 +785,21 @@ fun SettingsContent(
         )
     }
 
+    if (showNotificationsDialog) {
+        val installedApps by viewModel.installedApps.collectAsState()
+        val blockedApps by viewModel.notificationBlockedApps.collectAsState()
+        NotificationAppsDialog(
+            installedApps = installedApps,
+            blockedApps = blockedApps,
+            onDismiss = { showNotificationsDialog = false },
+            onToggleApp = { viewModel.toggleNotificationBlocked(it) }
+        )
+    }
+
+    if (showScreenTimeoutDialog) {
+        ScreenTimeoutDialog(onDismiss = { showScreenTimeoutDialog = false })
+    }
+
     if (showBrightnessDialog) {
         BrightnessDialog(
             percent = brightnessPercent,
@@ -860,7 +878,7 @@ fun SettingsContent(
 
         val settingsKeys = buildList {
             add("update")
-            addAll(listOf("colors", "language", "brightness", "apps", "apps_page", "games", "photos"))
+            addAll(listOf("colors", "language", "brightness", "screen_timeout", "notifications", "apps", "apps_page", "games", "photos"))
             if (layout.hasTelephony) {
                 add("contacts")
                 add("emergency")
@@ -924,6 +942,20 @@ fun SettingsContent(
                     icon = Icons.Default.BrightnessHigh,
                     iconColor = LauncherColors.Orange500,
                     onClick = { showBrightnessDialog = true }
+                )
+                "screen_timeout" -> SettingsItem(
+                    title = stringResource(R.string.settings_screen_timeout),
+                    subtitle = stringResource(R.string.settings_screen_timeout_subtitle),
+                    icon = Icons.Default.Timer,
+                    iconColor = LauncherColors.Blue500,
+                    onClick = { showScreenTimeoutDialog = true }
+                )
+                "notifications" -> SettingsItem(
+                    title = stringResource(R.string.settings_notifications),
+                    subtitle = stringResource(R.string.settings_notifications_subtitle),
+                    icon = Icons.Default.Notifications,
+                    iconColor = LauncherColors.Orange500,
+                    onClick = { showNotificationsDialog = true }
                 )
                 "apps" -> SettingsItem(
                     title = stringResource(R.string.settings_apps),

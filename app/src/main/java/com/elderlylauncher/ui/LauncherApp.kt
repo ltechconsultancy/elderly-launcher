@@ -32,6 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -40,6 +41,7 @@ import com.elderlylauncher.R
 import com.elderlylauncher.ui.apps.AppsScreen
 import com.elderlylauncher.ui.games.GamesScreen
 import com.elderlylauncher.ui.home.HomeScreen
+import com.elderlylauncher.ui.notifications.NotificationsScreen
 import com.elderlylauncher.ui.photos.PhotoCarouselScreen
 import com.elderlylauncher.ui.settings.SettingsScreen
 import com.elderlylauncher.ui.theme.LauncherColors
@@ -49,7 +51,7 @@ import com.elderlylauncher.util.BrightnessLockWatcher
 
 @Composable
 fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
-    val totalPages = 6
+    val totalPages = 7
     var currentPage by rememberSaveable { mutableIntStateOf(0) }
     val pageStateHolder = rememberSaveableStateHolder()
 
@@ -94,7 +96,8 @@ fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
                     2 -> GamesScreen()
                     3 -> PhotoCarouselScreen()
                     4 -> VolumeScreen()
-                    5 -> SettingsScreen()
+                    5 -> NotificationsScreen()
+                    6 -> SettingsScreen()
                 }
             }
         }
@@ -106,7 +109,7 @@ fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 8.dp, vertical = 12.dp)
+                .padding(horizontal = 4.dp, vertical = 8.dp)
         )
     }
 }
@@ -119,10 +122,20 @@ fun PageIndicator(
     onPageClick: (Int) -> Unit = {}
 ) {
     val pageDescription = stringResource(R.string.home_page, currentPage + 1, totalPages)
-    val compact = LocalConfiguration.current.screenWidthDp < 700
-    val numberSize = if (compact) 40.dp else 56.dp
-    val chevronSize = if (compact) 48.dp else 56.dp
-    val numberPad = if (compact) 1.dp else 4.dp
+    val widthDp = LocalConfiguration.current.screenWidthDp
+    val numberSize = when {
+        widthDp < 360 -> 26.dp
+        widthDp < 480 -> 30.dp
+        widthDp < 700 -> 36.dp
+        else -> 48.dp
+    }
+    val chevronSize = when {
+        widthDp < 360 -> 40.dp
+        widthDp < 480 -> 48.dp
+        widthDp < 700 -> 56.dp
+        else -> 72.dp
+    }
+    val numberPad = if (widthDp < 700) 0.dp else 4.dp
 
     Row(
         modifier = modifier.semantics { contentDescription = pageDescription },
@@ -152,6 +165,12 @@ fun PageIndicator(
                 Text(
                     text = (page + 1).toString(),
                     style = MaterialTheme.typography.titleLarge,
+                    fontSize = when {
+                        widthDp < 360 -> 14.sp
+                        widthDp < 480 -> 16.sp
+                        widthDp < 700 -> 18.sp
+                        else -> 22.sp
+                    },
                     color = if (isSelected) LauncherColors.White
                     else LauncherColors.Gray500
                 )

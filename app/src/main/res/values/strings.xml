@@ -48,19 +48,19 @@
     <string name="volume_title">Sound</string>
     <string name="volume_subtitle">Sound and brightness</string>
     <string name="volume_media">Media</string>
-    <string name="volume_media_desc">Music, videos</string>
+    <string name="volume_media_desc">Sound for music and videos.</string>
     <string name="volume_calls">Calls</string>
     <string name="volume_calls_desc">Ringtone</string>
     <string name="volume_notifications">Notifications</string>
-    <string name="volume_notifications_desc">Messages, apps</string>
+    <string name="volume_notifications_desc">Sound for messages and apps.</string>
     <string name="volume_alarm">Alarm</string>
-    <string name="volume_alarm_desc">Wake-up alarm</string>
+    <string name="volume_alarm_desc">Sound for the wake-up alarm.</string>
     <string name="volume_decrease">Decrease volume</string>
     <string name="volume_increase">Increase volume</string>
     <string name="volume_unavailable">Volume not available</string>
     <string name="volume_bars_description">%1$d of 10 bars filled</string>
     <string name="volume_brightness">Brightness</string>
-    <string name="volume_brightness_desc">Screen, minimum 40%</string>
+    <string name="volume_brightness_desc">How bright the screen is, at least 40%.</string>
     <string name="volume_bars_filled">%1$d of %2$d bars filled</string>
 
     <!-- Contacts -->
@@ -107,11 +107,11 @@
     <string name="settings_apps_page">Apps page</string>
     <string name="settings_apps_page_subtitle">Smaller apps on the Apps page</string>
     <string name="settings_apps_page_hint">Tap to add or remove. The Apps page stays empty until you pick apps.</string>
-    <string name="settings_apps_choose_slot">Tap an app to change it, or add more</string>
+    <string name="settings_apps_choose_slot">Tap a tile to change it. Everything stays on one screen.</string>
     <string name="settings_apps_tap_to_select">Tap to select app</string>
     <string name="settings_apps_clear">Remove app</string>
     <string name="settings_apps_add">Add app</string>
-    <string name="settings_apps_full">Maximum of 12 apps on the home screen</string>
+    <string name="settings_apps_full">At most 8 apps, all on one screen</string>
     <string name="settings_app_slot_1">Top left</string>
     <string name="settings_app_slot_2">Top right</string>
     <string name="settings_app_slot_3">Bottom left</string>
@@ -202,4 +202,30 @@
     <!-- Errors -->
     <string name="error_app_not_found">App not found</string>
     <string name="error_no_permission">Permission denied</string>
+
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_subtitle">Messages and apps. Tap Delete to remove one.</string>
+    <string name="notifications_empty">No notifications</string>
+    <string name="notifications_delete">Delete</string>
+    <string name="notifications_clear_all">Delete all</string>
+    <string name="notifications_clear_all_title">Delete all notifications?</string>
+    <string name="notifications_clear_all_message">This removes every notification you can see here.</string>
+    <string name="notifications_access_needed">Allow notification access once, in system settings.</string>
+    <string name="notifications_access_button">Allow notifications</string>
+    <string name="settings_notifications">Notification apps</string>
+    <string name="settings_notifications_subtitle">Choose which apps appear</string>
+    <string name="settings_notifications_hint">Tap an app to hide or show it. Hidden apps stay out of the notification list.</string>
+    <string name="settings_screen_timeout">Screen off</string>
+    <string name="settings_screen_timeout_subtitle">How soon the screen turns off</string>
+    <string name="settings_screen_timeout_hint">Same on phone and tablet. The screen turns off after this time.</string>
+    <string name="settings_screen_timeout_now">Now: %1$s</string>
+    <string name="settings_screen_timeout_permission">Allow system settings to change how soon the screen turns off.</string>
+    <plurals name="screen_timeout_seconds">
+        <item quantity="one">%d second</item>
+        <item quantity="other">%d seconds</item>
+    </plurals>
+    <plurals name="screen_timeout_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
 </resources>

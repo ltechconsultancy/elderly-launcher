@@ -364,7 +364,8 @@ fun VolumeControl(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
                     color = textColor.copy(alpha = 0.7f),
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
+                    maxLines = 2
                 )
             }
         }
