@@ -248,20 +248,23 @@ fun VolumeScreen(
                 )
             }
 
+            val rowModifier = if (compact) {
+                Modifier.fillMaxWidth()
+            } else {
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            }
             if (twoColumn) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
+                    modifier = rowModifier,
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     mediaControl(Modifier.weight(1f))
                     notificationControl(Modifier.weight(1f))
                 }
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
+                    modifier = rowModifier,
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     alarmControl(Modifier.weight(1f))
@@ -269,18 +272,14 @@ fun VolumeScreen(
                 }
             } else {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
+                    modifier = rowModifier,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     brightnessControl(Modifier.weight(1f))
                     mediaControl(Modifier.weight(1f))
                 }
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
+                    modifier = rowModifier,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     notificationControl(Modifier.weight(1f))
@@ -390,7 +389,7 @@ fun VolumeControl(
                     style = MaterialTheme.typography.bodyMedium,
                     color = textColor.copy(alpha = 0.7f),
                     fontSize = subtitleSize,
-                    maxLines = if (compact) 2 else 2,
+                    maxLines = if (compact) 3 else 2,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
             }

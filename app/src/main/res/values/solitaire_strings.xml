@@ -36,7 +36,7 @@
     <string name="menu_restart">Restart</string>
     <string name="menu_options">Options</string>
     <string name="menu_stats">Stats</string>
-    <string name="menu_help">Help</string>
+    <string name="menu_help">Move</string>
     <string name="menu_exit">Exit</string>
     <string name="menu_blank"></string>
     <string name="solitaire_layout_text_text"></string>
@@ -56,6 +56,7 @@
     <string name="toast_restart_invalid">Game over. Restart not available.</string>
     <string name="toast_use_start_menu">Game over. Use menu to start new game.</string>
     <string name="toast_no_undo_left">No undo left.</string>
+    <string name="toast_no_move">No move to make.</string>
 
     <!-- Shown on the splash screen at first startup -->
     <string name="splash_text">Press anywhere to start \nPress new to start a new game</string>

@@ -161,19 +161,6 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
             modifier = Modifier.weight(1f)
         )
 
-        if (layout.hasTelephony && quickContacts.isNotEmpty() && !(landscape && !layout.isTablet)) {
-            QuickContactsRow(
-                contacts = quickContacts,
-                maxVisible = if (layout.isTablet) 6 else 4,
-                onCallContact = { contact ->
-                    viewModel.callContact(contact)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = if (landscape) 4.dp else 12.dp)
-            )
-        }
-
         if (layout.hasTelephony) {
             EmergencyButton(
                 compact = landscape || !layout.isTablet,

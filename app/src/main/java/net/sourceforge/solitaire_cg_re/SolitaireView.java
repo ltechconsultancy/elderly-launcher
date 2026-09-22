@@ -23,6 +23,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.PointF;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -87,6 +88,8 @@ public class SolitaireView extends View {
   private Context mContext;
   private boolean mHasMoved;
   private Speed mSpeed;
+  private int mSelectedAnchor = -1;
+  private final Paint mSelectPaint = new Paint();
 
   private Card[] mUndoStorage;
 
@@ -118,6 +121,10 @@ public class SolitaireView extends View {
     mIsLandscape = (   getResources().getConfiguration().orientation
                                 == Configuration.ORIENTATION_LANDSCAPE );
     mDrawMaster = new DrawMaster(context, mWidthPixels, mHeightPixels, mDpi);
+    mSelectPaint.setStyle(Paint.Style.STROKE);
+    mSelectPaint.setStrokeWidth(10f);
+    mSelectPaint.setColor(0xFFFFC107);
+    mSelectPaint.setAntiAlias(true);
     mMoveCard = new MoveCard();
     mSelectCard = new SelectCard();
     mViewMode = MODE_NORMAL;
@@ -572,6 +579,21 @@ public class SolitaireView extends View {
         mAnimateCard.Draw(mDrawMaster, canvas);
     }
 
+    if (mViewMode == MODE_NORMAL && mSelectedAnchor >= 0 &&
+        mSelectedAnchor < mCardAnchor.length &&
+        mCardAnchor[mSelectedAnchor].GetCount() > 0) {
+      CardAnchor selected = mCardAnchor[mSelectedAnchor];
+      Card[] selectedCards = selected.GetCards();
+      int selectedStart = selected.GetCount() - selected.GetMovableCount();
+      for (int i = Math.max(selectedStart, selected.GetHiddenCount()); i < selected.GetCount(); i++) {
+        Card top = selectedCards[i];
+        canvas.drawRoundRect(
+            top.GetX() - 6, top.GetY() - 6,
+            top.GetX() + Card.WIDTH + 6, top.GetY() + Card.HEIGHT + 6,
+            12, 12, mSelectPaint);
+      }
+    }
+
     mRules.HandleEvents();
   }
 
@@ -663,19 +685,16 @@ public class SolitaireView extends View {
     switch (mViewMode) {
       case MODE_NORMAL:
         if (!mHasMoved) {
-          for (int i = 0; i < mCardAnchor.length; i++) {
-            if (mCardAnchor[i].ExpandStack(x, y)) {
-              mSelectCard.InitFromAnchor(mCardAnchor[i]);
-              ChangeViewMode(MODE_CARD_SELECT);
-              return true;
-            } else if (mCardAnchor[i].TapCard(x, y)) {
-              Refresh();
-              return true;
-            }
-          }
+          OnTap(x, y);
+          return true;
         }
         break;
       case MODE_MOVE_CARD:
+        if (!mMoveCard.HasMoved()) {
+          mMoveCard.Release();
+          OnTap(x, y);
+          return true;
+        }
         for (int close = 0; close < 2; close++) {
           CardAnchor prevAnchor = mMoveCard.GetAnchor();
           boolean unhide = (prevAnchor.GetVisibleCount() == 0 &&
@@ -731,28 +750,6 @@ public class SolitaireView extends View {
   public boolean onDown(float x, float y) {
     switch (mViewMode) {
       case MODE_NORMAL:
-        Card card = null;
-        for (int i = 0; i < mCardAnchor.length; i++) {
-          card = mCardAnchor[i].GrabCard(x, y);
-          if (card != null) {
-            if (y < card.GetY() + Card.HEIGHT/4) {
-              boolean lastIgnore = mRules.GetIgnoreEvents();
-              mRules.SetIgnoreEvents(true);
-              mCardAnchor[i].AddCard(card);
-              mRules.SetIgnoreEvents(lastIgnore);
-              if (mCardAnchor[i].ExpandStack(x, y)) {
-                mMoveCard.InitFromAnchor(mCardAnchor[i], x-Card.WIDTH/2, y-Card.HEIGHT/2);
-                ChangeViewMode(MODE_MOVE_CARD);
-                break;
-              }
-              card = mCardAnchor[i].PopCard();
-            }
-            mMoveCard.SetAnchor(mCardAnchor[i]);
-            mMoveCard.AddCard(card);
-            ChangeViewMode(MODE_MOVE_CARD);
-            break;
-          }
-        }
         break;
       case MODE_CARD_SELECT:
         mSelectCard.Tap(x, y);
@@ -765,9 +762,10 @@ public class SolitaireView extends View {
     mSpeed.AddSpeed(dx, dy);
     switch (mViewMode) {
       case MODE_NORMAL:
-        if (Math.abs(mDownPoint.x - x) > (15 * mDpi/160) || Math.abs(mDownPoint.y - y) > (15 * mDpi/160)) {
+        if (Math.abs(mDownPoint.x - x) > (32 * mDpi/160) || Math.abs(mDownPoint.y - y) > (32 * mDpi/160)) {
           for (int i = 0; i < mCardAnchor.length; i++) {
             if (mCardAnchor[i].CanMoveStack(mDownPoint.x, mDownPoint.y)) {
+              mSelectedAnchor = -1;
               mMoveCard.InitFromAnchor(mCardAnchor[i], x-Card.WIDTH/2, y-Card.HEIGHT/2);
               ChangeViewMode(MODE_MOVE_CARD);
               return true;
@@ -795,12 +793,165 @@ public class SolitaireView extends View {
   }
 
   private void CheckMoved(float x, float y) {
-    if (x >= mDownPoint.x - (30 * mDpi/160) && x <= mDownPoint.x + (30 * mDpi/160) &&
-        y >= mDownPoint.y - (30 * mDpi/160) && y <= mDownPoint.y + (30 * mDpi/160)) {
+    if (x >= mDownPoint.x - (32 * mDpi/160) && x <= mDownPoint.x + (32 * mDpi/160) &&
+        y >= mDownPoint.y - (32 * mDpi/160) && y <= mDownPoint.y + (32 * mDpi/160)) {
       mHasMoved = false;
     } else {
       mHasMoved = true;
-    }    
+    }
+  }
+
+  /**
+   * Tap a card, then tap where it should go. A drag still works, but is not required.
+   */
+  private void OnTap(float x, float y) {
+    int hit = -1;
+    for (int i = 0; i < mCardAnchor.length; i++) {
+      if (mCardAnchor[i].ExpandStack(x, y) || mCardAnchor[i].CanMoveStack(x, y)) {
+        hit = i;
+        break;
+      }
+    }
+    if (hit < 0) {
+      for (int i = 0; i < mCardAnchor.length; i++) {
+        Card[] cards = mCardAnchor[i].GetCards();
+        int count = mCardAnchor[i].GetCount();
+        if (count > 0) {
+          Card top = cards[count - 1];
+          if (x >= top.GetX() && x <= top.GetX() + Card.WIDTH &&
+              y >= top.GetY() && y <= top.GetY() + Card.HEIGHT) {
+            hit = i;
+            break;
+          }
+        } else if (x >= mCardAnchor[i].GetX() && x <= mCardAnchor[i].GetX() + Card.WIDTH &&
+            y >= mCardAnchor[i].GetY() && y <= mCardAnchor[i].GetY() + Card.HEIGHT) {
+          hit = i;
+          break;
+        }
+      }
+    }
+    if (hit < 0) {
+      mSelectedAnchor = -1;
+      Refresh();
+      return;
+    }
+
+    CardAnchor anchor = mCardAnchor[hit];
+    if (anchor instanceof DealFrom) {
+      mSelectedAnchor = -1;
+      anchor.TapCard(x, y);
+      Refresh();
+      return;
+    }
+
+    if (mSelectedAnchor >= 0 && mSelectedAnchor != hit) {
+      if (TryTapMove(mSelectedAnchor, hit, false)) {
+        mSelectedAnchor = -1;
+        Refresh();
+        return;
+      }
+    }
+
+    if (anchor.GetCount() > anchor.GetHiddenCount() && anchor.GetMovableCount() > 0 &&
+        !(anchor instanceof SeqSink)) {
+      mSelectedAnchor = (mSelectedAnchor == hit) ? -1 : hit;
+    }
+    Refresh();
+  }
+
+  private boolean TryTapMove(int from, int to, boolean singleOnly) {
+    if (from == to || mCardAnchor == null) {
+      return false;
+    }
+    CardAnchor src = mCardAnchor[from];
+    CardAnchor dst = mCardAnchor[to];
+    if (src.GetCount() == 0 || src.GetHiddenCount() >= src.GetCount()) {
+      return false;
+    }
+    int take = singleOnly ? 1 : src.GetMovableCount();
+    if (take <= 0) {
+      return false;
+    }
+    boolean unhide = src.GetHiddenCount() > 0 && src.GetVisibleCount() == take;
+    mMoveCard.Release();
+    mMoveCard.SetAnchor(src);
+    if (!singleOnly) {
+      Card[] stack = src.GetCardStack();
+      if (stack != null && stack.length > 0) {
+        for (Card card : stack) {
+          mMoveCard.AddCard(card);
+        }
+      }
+    }
+    if (mMoveCard.GetCount() == 0) {
+      mMoveCard.AddCard(src.PopCard());
+    }
+    boolean ok;
+    if (dst instanceof GenericAnchor) {
+      ok = ((GenericAnchor) dst).CanBuildCard(mMoveCard);
+    } else if (mMoveCard.GetCount() == 1) {
+      ok = dst.DropSingleCard(mMoveCard.GetTopCard());
+    } else {
+      ok = false;
+    }
+    if (ok) {
+      int count = mMoveCard.GetCount();
+      mMoveHistory.push(new Move(from, to, count, false, unhide));
+      dst.AddMoveCard(mMoveCard);
+      if (!mGameStarted) {
+        mGameStarted = true;
+        MarkAttempt();
+      }
+      return true;
+    }
+    mMoveCard.Release();
+    return false;
+  }
+
+  /** One legal move: foundation, uncover a card, play the waste, or deal. */
+  public void PlayNextStep() {
+    if (mPaused || mViewMode == MODE_WIN || mViewMode == MODE_WIN_STOP || mCardAnchor == null) {
+      return;
+    }
+    if (mViewMode != MODE_NORMAL) {
+      mMoveCard.Release();
+      mSelectCard.Release();
+      ChangeViewMode(MODE_NORMAL);
+    }
+    mSelectedAnchor = -1;
+    int[] tableau = {6, 7, 8, 9, 10, 11, 12};
+    int[] playable = {1, 6, 7, 8, 9, 10, 11, 12};
+    for (int from : playable) {
+      for (int sink = 2; sink <= 5; sink++) {
+        if (TryTapMove(from, sink, true)) {
+          Refresh();
+          return;
+        }
+      }
+    }
+    for (int from : tableau) {
+      if (mCardAnchor[from].GetHiddenCount() == 0 ||
+          mCardAnchor[from].GetVisibleCount() != mCardAnchor[from].GetMovableCount()) {
+        continue;
+      }
+      for (int dest : tableau) {
+        if (from != dest && TryTapMove(from, dest, false)) {
+          Refresh();
+          return;
+        }
+      }
+    }
+    for (int dest : tableau) {
+      if (TryTapMove(1, dest, true)) {
+        Refresh();
+        return;
+      }
+    }
+    if (mCardAnchor[0].GetCount() > 0 || mCardAnchor[1].GetCount() > 0) {
+      Deal();
+      return;
+    }
+    Toast.makeText(mContext, R.string.toast_no_move, Toast.LENGTH_SHORT).show();
   }
 
   public void StartAnimating() {
@@ -955,7 +1106,9 @@ public class SolitaireView extends View {
     mGameStarted = false;
     mElapsed = 0;
     mTimePaused = false;
+    mSelectedAnchor = -1;
   }
+
 }
 
 class RefreshHandler implements Runnable {
