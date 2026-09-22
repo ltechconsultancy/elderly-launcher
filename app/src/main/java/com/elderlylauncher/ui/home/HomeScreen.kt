@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,8 +23,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -31,6 +35,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
@@ -38,12 +44,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
 import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.data.QuickContact
-import com.elderlylauncher.ui.ButtonPagedGrid
 import com.elderlylauncher.ui.LauncherViewModel
 import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
 import java.time.LocalDate
 import java.time.LocalTime
+import kotlin.math.cos
+import kotlin.math.sin
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
@@ -131,11 +138,12 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
             .padding(horizontal = if (layout.isTablet) 24.dp else 16.dp)
     ) {
         ClockDisplay(
+            compact = landscape,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    top = if (landscape) 8.dp else 32.dp,
-                    bottom = if (landscape) 8.dp else 24.dp
+                    top = if (landscape) 4.dp else 16.dp,
+                    bottom = if (landscape) 4.dp else 12.dp
                 )
         )
 
@@ -145,8 +153,8 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
             context = context,
             viewModel = viewModel,
             hasTelephony = layout.hasTelephony,
-            columns = layout.homeGridColumns,
-            rows = layout.homeGridRows,
+            landscape = landscape,
+            tablet = layout.isTablet,
             modifier = Modifier.weight(1f)
         )
 
@@ -250,34 +258,111 @@ private fun safeStartActivity(context: Context, intentBuilder: () -> Intent) {
 }
 
 @Composable
-fun ClockDisplay(modifier: Modifier = Modifier) {
-    var currentTime by remember { mutableStateOf(getCurrentTime()) }
+fun ClockDisplay(
+    modifier: Modifier = Modifier,
+    compact: Boolean = false
+) {
+    var now by remember { mutableStateOf(LocalTime.now()) }
     var currentDate by remember { mutableStateOf(getCurrentDate()) }
 
     LaunchedEffect(Unit) {
         while (true) {
-            currentTime = getCurrentTime()
+            now = LocalTime.now()
             currentDate = getCurrentDate()
             kotlinx.coroutines.delay(1000)
         }
     }
 
-    Column(
+    val clockSize = if (compact) 84.dp else 120.dp
+    val timeSize = if (compact) 40.sp else 56.sp
+
+    Row(
         modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = currentTime,
-            style = MaterialTheme.typography.displayLarge,
-            color = LauncherColors.Gray800
+        AnalogClock(
+            time = now,
+            modifier = Modifier.size(clockSize)
         )
-        Text(
-            text = currentDate,
-            style = MaterialTheme.typography.titleLarge,
-            color = LauncherColors.Gray600, // Darker for better contrast
-            fontWeight = FontWeight.Normal,
-            fontSize = 22.sp
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(horizontalAlignment = Alignment.Start) {
+            Text(
+                text = now.format(DateTimeFormatter.ofPattern("HH:mm")),
+                style = MaterialTheme.typography.displayLarge,
+                color = LauncherColors.Gray800,
+                fontSize = timeSize,
+                lineHeight = timeSize
+            )
+            Text(
+                text = currentDate,
+                style = MaterialTheme.typography.titleLarge,
+                color = LauncherColors.Gray600,
+                fontWeight = FontWeight.Normal,
+                fontSize = if (compact) 16.sp else 20.sp,
+                maxLines = 2
+            )
+        }
+    }
+}
+
+@Composable
+private fun AnalogClock(
+    time: LocalTime,
+    modifier: Modifier = Modifier
+) {
+    val face = LauncherColors.Gray100
+    val mark = LauncherColors.Gray800
+    val hand = LauncherColors.Gray800
+    val second = LauncherColors.Red500
+    Canvas(modifier = modifier) {
+        val radius = size.minDimension / 2f
+        val center = Offset(size.width / 2f, size.height / 2f)
+        drawCircle(color = face, radius = radius, center = center)
+        drawCircle(
+            color = mark,
+            radius = radius - 2.dp.toPx(),
+            center = center,
+            style = Stroke(width = 3.dp.toPx())
         )
+        for (index in 0 until 12) {
+            val angle = Math.toRadians((index * 30.0) - 90.0)
+            val inner = if (index % 3 == 0) radius * 0.72f else radius * 0.82f
+            val outer = radius * 0.90f
+            drawLine(
+                color = mark,
+                start = Offset(
+                    center.x + (cos(angle) * inner).toFloat(),
+                    center.y + (sin(angle) * inner).toFloat()
+                ),
+                end = Offset(
+                    center.x + (cos(angle) * outer).toFloat(),
+                    center.y + (sin(angle) * outer).toFloat()
+                ),
+                strokeWidth = if (index % 3 == 0) 4.dp.toPx() else 2.dp.toPx(),
+                cap = StrokeCap.Round
+            )
+        }
+        val hourAngle = ((time.hour % 12) + time.minute / 60f) * 30f - 90f
+        val minuteAngle = (time.minute + time.second / 60f) * 6f - 90f
+        val secondAngle = time.second * 6f - 90f
+        fun hand(angleDegrees: Float, length: Float, width: Float, color: Color) {
+            val radians = Math.toRadians(angleDegrees.toDouble())
+            drawLine(
+                color = color,
+                start = center,
+                end = Offset(
+                    center.x + (cos(radians) * length).toFloat(),
+                    center.y + (sin(radians) * length).toFloat()
+                ),
+                strokeWidth = width,
+                cap = StrokeCap.Round
+            )
+        }
+        hand(hourAngle, radius * 0.48f, 6.dp.toPx(), hand)
+        hand(minuteAngle, radius * 0.70f, 4.dp.toPx(), hand)
+        hand(secondAngle, radius * 0.76f, 2.dp.toPx(), second)
+        drawCircle(color = hand, radius = 5.dp.toPx(), center = center)
     }
 }
 
@@ -291,6 +376,10 @@ fun AppTile(
     textColor: Color,
     modifier: Modifier = Modifier,
     badgeCount: Int? = null,
+    iconBoxSize: Dp = 80.dp,
+    glyphSize: Dp = 40.dp,
+    labelSize: TextUnit = 22.sp,
+    contentPadding: Dp = 16.dp,
     onClick: () -> Unit
 ) {
     val badgeDescription = stringResource(R.string.home_badge_description, title, badgeCount ?: 0)
@@ -311,7 +400,7 @@ fun AppTile(
                 interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
                 onClick = onClick
             )
-            .padding(16.dp)
+            .padding(contentPadding)
             .semantics { contentDescription = tileDescription },
         contentAlignment = Alignment.Center
     ) {
@@ -341,7 +430,7 @@ fun AppTile(
             // Icon circle - 80dp touch target
             Box(
                 modifier = Modifier
-                    .size(80.dp)
+                    .size(iconBoxSize)
                     .shadow(8.dp, CircleShape)
                     .clip(CircleShape)
                     .background(iconBackgroundColor),
@@ -351,18 +440,19 @@ fun AppTile(
                     imageVector = icon,
                     contentDescription = null, // Parent has description
                     tint = Color.White,
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(glyphSize)
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
                 color = textColor,
                 textAlign = TextAlign.Center,
-                fontSize = 22.sp // Larger for elderly
+                fontSize = labelSize,
+                maxLines = 2
             )
         }
     }
@@ -375,8 +465,8 @@ fun HomeAppGrid(
     context: Context,
     viewModel: LauncherViewModel,
     hasTelephony: Boolean,
-    columns: Int,
-    rows: Int,
+    landscape: Boolean,
+    tablet: Boolean,
     modifier: Modifier = Modifier
 ) {
     val positions = remember(homeApps, hasTelephony) {
@@ -388,29 +478,65 @@ fun HomeAppGrid(
             .sorted()
         defaultSlots + extraSlots
     }
-    val visibleRows = if (positions.size <= columns) 1 else rows
-    val visibleColumns = if (visibleRows == 1) {
-        positions.size.coerceAtLeast(1).coerceAtMost(columns)
-    } else {
-        columns
-    }
+    val (columns, _) = homeGridShape(positions.size, landscape, tablet)
+    val scale = tileScale(positions.size)
+    val rowsOfItems = positions.chunked(columns)
 
-    ButtonPagedGrid(
-        items = positions,
-        columns = visibleColumns,
-        rows = visibleRows,
-        modifier = modifier,
-        fillCells = true
-    ) { position ->
-        HomeAppTile(
-            position = position,
-            homeApps = homeApps,
-            installedApps = installedApps,
-            context = context,
-            viewModel = viewModel,
-            modifier = Modifier.fillMaxSize()
-        )
+    Column(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        rowsOfItems.forEach { rowItems ->
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                rowItems.forEach { position ->
+                    HomeAppTile(
+                        position = position,
+                        homeApps = homeApps,
+                        installedApps = installedApps,
+                        context = context,
+                        viewModel = viewModel,
+                        scale = scale,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                    )
+                }
+                repeat(columns - rowItems.size) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+        }
     }
+}
+
+private fun homeGridShape(count: Int, landscape: Boolean, tablet: Boolean): Pair<Int, Int> {
+    if (count <= 1) return 1 to 1
+    if (count == 2) return 2 to 1
+    if (landscape && !tablet) {
+        val cols = count.coerceAtMost(4)
+        return cols to ((count + cols - 1) / cols)
+    }
+    if (count <= 4) return 2 to 2
+    if (count <= 6) return if (landscape || tablet) 3 to 2 else 2 to 3
+    return if (landscape || tablet) 4 to 2 else 2 to 4
+}
+
+private data class TileScale(
+    val iconBox: Dp,
+    val glyph: Dp,
+    val label: TextUnit,
+    val padding: Dp
+)
+
+private fun tileScale(count: Int): TileScale = when {
+    count <= 4 -> TileScale(80.dp, 40.dp, 22.sp, 16.dp)
+    count <= 6 -> TileScale(64.dp, 32.dp, 18.sp, 12.dp)
+    else -> TileScale(48.dp, 24.dp, 16.sp, 8.dp)
 }
 
 @Composable
@@ -420,7 +546,8 @@ fun HomeAppTile(
     installedApps: List<AppInfo>,
     context: Context,
     viewModel: LauncherViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    scale: TileScale = tileScale(4)
 ) {
     val customPackage = homeApps[position]
     val customApp = customPackage?.let { pkg -> installedApps.find { it.packageName == pkg } }
@@ -433,6 +560,10 @@ fun HomeAppTile(
             borderColor = colorScheme.second,
             iconTint = colorScheme.third,
             modifier = modifier,
+            iconBoxSize = scale.iconBox,
+            glyphSize = scale.glyph,
+            labelSize = scale.label,
+            contentPadding = scale.padding,
             onClick = {
                 viewModel.launchApp(customApp.packageName)
             }
@@ -447,6 +578,10 @@ fun HomeAppTile(
             iconBackgroundColor = defaultConfig.iconBackgroundColor,
             textColor = defaultConfig.textColor,
             modifier = modifier,
+            iconBoxSize = scale.iconBox,
+            glyphSize = scale.glyph,
+            labelSize = scale.label,
+            contentPadding = scale.padding,
             onClick = {
                 safeStartActivity(context) {
                     defaultConfig.launchIntent()
@@ -463,6 +598,10 @@ fun CustomAppTile(
     borderColor: Color,
     iconTint: Color,
     modifier: Modifier = Modifier,
+    iconBoxSize: Dp = 80.dp,
+    glyphSize: Dp = 56.dp,
+    labelSize: TextUnit = 22.sp,
+    contentPadding: Dp = 16.dp,
     onClick: () -> Unit
 ) {
     Box(
@@ -476,7 +615,7 @@ fun CustomAppTile(
                 interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
                 onClick = onClick
             )
-            .padding(16.dp)
+            .padding(contentPadding)
             .semantics { contentDescription = appInfo.label },
         contentAlignment = Alignment.Center
     ) {
@@ -487,7 +626,7 @@ fun CustomAppTile(
             // App icon - 80dp
             Box(
                 modifier = Modifier
-                    .size(80.dp)
+                    .size(iconBoxSize)
                     .shadow(8.dp, CircleShape)
                     .clip(CircleShape)
                     .background(Color.White),
@@ -496,19 +635,19 @@ fun CustomAppTile(
                 Image(
                     bitmap = appInfo.icon.toBitmap(128, 128).asImageBitmap(),
                     contentDescription = null,
-                    modifier = Modifier.size(56.dp)
+                    modifier = Modifier.size(glyphSize)
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = appInfo.label,
                 style = MaterialTheme.typography.titleLarge,
                 color = iconTint,
                 textAlign = TextAlign.Center,
-                fontSize = 22.sp,
-                maxLines = 1
+                fontSize = labelSize,
+                maxLines = 2
             )
         }
     }
@@ -547,11 +686,6 @@ fun EmergencyButton(
             fontSize = 26.sp
         )
     }
-}
-
-private fun getCurrentTime(): String {
-    val formatter = DateTimeFormatter.ofPattern("HH:mm")
-    return LocalTime.now().format(formatter)
 }
 
 private fun getCurrentDate(): String {

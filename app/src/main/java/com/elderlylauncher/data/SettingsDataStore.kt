@@ -35,6 +35,7 @@ class SettingsDataStore(private val context: Context) {
         val FIRST_LAUNCH = booleanPreferencesKey("first_launch")
         val BRIGHTNESS_PERCENT = intPreferencesKey("brightness_percent")
         val BRIGHTNESS_LOCKED = booleanPreferencesKey("brightness_locked")
+        val NOTIFICATION_BLOCKED = stringSetPreferencesKey("notification_blocked_apps")
     }
 
     // Default values
@@ -242,6 +243,22 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setBrightnessLocked(locked: Boolean) {
         context.dataStore.edit { it[Keys.BRIGHTNESS_LOCKED] = locked }
+    }
+
+    /** Apps whose notifications stay out of the overview. Empty means show all. */
+    val notificationBlockedApps: Flow<Set<String>> = context.dataStore.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .map { it[Keys.NOTIFICATION_BLOCKED] ?: emptySet() }
+
+    suspend fun toggleNotificationBlocked(packageName: String) {
+        context.dataStore.edit { prefs ->
+            val current = prefs[Keys.NOTIFICATION_BLOCKED] ?: emptySet()
+            prefs[Keys.NOTIFICATION_BLOCKED] = if (packageName in current) {
+                current - packageName
+            } else {
+                current + packageName
+            }
+        }
     }
 
     // First launch flag

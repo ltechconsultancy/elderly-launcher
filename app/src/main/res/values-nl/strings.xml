@@ -48,19 +48,19 @@
     <string name="volume_title">Geluid</string>
     <string name="volume_subtitle">Geluid en helderheid</string>
     <string name="volume_media">Media</string>
-    <string name="volume_media_desc">Muziek, video\'s</string>
+    <string name="volume_media_desc">Geluid van muziek en video\'s.</string>
     <string name="volume_calls">Oproepen</string>
     <string name="volume_calls_desc">Beltoon</string>
     <string name="volume_notifications">Meldingen</string>
-    <string name="volume_notifications_desc">Berichten, apps</string>
+    <string name="volume_notifications_desc">Geluid van berichten en apps.</string>
     <string name="volume_alarm">Alarm</string>
-    <string name="volume_alarm_desc">Wekker</string>
+    <string name="volume_alarm_desc">Geluid van de wekker.</string>
     <string name="volume_decrease">Volume verlagen</string>
     <string name="volume_increase">Volume verhogen</string>
     <string name="volume_unavailable">Volume niet beschikbaar</string>
     <string name="volume_bars_description">%1$d van 10 balkjes gevuld</string>
     <string name="volume_brightness">Helderheid</string>
-    <string name="volume_brightness_desc">Scherm, minimaal 40%</string>
+    <string name="volume_brightness_desc">Hoe licht het scherm is, minstens 40%.</string>
     <string name="volume_bars_filled">%1$d van %2$d balkjes gevuld</string>
 
     <!-- Contacts -->
@@ -107,11 +107,11 @@
     <string name="settings_apps_page">Apps pagina</string>
     <string name="settings_apps_page_subtitle">Kleinere apps op de apps-pagina</string>
     <string name="settings_apps_page_hint">Tik om toe te voegen of te verwijderen. De Apps-pagina blijft leeg tot je apps kiest.</string>
-    <string name="settings_apps_choose_slot">Tik op een app om te wijzigen, of voeg er meer toe</string>
+    <string name="settings_apps_choose_slot">Tik op een tegel om te wijzigen. Alles blijft op één scherm.</string>
     <string name="settings_apps_tap_to_select">Tik om app te kiezen</string>
     <string name="settings_apps_clear">App verwijderen</string>
     <string name="settings_apps_add">App toevoegen</string>
-    <string name="settings_apps_full">Maximaal 12 apps op het startscherm</string>
+    <string name="settings_apps_full">Maximaal 8 apps, allemaal op één scherm</string>
     <string name="settings_app_slot_1">Linksboven</string>
     <string name="settings_app_slot_2">Rechtsboven</string>
     <string name="settings_app_slot_3">Linksonder</string>
@@ -202,4 +202,30 @@
     <!-- Errors -->
     <string name="error_app_not_found">App niet gevonden</string>
     <string name="error_no_permission">Geen toestemming</string>
+
+    <string name="notifications_title">Meldingen</string>
+    <string name="notifications_subtitle">Berichten en apps. Tik op Wis om er één weg te halen.</string>
+    <string name="notifications_empty">Geen meldingen</string>
+    <string name="notifications_delete">Wis</string>
+    <string name="notifications_clear_all">Wis alles</string>
+    <string name="notifications_clear_all_title">Alle meldingen wissen?</string>
+    <string name="notifications_clear_all_message">Dit haalt elke melding weg die je hier ziet.</string>
+    <string name="notifications_access_needed">Sta één keer toe dat deze app meldingen mag lezen.</string>
+    <string name="notifications_access_button">Meldingen toestaan</string>
+    <string name="settings_notifications">Meldingen-apps</string>
+    <string name="settings_notifications_subtitle">Kies welke apps getoond worden</string>
+    <string name="settings_notifications_hint">Tik op een app om die te verbergen of te tonen. Verborgen apps komen niet in het overzicht.</string>
+    <string name="settings_screen_timeout">Scherm uit</string>
+    <string name="settings_screen_timeout_subtitle">Na hoeveel tijd het scherm uitgaat</string>
+    <string name="settings_screen_timeout_hint">Hetzelfde op telefoon en tablet. Het scherm gaat daarna uit.</string>
+    <string name="settings_screen_timeout_now">Nu: %1$s</string>
+    <string name="settings_screen_timeout_permission">Sta systeeminstellingen toe om te bepalen wanneer het scherm uitgaat.</string>
+    <plurals name="screen_timeout_seconds">
+        <item quantity="one">%d seconde</item>
+        <item quantity="other">%d seconden</item>
+    </plurals>
+    <plurals name="screen_timeout_minutes">
+        <item quantity="one">%d minuut</item>
+        <item quantity="other">%d minuten</item>
+    </plurals>
 </resources>

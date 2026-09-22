@@ -28,7 +28,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     }
 
     companion object {
-        const val MAX_HOME_APPS = 12
+        const val MAX_HOME_APPS = 8
         const val DEFAULT_HOME_SLOTS = 4
 
         fun sanitizeEmergencyNumber(number: String): String? {
@@ -104,6 +104,9 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
 
     val brightnessLocked: StateFlow<Boolean> = settingsDataStore.brightnessLocked
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val notificationBlockedApps: StateFlow<Set<String>> = settingsDataStore.notificationBlockedApps
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     init {
         loadApps()
@@ -283,6 +286,16 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 settingsDataStore.toggleAppVisibility(packageName)
             } catch (e: Exception) {
                 Log.e(TAG, "Error toggling app visibility", e)
+            }
+        }
+    }
+
+    fun toggleNotificationBlocked(packageName: String) {
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                settingsDataStore.toggleNotificationBlocked(packageName)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error toggling notification app", e)
             }
         }
     }

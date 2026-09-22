@@ -31,3 +31,5 @@
 
 # DataStore
 -keep class androidx.datastore.** { *; }
+
+-keep class com.elderlylauncher.util.ElderlyNotificationListener { *; }

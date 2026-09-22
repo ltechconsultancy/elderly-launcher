@@ -59,7 +59,7 @@ fun NavIconButton(
         Icon(
             imageVector = if (previous) Icons.Default.ChevronLeft else Icons.Default.ChevronRight,
             contentDescription = label,
-            modifier = Modifier.size(36.dp)
+            modifier = Modifier.size(size * 0.62f)
         )
     }
 }
