@@ -15,7 +15,7 @@ import com.elderlylauncher.R
 import com.elderlylauncher.ui.theme.LauncherColors
 
 @Composable
-fun BrightnessFloorDialog(onDismiss: () -> Unit) {
+fun BrightnessFloorDialog(minPercent: Int, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -28,7 +28,7 @@ fun BrightnessFloorDialog(onDismiss: () -> Unit) {
         },
         text = {
             Text(
-                text = stringResource(R.string.brightness_minimum_message),
+                text = stringResource(R.string.brightness_minimum_message, minPercent),
                 fontSize = 22.sp,
                 color = LauncherColors.Gray700
             )

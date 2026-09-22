@@ -62,20 +62,22 @@ fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val brightnessLocked by viewModel.brightnessLocked.collectAsState()
     val brightnessPercent by viewModel.brightnessPercent.collectAsState()
+    val brightnessMin by viewModel.brightnessMinPercent.collectAsState()
 
-    DisposableEffect(brightnessLocked, brightnessPercent, lifecycleOwner) {
+    DisposableEffect(brightnessLocked, brightnessPercent, brightnessMin, lifecycleOwner) {
         val watcher = BrightnessLockWatcher(
             context = context,
             isLocked = { brightnessLocked },
-            lockedPercent = { brightnessPercent }
+            lockedPercent = { brightnessPercent },
+            minPercent = { brightnessMin }
         )
-        BrightnessHelper.apply(context, brightnessPercent)
+        BrightnessHelper.apply(context, brightnessPercent, brightnessMin)
         if (brightnessLocked) {
             watcher.start()
         }
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                BrightnessHelper.apply(context, brightnessPercent)
+                BrightnessHelper.apply(context, brightnessPercent, brightnessMin)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -127,14 +129,14 @@ fun PageIndicator(
     val pageDescription = stringResource(R.string.home_page, currentPage + 1, totalPages)
     val widthDp = LocalConfiguration.current.screenWidthDp
     val numberSize = when {
-        widthDp < 360 -> 26.dp
-        widthDp < 480 -> 30.dp
+        widthDp < 400 -> 22.dp
+        widthDp < 480 -> 28.dp
         widthDp < 700 -> 36.dp
         else -> 48.dp
     }
     val chevronSize = when {
-        widthDp < 360 -> 40.dp
-        widthDp < 480 -> 48.dp
+        widthDp < 400 -> 36.dp
+        widthDp < 480 -> 44.dp
         widthDp < 700 -> 56.dp
         else -> 72.dp
     }
@@ -169,8 +171,8 @@ fun PageIndicator(
                     text = (page + 1).toString(),
                     style = MaterialTheme.typography.titleLarge,
                     fontSize = when {
-                        widthDp < 360 -> 14.sp
-                        widthDp < 480 -> 16.sp
+                        widthDp < 400 -> 13.sp
+                        widthDp < 480 -> 15.sp
                         widthDp < 700 -> 18.sp
                         else -> 22.sp
                     },

@@ -74,7 +74,7 @@ fun GamesScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(88.dp),
+                    .height(if (layout.isTablet) 88.dp else 64.dp),
                 shape = RoundedCornerShape(20.dp)
             ) {
                 Text(

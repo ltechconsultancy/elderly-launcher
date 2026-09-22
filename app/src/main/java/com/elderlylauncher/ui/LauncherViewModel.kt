@@ -99,6 +99,9 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     val carouselPhotos: StateFlow<Set<String>> = settingsDataStore.carouselPhotos
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
+    val brightnessMinPercent: StateFlow<Int> = settingsDataStore.brightnessMinPercent
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), BrightnessHelper.DEFAULT_MIN_PERCENT)
+
     val brightnessPercent: StateFlow<Int> = settingsDataStore.brightnessPercent
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsDataStore.DEFAULT_BRIGHTNESS_PERCENT)
 
@@ -354,11 +357,25 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     fun setBrightnessPercent(percent: Int) {
         viewModelScope.launch(exceptionHandler) {
             try {
-                val clamped = percent.coerceIn(BrightnessHelper.MIN_PERCENT, BrightnessHelper.MAX_PERCENT)
+                val min = brightnessMinPercent.value
+                val clamped = percent.coerceIn(min, BrightnessHelper.MAX_PERCENT)
                 settingsDataStore.setBrightnessPercent(clamped)
-                BrightnessHelper.apply(getApplication(), clamped)
+                BrightnessHelper.apply(getApplication(), clamped, min)
             } catch (e: Exception) {
                 Log.e(TAG, "Error setting brightness", e)
+            }
+        }
+    }
+
+    fun setBrightnessMinPercent(percent: Int) {
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                settingsDataStore.setBrightnessMinPercent(percent)
+                val min = BrightnessHelper.clampMinimum(percent)
+                val current = brightnessPercent.value.coerceAtLeast(min)
+                BrightnessHelper.apply(getApplication(), current, min)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error setting minimum brightness", e)
             }
         }
     }
@@ -367,7 +384,11 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch(exceptionHandler) {
             try {
                 settingsDataStore.setBrightnessLocked(locked)
-                BrightnessHelper.apply(getApplication(), brightnessPercent.value)
+                BrightnessHelper.apply(
+                    getApplication(),
+                    brightnessPercent.value,
+                    brightnessMinPercent.value
+                )
             } catch (e: Exception) {
                 Log.e(TAG, "Error setting brightness lock", e)
             }

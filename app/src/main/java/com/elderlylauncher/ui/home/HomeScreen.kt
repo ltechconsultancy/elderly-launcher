@@ -138,7 +138,7 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
             .padding(horizontal = if (layout.isTablet) 24.dp else 16.dp)
     ) {
         ClockDisplay(
-            compact = landscape,
+            compact = landscape || !layout.isTablet,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
@@ -173,7 +173,7 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
 
         if (layout.hasTelephony) {
             EmergencyButton(
-                compact = landscape,
+                compact = landscape || !layout.isTablet,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = if (landscape) 8.dp else 16.dp),
@@ -273,8 +273,8 @@ fun ClockDisplay(
         }
     }
 
-    val clockSize = if (compact) 84.dp else 120.dp
-    val timeSize = if (compact) 40.sp else 56.sp
+    val clockSize = if (compact) 72.dp else 120.dp
+    val timeSize = if (compact) 36.sp else 56.sp
 
     Row(
         modifier = modifier,
@@ -479,7 +479,7 @@ fun HomeAppGrid(
         defaultSlots + extraSlots
     }
     val (columns, _) = homeGridShape(positions.size, landscape, tablet)
-    val scale = tileScale(positions.size)
+    val scale = tileScale(positions.size, tablet)
     val rowsOfItems = positions.chunked(columns)
 
     Column(
@@ -533,10 +533,19 @@ private data class TileScale(
     val padding: Dp
 )
 
-private fun tileScale(count: Int): TileScale = when {
-    count <= 4 -> TileScale(80.dp, 40.dp, 22.sp, 16.dp)
-    count <= 6 -> TileScale(64.dp, 32.dp, 18.sp, 12.dp)
-    else -> TileScale(48.dp, 24.dp, 16.sp, 8.dp)
+private fun tileScale(count: Int, tablet: Boolean): TileScale {
+    val base = when {
+        count <= 4 -> TileScale(80.dp, 40.dp, 22.sp, 16.dp)
+        count <= 6 -> TileScale(64.dp, 32.dp, 18.sp, 12.dp)
+        else -> TileScale(48.dp, 24.dp, 16.sp, 8.dp)
+    }
+    if (tablet) return base
+    return TileScale(
+        iconBox = base.iconBox * 0.72f,
+        glyph = base.glyph * 0.72f,
+        label = (base.label.value * 0.85f).sp,
+        padding = base.padding * 0.6f
+    )
 }
 
 @Composable
@@ -547,7 +556,7 @@ private fun HomeAppTile(
     context: Context,
     viewModel: LauncherViewModel,
     modifier: Modifier = Modifier,
-    scale: TileScale = tileScale(4)
+    scale: TileScale = tileScale(4, tablet = true)
 ) {
     val customPackage = homeApps[position]
     val customApp = customPackage?.let { pkg -> installedApps.find { it.packageName == pkg } }
