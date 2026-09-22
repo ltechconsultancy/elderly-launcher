@@ -142,6 +142,10 @@ npm test
 
 Varianten via query: `?device=phone|tablet&orientation=portrait|landscape&sim=0|1`.
 
-## Licentie
+## Licentie (dual licensing)
 
-MIT
+- **Privé / noncommercial:** [PolyForm Noncommercial 1.0.0](LICENSE-POLYFORM-NONCOMMERCIAL.md) — zie [LICENSE](LICENSE)
+- **Commercieel gebruik of doorverkoop:** aparte licentie vereist — zie [COMMERCIAL.md](COMMERCIAL.md)
+- **Contributions:** [CLA.md](CLA.md) (vereist voor PRs)
+
+Dit is **source-available**, geen OSI open source. MIT is hiermee vervangen.
