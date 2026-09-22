@@ -540,7 +540,7 @@ private fun tileScale(count: Int): TileScale = when {
 }
 
 @Composable
-fun HomeAppTile(
+private fun HomeAppTile(
     position: Int,
     homeApps: Map<Int, String>,
     installedApps: List<AppInfo>,
