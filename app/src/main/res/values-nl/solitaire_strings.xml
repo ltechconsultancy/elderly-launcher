@@ -36,7 +36,7 @@
     <string name="menu_restart">Opnieuw</string>
     <string name="menu_options">Opties</string>
     <string name="menu_stats">Score</string>
-    <string name="menu_help">Hulp</string>
+    <string name="menu_help">Zet</string>
     <string name="menu_exit">Stop</string>
     <string name="menu_blank"></string>
     <string name="solitaire_layout_text_text"></string>
@@ -56,6 +56,7 @@
     <string name="toast_restart_invalid">Spel afgelopen. Opnieuw kan niet.</string>
     <string name="toast_use_start_menu">Spel afgelopen. Tik op Nieuw.</string>
     <string name="toast_no_undo_left">Niets meer om ongedaan te maken.</string>
+    <string name="toast_no_move">Geen zet mogelijk.</string>
 
     <!-- Shown on the splash screen at first startup -->
     <string name="splash_text">Tik ergens om te beginnen \nTik op Nieuw voor een nieuw spel</string>

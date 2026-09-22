@@ -134,7 +134,7 @@ public class SolitaireCGRE extends AppCompatActivity {
         return true;
       }
       if (id == R.id.nav_help) {
-        DisplayHelp();
+        mSolitaireView.PlayNextStep();
         return true;
       }
       return false;
@@ -290,7 +290,7 @@ public class SolitaireCGRE extends AppCompatActivity {
         DisplayStats();
         break;
       case MENU_HELP:
-        DisplayHelp();
+        mSolitaireView.PlayNextStep();
         break;
       case MENU_EXIT:
         finish();
@@ -434,7 +434,7 @@ public class SolitaireCGRE extends AppCompatActivity {
         DisplayStats();
         break;
       case MENU_HELP:
-        DisplayHelp();
+        mSolitaireView.PlayNextStep();
         break;
       case MENU_EXIT:
         finish();

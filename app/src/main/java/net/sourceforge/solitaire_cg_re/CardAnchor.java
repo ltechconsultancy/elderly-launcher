@@ -122,6 +122,7 @@ class CardAnchor {
   public int GetVisibleCount() { return mCardCount - mHiddenCount; }
   public int GetMovableCount() { return mCardCount > 0 ? 1 : 0; }
   public float GetX() { return mX; }
+  public float GetY() { return mY; }
   public float GetNewY() { return mY; }
   public boolean IsDone() { return mDone; }
 
@@ -204,6 +205,29 @@ class CardAnchor {
     Card ret = mCard[--mCardCount];
     mCard[mCardCount] = null;
     return ret;
+  }
+
+  public Card GetCard(int idx) {
+    if (idx < 0 || idx >= mCardCount) {
+      return null;
+    }
+    return mCard[idx];
+  }
+
+  /** Index of the card under the point, topmost first. -2 is an empty slot. -1 is a miss. */
+  public int HitCardIndex(float x, float y) {
+    for (int i = mCardCount - 1; i >= 0; i--) {
+      Card card = mCard[i];
+      if (x >= card.GetX() && x <= card.GetX() + Card.WIDTH &&
+          y >= card.GetY() && y <= card.GetY() + Card.HEIGHT) {
+        return i;
+      }
+    }
+    if (mCardCount == 0 && x >= mX && x <= mX + Card.WIDTH &&
+        y >= mY && y <= mY + Card.HEIGHT) {
+      return -2;
+    }
+    return -1;
   }
 
   // ==========================================================================

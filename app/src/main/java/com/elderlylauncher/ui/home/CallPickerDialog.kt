@@ -56,16 +56,6 @@ fun CallPickerDialog(
     var typing by rememberSaveable { mutableStateOf(false) }
     val favoriteIds = favorites.map { it.id }.toSet()
     val others = contacts.filter { it.id !in favoriteIds }
-    val rows = buildList {
-        if (favorites.isNotEmpty()) {
-            add(CallRow.Header(R.string.call_favorites))
-            favorites.forEach { add(CallRow.Person(it, pinned = true)) }
-        }
-        if (others.isNotEmpty()) {
-            add(CallRow.Header(R.string.call_others))
-            others.forEach { add(CallRow.Person(it, pinned = false)) }
-        }
-    }
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -109,6 +99,49 @@ fun CallPickerDialog(
                         }
                     )
                 } else {
+                    Column(modifier = Modifier.weight(1f)) {
+                        if (favorites.isNotEmpty()) {
+                            Text(
+                                text = stringResource(R.string.call_favorites),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = LauncherColors.Gray600
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            favorites.forEach { contact ->
+                                ContactCallRow(contact, pinned = true) {
+                                    onCall(contact.phoneNumber)
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+                        }
+                        if (others.isEmpty() && favorites.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.call_empty),
+                                color = LauncherColors.Gray600,
+                                fontSize = 20.sp,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        } else if (others.isNotEmpty()) {
+                            Text(
+                                text = stringResource(R.string.call_others),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = LauncherColors.Gray600
+                            )
+                            ButtonPagedColumn(
+                                items = others,
+                                pageSize = 4,
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) { contact ->
+                                ContactCallRow(contact, pinned = false) {
+                                    onCall(contact.phoneNumber)
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                     Button(
                         onClick = { typing = true },
                         modifier = Modifier
@@ -123,43 +156,10 @@ fun CallPickerDialog(
                             fontWeight = FontWeight.Bold
                         )
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    if (rows.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.call_empty),
-                            color = LauncherColors.Gray600,
-                            fontSize = 20.sp,
-                            modifier = Modifier.padding(top = 24.dp)
-                        )
-                    } else {
-                        ButtonPagedColumn(
-                            items = rows,
-                            pageSize = 5,
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) { row ->
-                            when (row) {
-                                is CallRow.Header -> Text(
-                                    text = stringResource(row.label),
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = LauncherColors.Gray600
-                                )
-                                is CallRow.Person -> ContactCallRow(row.contact, row.pinned) {
-                                    onCall(row.contact.phoneNumber)
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
     }
-}
-
-private sealed class CallRow {
-    data class Header(val label: Int) : CallRow()
-    data class Person(val contact: QuickContact, val pinned: Boolean) : CallRow()
 }
 
 @Composable
