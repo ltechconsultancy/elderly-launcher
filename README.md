@@ -1,6 +1,14 @@
-# Elderly Launcher
+# Klaro
 
-Een eenvoudige, toegankelijke Android launcher voor ouderen.
+**Klaro — Android, gemaakt voor ouderen**
+
+Eenvoudige, toegankelijke Android-launcher. Productnaam: **Klaro**. Repository/package blijven `elderly-launcher` / `com.elderlylauncher`.
+
+## Logo
+
+![Klaro icon](branding/klaro-icon.svg)
+
+Square app icon (512×512): overlapping landscape tablet + phone (overhang right), elderly woman with glasses/earrings on the phone. Source: `branding/klaro-icon.svg`.
 
 ## Features
 
@@ -122,7 +130,7 @@ Alle APK's (lokaal én GitHub Releases) gebruiken dezelfde upload-sleutel in `ap
 
 Na installatie:
 1. Druk op Home knop
-2. Selecteer "Elderly Launcher" of "Eenvoudige Launcher"
+2. Selecteer **Klaro**
 3. Kies "Altijd"
 
 POCO / Xiaomi HyperOS: **Instellingen → Apps → Standaard-apps → Startscherm-app** (of Launcher).
