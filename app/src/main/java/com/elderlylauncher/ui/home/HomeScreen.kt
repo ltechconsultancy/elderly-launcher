@@ -127,6 +127,8 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
     val homeApps by viewModel.homeApps.collectAsState()
     val installedApps by viewModel.installedApps.collectAsState()
     val quickContacts by viewModel.quickContacts.collectAsState()
+    val contacts by viewModel.contacts.collectAsState()
+    var showCallPicker by rememberSaveable { mutableStateOf(false) }
     val emergencyNumber by viewModel.emergencyNumber.collectAsState()
     val dialNumber = LauncherViewModel.sanitizeEmergencyNumber(emergencyNumber) ?: "112"
     val landscape = layout.isLandscape
@@ -155,6 +157,7 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
             hasTelephony = layout.hasTelephony,
             landscape = landscape,
             tablet = layout.isTablet,
+            onCall = { showCallPicker = true },
             modifier = Modifier.weight(1f)
         )
 
@@ -182,7 +185,18 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
         }
     }
 
-    // Emergency call confirmation dialog
+    if (showCallPicker) {
+        CallPickerDialog(
+            favorites = quickContacts,
+            contacts = contacts,
+            onDismiss = { showCallPicker = false },
+            onCall = { number ->
+                showCallPicker = false
+                viewModel.dialNumber(number)
+            }
+        )
+    }
+
     if (showEmergencyConfirm) {
         AlertDialog(
             onDismissRequest = { showEmergencyConfirm = false },
@@ -467,6 +481,7 @@ fun HomeAppGrid(
     hasTelephony: Boolean,
     landscape: Boolean,
     tablet: Boolean,
+    onCall: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val positions = remember(homeApps, hasTelephony) {
@@ -501,6 +516,7 @@ fun HomeAppGrid(
                         context = context,
                         viewModel = viewModel,
                         scale = scale,
+                        onCall = onCall,
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
@@ -556,7 +572,8 @@ private fun HomeAppTile(
     context: Context,
     viewModel: LauncherViewModel,
     modifier: Modifier = Modifier,
-    scale: TileScale = tileScale(4, tablet = true)
+    scale: TileScale = tileScale(4, tablet = true),
+    onCall: () -> Unit = {}
 ) {
     val customPackage = homeApps[position]
     val customApp = customPackage?.let { pkg -> installedApps.find { it.packageName == pkg } }
@@ -592,8 +609,12 @@ private fun HomeAppTile(
             labelSize = scale.label,
             contentPadding = scale.padding,
             onClick = {
-                safeStartActivity(context) {
-                    defaultConfig.launchIntent()
+                if (defaultConfig.title == R.string.home_call) {
+                    onCall()
+                } else {
+                    safeStartActivity(context) {
+                        defaultConfig.launchIntent()
+                    }
                 }
             }
         )
