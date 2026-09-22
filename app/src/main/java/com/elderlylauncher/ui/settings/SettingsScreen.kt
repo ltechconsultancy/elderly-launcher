@@ -539,6 +539,7 @@ fun SettingsContent(
     var showBrightnessDialog by rememberSaveable { mutableStateOf(false) }
     var showNotificationsDialog by rememberSaveable { mutableStateOf(false) }
     var showScreenTimeoutDialog by rememberSaveable { mutableStateOf(false) }
+    var showPageOrderDialog by rememberSaveable { mutableStateOf(false) }
     var showUpdateDialog by rememberSaveable { mutableStateOf(false) }
     var updateBusy by remember { mutableStateOf(false) }
     var updateProgress by remember { mutableIntStateOf(0) }
@@ -787,17 +788,23 @@ fun SettingsContent(
 
     if (showNotificationsDialog) {
         val installedApps by viewModel.installedApps.collectAsState()
-        val blockedApps by viewModel.notificationBlockedApps.collectAsState()
+        val appsPageAllowed by viewModel.appsPageAllowed.collectAsState()
+        val extraApps by viewModel.notificationExtraApps.collectAsState()
         NotificationAppsDialog(
             installedApps = installedApps,
-            blockedApps = blockedApps,
+            appsPageAllowed = appsPageAllowed,
+            extraApps = extraApps,
             onDismiss = { showNotificationsDialog = false },
-            onToggleApp = { viewModel.toggleNotificationBlocked(it) }
+            onToggleApp = { viewModel.toggleNotificationExtra(it) }
         )
     }
 
     if (showScreenTimeoutDialog) {
         ScreenTimeoutDialog(onDismiss = { showScreenTimeoutDialog = false })
+    }
+
+    if (showPageOrderDialog) {
+        PageOrderDialog(onDismiss = { showPageOrderDialog = false })
     }
 
     if (showBrightnessDialog) {
@@ -878,7 +885,7 @@ fun SettingsContent(
 
         val settingsKeys = buildList {
             add("update")
-            addAll(listOf("colors", "language", "brightness", "screen_timeout", "notifications", "apps", "apps_page", "games", "photos"))
+            addAll(listOf("colors", "language", "brightness", "screen_timeout", "notifications", "page_order", "apps", "apps_page", "games", "photos"))
             if (layout.hasTelephony) {
                 add("contacts")
                 add("emergency")
@@ -949,6 +956,13 @@ fun SettingsContent(
                     icon = Icons.Default.Timer,
                     iconColor = LauncherColors.Blue500,
                     onClick = { showScreenTimeoutDialog = true }
+                )
+                "page_order" -> SettingsItem(
+                    title = stringResource(R.string.settings_page_order),
+                    subtitle = stringResource(R.string.settings_page_order_subtitle),
+                    icon = Icons.Default.SwapVert,
+                    iconColor = LauncherColors.Blue500,
+                    onClick = { showPageOrderDialog = true }
                 )
                 "notifications" -> SettingsItem(
                     title = stringResource(R.string.settings_notifications),
@@ -2656,6 +2670,7 @@ fun BrightnessDialog(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var canWrite by remember { mutableStateOf(BrightnessHelper.canWriteSettings(context)) }
+    var showFloor by remember { mutableStateOf(false) }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -2665,6 +2680,10 @@ fun BrightnessDialog(
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    if (showFloor) {
+        com.elderlylauncher.ui.BrightnessFloorDialog(onDismiss = { showFloor = false })
     }
 
     Dialog(onDismissRequest = onDismiss) {
@@ -2738,9 +2757,13 @@ fun BrightnessDialog(
                         val increaseDesc = stringResource(R.string.settings_brightness_increase)
                         IconButton(
                             onClick = {
-                                onPercentChange(percent - BrightnessHelper.STEP)
+                                if (percent > BrightnessHelper.MIN_PERCENT) {
+                                    onPercentChange(percent - BrightnessHelper.STEP)
+                                } else {
+                                    showFloor = true
+                                }
                             },
-                            enabled = percent > BrightnessHelper.MIN_PERCENT,
+                            enabled = true,
                             modifier = Modifier
                                 .size(64.dp)
                                 .clip(RoundedCornerShape(16.dp))

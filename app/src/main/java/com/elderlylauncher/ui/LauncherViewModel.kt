@@ -108,6 +108,12 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     val notificationBlockedApps: StateFlow<Set<String>> = settingsDataStore.notificationBlockedApps
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
+    val notificationExtraApps: StateFlow<Set<String>> = settingsDataStore.notificationExtraApps
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    val pageOrder: StateFlow<List<LauncherPage>> = settingsDataStore.pageOrder
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LauncherPage.DEFAULT)
+
     init {
         loadApps()
         loadContacts()
@@ -296,6 +302,31 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 settingsDataStore.toggleNotificationBlocked(packageName)
             } catch (e: Exception) {
                 Log.e(TAG, "Error toggling notification app", e)
+            }
+        }
+    }
+
+    fun toggleNotificationExtra(packageName: String) {
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                settingsDataStore.toggleNotificationExtra(packageName)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error toggling notification extra", e)
+            }
+        }
+    }
+
+    fun movePage(index: Int, direction: Int) {
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                val current = pageOrder.value.toMutableList()
+                val target = index + direction
+                if (index !in current.indices || target !in current.indices) return@launch
+                val item = current.removeAt(index)
+                current.add(target, item)
+                settingsDataStore.setPageOrder(current)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error moving page", e)
             }
         }
     }

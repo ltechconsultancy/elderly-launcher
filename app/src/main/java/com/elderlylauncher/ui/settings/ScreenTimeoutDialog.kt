@@ -1,5 +1,6 @@
 package com.elderlylauncher.ui.settings
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -31,19 +31,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.elderlylauncher.R
-import com.elderlylauncher.ui.ButtonPagedColumn
 import com.elderlylauncher.ui.theme.LauncherColors
 import com.elderlylauncher.util.ScreenTimeoutHelper
 
@@ -53,6 +52,17 @@ fun ScreenTimeoutDialog(onDismiss: () -> Unit) {
     val lifecycleOwner = LocalLifecycleOwner.current
     var canWrite by remember { mutableStateOf(ScreenTimeoutHelper.canWriteSettings(context)) }
     var current by remember { mutableIntStateOf(ScreenTimeoutHelper.readMillis(context)) }
+    val start = remember {
+        val ms = ScreenTimeoutHelper.readMillis(context)
+        if (ScreenTimeoutHelper.isNever(ms)) intArrayOf(0, 1, 0) else intArrayOf(
+            (ms / 3_600_000).coerceIn(0, ScreenTimeoutHelper.MAX_HOURS),
+            ((ms / 60_000) % 60).coerceIn(0, 59),
+            ((ms / 1_000) % 60).coerceIn(0, 59)
+        )
+    }
+    var hours by remember { mutableIntStateOf(start[0]) }
+    var minutes by remember { mutableIntStateOf(start[1]) }
+    var seconds by remember { mutableIntStateOf(start[2]) }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -65,11 +75,11 @@ fun ScreenTimeoutDialog(onDismiss: () -> Unit) {
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    Dialog(onDismissRequest = onDismiss) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.85f)
+                .fillMaxHeight(0.9f)
                 .padding(8.dp),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -87,7 +97,8 @@ fun ScreenTimeoutDialog(onDismiss: () -> Unit) {
                     Text(
                         text = stringResource(R.string.settings_screen_timeout),
                         style = MaterialTheme.typography.headlineSmall,
-                        color = LauncherColors.Gray800
+                        color = LauncherColors.Gray800,
+                        modifier = Modifier.weight(1f)
                     )
                     IconButton(onClick = onDismiss) {
                         Icon(
@@ -98,32 +109,56 @@ fun ScreenTimeoutDialog(onDismiss: () -> Unit) {
                     }
                 }
                 Text(
-                    text = stringResource(R.string.settings_screen_timeout_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = LauncherColors.Gray600
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = stringResource(
-                        R.string.settings_screen_timeout_now,
-                        timeoutLabel(current)
-                    ),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = LauncherColors.Gray800
+                    text = if (ScreenTimeoutHelper.isNever(current)) {
+                        stringResource(R.string.screen_timeout_current_never)
+                    } else {
+                        stringResource(
+                            R.string.screen_timeout_current,
+                            current / 3_600_000,
+                            (current / 60_000) % 60,
+                            (current / 1_000) % 60
+                        )
+                    },
+                    color = LauncherColors.Gray600,
+                    fontSize = 18.sp
                 )
                 Spacer(modifier = Modifier.height(12.dp))
-
                 if (!canWrite) {
-                    Text(
-                        text = stringResource(R.string.settings_screen_timeout_permission),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = LauncherColors.Gray700,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = { ScreenTimeoutHelper.requestWriteSettings(context) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(64.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_brightness_permission_button),
+                            fontSize = 20.sp
+                        )
+                    }
+                } else {
+                    TimeoutStepper(
+                        label = stringResource(R.string.screen_timeout_hours),
+                        value = hours,
+                        onChange = { hours = it.coerceIn(0, ScreenTimeoutHelper.MAX_HOURS) }
+                    )
+                    TimeoutStepper(
+                        label = stringResource(R.string.screen_timeout_minutes),
+                        value = minutes,
+                        onChange = { minutes = it.coerceIn(0, 59) }
+                    )
+                    TimeoutStepper(
+                        label = stringResource(R.string.screen_timeout_seconds),
+                        value = seconds,
+                        onChange = { seconds = it.coerceIn(0, 59) }
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            if (ScreenTimeoutHelper.applyParts(context, hours, minutes, seconds)) {
+                                current = ScreenTimeoutHelper.readMillis(context)
+                            }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(64.dp),
@@ -131,44 +166,29 @@ fun ScreenTimeoutDialog(onDismiss: () -> Unit) {
                         colors = ButtonDefaults.buttonColors(containerColor = LauncherColors.Blue500)
                     ) {
                         Text(
-                            text = stringResource(R.string.settings_brightness_permission_button),
-                            fontSize = 18.sp
+                            text = stringResource(R.string.screen_timeout_apply),
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
-                } else {
-                    ButtonPagedColumn(
-                        items = ScreenTimeoutHelper.OPTIONS_MS,
-                        pageSize = 4,
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) { millis ->
-                        val selected = millis == current
-                        Button(
-                            onClick = {
-                                if (ScreenTimeoutHelper.apply(context, millis)) {
-                                    current = millis
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(64.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (selected) LauncherColors.Blue500 else LauncherColors.Gray200,
-                                contentColor = if (selected) Color.White else LauncherColors.Gray800
-                            )
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Timer,
-                                contentDescription = null,
-                                modifier = Modifier.size(28.dp)
-                            )
-                            Spacer(modifier = Modifier.size(12.dp))
-                            Text(
-                                text = timeoutLabel(millis),
-                                fontSize = 22.sp
-                            )
-                        }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            if (ScreenTimeoutHelper.applyNever(context)) {
+                                current = ScreenTimeoutHelper.readMillis(context)
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(64.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = LauncherColors.Gray700)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.screen_timeout_never),
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
@@ -177,11 +197,42 @@ fun ScreenTimeoutDialog(onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun timeoutLabel(millis: Int): String {
-    if (millis < 60_000) {
-        val seconds = (millis / 1000).coerceAtLeast(1)
-        return pluralStringResource(R.plurals.screen_timeout_seconds, seconds, seconds)
+private fun TimeoutStepper(label: String, value: Int, onChange: (Int) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.weight(1f),
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = LauncherColors.Gray800
+        )
+        StepButton("−") { onChange(value - 1) }
+        Text(
+            text = value.toString(),
+            modifier = Modifier.padding(horizontal = 12.dp),
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = LauncherColors.Gray800,
+            textAlign = TextAlign.Center
+        )
+        StepButton("+") { onChange(value + 1) }
     }
-    val minutes = (millis / 60_000).coerceAtLeast(1)
-    return pluralStringResource(R.plurals.screen_timeout_minutes, minutes, minutes)
+}
+
+@Composable
+private fun StepButton(label: String, onClick: () -> Unit) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier
+            .size(64.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(LauncherColors.Gray100)
+    ) {
+        Text(text = label, fontSize = 32.sp, color = LauncherColors.Gray800)
+    }
 }
