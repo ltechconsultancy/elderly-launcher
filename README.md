@@ -4,6 +4,12 @@
 
 Eenvoudige, toegankelijke Android-launcher. Productnaam: **Klaro**. Repository/package blijven `elderly-launcher` / `com.elderlylauncher`.
 
+## Logo
+
+![Klaro icon](branding/klaro-icon.svg)
+
+Square app icon (512×512): overlapping landscape tablet + phone (overhang right), elderly woman with glasses/earrings on the phone. Source: `branding/klaro-icon.svg`.
+
 ## Features
 
 - **Grote knoppen** - Makkelijk te raken touch targets; geen swipe-gebaren
