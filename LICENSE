@@ -1,0 +1,45 @@
+# Licensing
+
+**Elderly Launcher** is offered under a **dual-licensing** model by Ltech Consultancy / Bart Luttels.
+
+Required Notice: Copyright (c) Ltech Consultancy / Bart Luttels
+
+## 1. Noncommercial / private use (default public terms)
+
+Unless you have a separate commercial license, this software is licensed under the
+**PolyForm Noncommercial License 1.0.0**.
+
+- Full text: [LICENSE-POLYFORM-NONCOMMERCIAL.md](LICENSE-POLYFORM-NONCOMMERCIAL.md)
+- Official source: https://polyformproject.org/licenses/noncommercial/1.0.0
+
+Under those terms you may use, modify, and redistribute the software for
+**noncommercial and personal purposes** (for example private use on a phone or tablet
+for yourself or family). **Commercial use, resale, or offering the software as a
+product or paid service requires a commercial license** (see below).
+
+This is **source-available**, not OSI “open source”.
+
+## 2. Commercial license
+
+Ltech Consultancy / Bart Luttels (and any party they authorize) retain the exclusive
+right to license the software for **commercial** use and to monetize it.
+
+If you want to:
+
+- sell, redistribute for a fee, or bundle the app commercially,
+- use it in a commercial product, service, or organization beyond permitted noncommercial use,
+- or otherwise exploit it commercially,
+
+contact the copyright holder for a commercial license:
+**https://bartluttels.nl** (or the contact listed in the repository / releases).
+
+## 3. Contributions
+
+Contributions are welcome. By submitting a pull request or other contribution, you
+agree to the [Contributor License Agreement](CLA.md). That lets the copyright holder
+relicense your contribution under the public noncommercial terms and under commercial
+licenses without needing a separate grant for each merge.
+
+## 4. Third-party dependencies
+
+Third-party libraries remain under their own licenses (see Gradle / dependency notices).
