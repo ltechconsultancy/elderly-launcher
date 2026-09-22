@@ -60,7 +60,7 @@
     <string name="volume_unavailable">Volume not available</string>
     <string name="volume_bars_description">%1$d of 10 bars filled</string>
     <string name="volume_brightness">Brightness</string>
-    <string name="volume_brightness_desc">How bright the screen is, at least 40%.</string>
+    <string name="volume_brightness_desc">How bright the screen is, at least %1$d%%.</string>
     <string name="volume_bars_filled">%1$d of %2$d bars filled</string>
 
     <!-- Contacts -->
@@ -120,7 +120,7 @@
     <string name="settings_photos_subtitle">Choose photos for the slideshow</string>
     <string name="settings_photos_hint">Add favorite photos. They will play automatically.</string>
     <string name="settings_contacts">Quick contacts</string>
-    <string name="settings_contacts_subtitle">Manage quick contacts</string>
+    <string name="settings_contacts_subtitle">Pinned at the top when you tap Call</string>
     <string name="settings_games">Games</string>
     <string name="settings_games_subtitle">Choose game apps</string>
     <string name="settings_games_hint">Tap to add or remove games</string>
@@ -231,10 +231,19 @@
     <string name="page_order_down">Down</string>
     <string name="page_home">Home</string>
     <string name="brightness_minimum_title">Minimum brightness</string>
-    <string name="brightness_minimum_message">The screen stays at least 40%% bright. It cannot go lower.</string>
+    <string name="brightness_minimum_message">The screen stays at least %1$d%% bright. It cannot go lower.</string>
+    <string name="settings_brightness_minimum">Minimum brightness</string>
+    <string name="settings_brightness_minimum_hint">How dark the screen may get. Only you can change this.</string>
     <string name="brightness_understood">Got it</string>
     <string name="solitaire_title">Solitaire</string>
     <string name="solitaire_play">Solitaire</string>
+    <string name="call_title">Call</string>
+    <string name="call_favorites">Pinned</string>
+    <string name="call_others">Everyone else</string>
+    <string name="call_dial_self">Type a number</string>
+    <string name="call_open_phone">Open the phone app</string>
+    <string name="call_empty">No contacts yet</string>
+    <string name="call_backspace">Delete</string>
     <string name="settings_screen_timeout_hint">Same on phone and tablet. The screen turns off after this time.</string>
     <string name="settings_screen_timeout_now">Now: %1$s</string>
     <string name="settings_screen_timeout_permission">Allow system settings to change how soon the screen turns off.</string>

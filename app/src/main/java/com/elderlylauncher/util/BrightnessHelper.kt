@@ -24,10 +24,18 @@ private const val TAG = "BrightnessHelper"
  * - restores that value if something else changes it
  */
 object BrightnessHelper {
-    const val MIN_PERCENT = 40
+    /** Lowest value an admin may choose. Not the brightness the screen is stuck at. */
+    const val ABSOLUTE_MIN_PERCENT = 10
+    /** Highest minimum, so the plus button still has room. */
+    const val MAX_OF_MINIMUM = 80
+    const val DEFAULT_MIN_PERCENT = 40
     const val MAX_PERCENT = 100
     const val STEP = 10
     const val DEFAULT_PERCENT = 100
+
+    fun clampMinimum(minPercent: Int): Int {
+        return minPercent.coerceIn(ABSOLUTE_MIN_PERCENT, MAX_OF_MINIMUM)
+    }
 
     fun canWriteSettings(context: Context): Boolean = Settings.System.canWrite(context)
 
@@ -39,31 +47,31 @@ object BrightnessHelper {
         context.startActivity(intent)
     }
 
-    fun percentToSystem(percent: Int): Int {
-        val clamped = percent.coerceIn(MIN_PERCENT, MAX_PERCENT)
+    fun percentToSystem(percent: Int, minPercent: Int = DEFAULT_MIN_PERCENT): Int {
+        val clamped = percent.coerceIn(clampMinimum(minPercent), MAX_PERCENT)
         return ((clamped / 100f) * 255f).roundToInt().coerceIn(1, 255)
     }
 
-    fun readPercent(context: Context): Int {
+    fun readPercent(context: Context, minPercent: Int = DEFAULT_MIN_PERCENT): Int {
         return try {
             val value = Settings.System.getInt(
                 context.contentResolver,
                 Settings.System.SCREEN_BRIGHTNESS
             )
-            ((value / 255f) * 100f).roundToInt().coerceIn(MIN_PERCENT, MAX_PERCENT)
+            ((value / 255f) * 100f).roundToInt().coerceIn(clampMinimum(minPercent), MAX_PERCENT)
         } catch (e: Exception) {
             Log.w(TAG, "Could not read brightness", e)
             DEFAULT_PERCENT
         }
     }
 
-    fun apply(context: Context, percent: Int) {
-        val clamped = percent.coerceIn(MIN_PERCENT, MAX_PERCENT)
+    fun apply(context: Context, percent: Int, minPercent: Int = DEFAULT_MIN_PERCENT) {
+        val clamped = percent.coerceIn(clampMinimum(minPercent), MAX_PERCENT)
         applyWindow(context, clamped)
         if (!canWriteSettings(context)) return
 
         val resolver = context.contentResolver
-        val value = percentToSystem(clamped)
+        val value = percentToSystem(clamped, minPercent)
         try {
             val current = Settings.System.getInt(
                 resolver,
@@ -95,7 +103,7 @@ object BrightnessHelper {
     fun applyWindow(context: Context, percent: Int) {
         val activity = context.findActivity() ?: return
         val lp = activity.window.attributes
-        lp.screenBrightness = percent.coerceIn(MIN_PERCENT, MAX_PERCENT) / 100f
+        lp.screenBrightness = percent.coerceIn(ABSOLUTE_MIN_PERCENT, MAX_PERCENT) / 100f
         activity.window.attributes = lp
     }
 
@@ -113,7 +121,8 @@ object BrightnessHelper {
 class BrightnessLockWatcher(
     private val context: Context,
     private val isLocked: () -> Boolean,
-    private val lockedPercent: () -> Int
+    private val lockedPercent: () -> Int,
+    private val minPercent: () -> Int = { BrightnessHelper.DEFAULT_MIN_PERCENT }
 ) : ContentObserver(Handler(Looper.getMainLooper())) {
 
     private var registered = false
@@ -147,7 +156,7 @@ class BrightnessLockWatcher(
 
     private fun enforce() {
         if (isLocked()) {
-            BrightnessHelper.apply(context, lockedPercent())
+            BrightnessHelper.apply(context, lockedPercent(), minPercent())
         }
     }
 }

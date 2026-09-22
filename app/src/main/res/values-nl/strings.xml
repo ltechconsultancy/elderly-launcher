@@ -60,7 +60,7 @@
     <string name="volume_unavailable">Volume niet beschikbaar</string>
     <string name="volume_bars_description">%1$d van 10 balkjes gevuld</string>
     <string name="volume_brightness">Helderheid</string>
-    <string name="volume_brightness_desc">Hoe licht het scherm is, minstens 40%.</string>
+    <string name="volume_brightness_desc">Hoe licht het scherm is, minstens %1$d%%.</string>
     <string name="volume_bars_filled">%1$d van %2$d balkjes gevuld</string>
 
     <!-- Contacts -->
@@ -120,7 +120,7 @@
     <string name="settings_photos_subtitle">Kies foto\'s voor de diavoorstelling</string>
     <string name="settings_photos_hint">Voeg favoriete foto\'s toe. Die wisselen daarna vanzelf.</string>
     <string name="settings_contacts">Snelle contacten</string>
-    <string name="settings_contacts_subtitle">Beheer snelle contacten</string>
+    <string name="settings_contacts_subtitle">Staan bovenaan als je op Bellen tikt</string>
     <string name="settings_games">Spelletjes</string>
     <string name="settings_games_subtitle">Kies spelletje apps</string>
     <string name="settings_games_hint">Tik om spelletjes toe te voegen of te verwijderen</string>
@@ -231,10 +231,19 @@
     <string name="page_order_down">Omlaag</string>
     <string name="page_home">Start</string>
     <string name="brightness_minimum_title">Minimale helderheid</string>
-    <string name="brightness_minimum_message">Het scherm blijft minstens 40%% licht. Lager kan niet.</string>
+    <string name="brightness_minimum_message">Het scherm blijft minstens %1$d%% licht. Lager kan niet.</string>
+    <string name="settings_brightness_minimum">Minimale helderheid</string>
+    <string name="settings_brightness_minimum_hint">Hoe donker het scherm mag worden. Alleen jij past dit aan.</string>
     <string name="brightness_understood">Begrepen</string>
     <string name="solitaire_title">Solitaire</string>
     <string name="solitaire_play">Solitaire</string>
+    <string name="call_title">Bellen</string>
+    <string name="call_favorites">Vastgezet</string>
+    <string name="call_others">De rest</string>
+    <string name="call_dial_self">Zelf een nummer</string>
+    <string name="call_open_phone">Open de bel-app</string>
+    <string name="call_empty">Nog geen contacten</string>
+    <string name="call_backspace">Wis</string>
     <string name="settings_screen_timeout_hint">Hetzelfde op telefoon en tablet. Het scherm gaat daarna uit.</string>
     <string name="settings_screen_timeout_now">Nu: %1$s</string>
     <string name="settings_screen_timeout_permission">Sta systeeminstellingen toe om te bepalen wanneer het scherm uitgaat.</string>

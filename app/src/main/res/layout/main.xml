@@ -26,7 +26,8 @@
     <net.sourceforge.solitaire_cg_re.SolitaireView
         android:id="@+id/solitaire"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottom_navigation" />
 
 
     <TextView

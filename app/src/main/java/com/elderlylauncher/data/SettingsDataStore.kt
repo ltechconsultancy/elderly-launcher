@@ -35,6 +35,7 @@ class SettingsDataStore(private val context: Context) {
         val CAROUSEL_PHOTOS = stringSetPreferencesKey("carousel_photos")
         val FIRST_LAUNCH = booleanPreferencesKey("first_launch")
         val BRIGHTNESS_PERCENT = intPreferencesKey("brightness_percent")
+        val BRIGHTNESS_MIN_PERCENT = intPreferencesKey("brightness_min_percent")
         val BRIGHTNESS_LOCKED = booleanPreferencesKey("brightness_locked")
         val NOTIFICATION_BLOCKED = stringSetPreferencesKey("notification_blocked_apps")
         val NOTIFICATION_EXTRA = stringSetPreferencesKey("notification_extra_apps")
@@ -230,16 +231,38 @@ class SettingsDataStore(private val context: Context) {
     }
 
     // Brightness (percent 40-100) and lock
+    val brightnessMinPercent: Flow<Int> = context.dataStore.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .map {
+            BrightnessHelper.clampMinimum(it[Keys.BRIGHTNESS_MIN_PERCENT] ?: BrightnessHelper.DEFAULT_MIN_PERCENT)
+        }
+
+    suspend fun setBrightnessMinPercent(percent: Int) {
+        val clamped = BrightnessHelper.clampMinimum(percent)
+        context.dataStore.edit { prefs ->
+            prefs[Keys.BRIGHTNESS_MIN_PERCENT] = clamped
+            val current = prefs[Keys.BRIGHTNESS_PERCENT] ?: DEFAULT_BRIGHTNESS_PERCENT
+            if (current < clamped) prefs[Keys.BRIGHTNESS_PERCENT] = clamped
+        }
+    }
+
     val brightnessPercent: Flow<Int> = context.dataStore.data
         .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
         .map {
+            val min = BrightnessHelper.clampMinimum(
+                it[Keys.BRIGHTNESS_MIN_PERCENT] ?: BrightnessHelper.DEFAULT_MIN_PERCENT
+            )
             (it[Keys.BRIGHTNESS_PERCENT] ?: DEFAULT_BRIGHTNESS_PERCENT)
-                .coerceIn(BrightnessHelper.MIN_PERCENT, BrightnessHelper.MAX_PERCENT)
+                .coerceIn(min, BrightnessHelper.MAX_PERCENT)
         }
 
     suspend fun setBrightnessPercent(percent: Int) {
-        val clamped = percent.coerceIn(BrightnessHelper.MIN_PERCENT, BrightnessHelper.MAX_PERCENT)
-        context.dataStore.edit { it[Keys.BRIGHTNESS_PERCENT] = clamped }
+        context.dataStore.edit { prefs ->
+            val min = BrightnessHelper.clampMinimum(
+                prefs[Keys.BRIGHTNESS_MIN_PERCENT] ?: BrightnessHelper.DEFAULT_MIN_PERCENT
+            )
+            prefs[Keys.BRIGHTNESS_PERCENT] = percent.coerceIn(min, BrightnessHelper.MAX_PERCENT)
+        }
     }
 
     val brightnessLocked: Flow<Boolean> = context.dataStore.data

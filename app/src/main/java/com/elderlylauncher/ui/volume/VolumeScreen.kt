@@ -32,6 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
 import com.elderlylauncher.ui.LauncherViewModel
 import com.elderlylauncher.ui.rememberDeviceLayout
+import com.elderlylauncher.ui.ButtonPagedColumn
 import com.elderlylauncher.ui.theme.LauncherColors
 import com.elderlylauncher.util.BrightnessHelper
 
@@ -46,6 +47,9 @@ fun VolumeScreen(
         context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
     }
     val brightnessPercent by viewModel.brightnessPercent.collectAsState()
+    val brightnessMin by viewModel.brightnessMinPercent.collectAsState()
+    val layout = rememberDeviceLayout()
+    val compact = !layout.isTablet
     var showBrightnessFloor by remember { mutableStateOf(false) }
 
     if (audioManager == null) {
@@ -85,7 +89,6 @@ fun VolumeScreen(
 
     val decreaseDesc = stringResource(R.string.volume_decrease)
     val increaseDesc = stringResource(R.string.volume_increase)
-    val layout = rememberDeviceLayout()
     val twoColumn = layout.isLandscape
 
     Column(
@@ -97,7 +100,7 @@ fun VolumeScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 24.dp)
+                .padding(horizontal = 24.dp, vertical = if (compact) 8.dp else 24.dp)
         ) {
             Text(
                 text = stringResource(R.string.volume_title),
@@ -135,6 +138,7 @@ fun VolumeScreen(
                     decreaseDescription = decreaseDesc,
                     increaseDescription = increaseDesc,
                     modifier = itemModifier,
+                    compact = compact,
                     onVolumeUp = {
                         if (mediaVolume < maxMedia) {
                             mediaVolume++
@@ -164,6 +168,7 @@ fun VolumeScreen(
                     decreaseDescription = decreaseDesc,
                     increaseDescription = increaseDesc,
                     modifier = itemModifier,
+                    compact = compact,
                     onVolumeUp = {
                         if (notificationVolume < maxNotification) {
                             notificationVolume++
@@ -193,6 +198,7 @@ fun VolumeScreen(
                     decreaseDescription = decreaseDesc,
                     increaseDescription = increaseDesc,
                     modifier = itemModifier,
+                    compact = compact,
                     onVolumeUp = {
                         if (alarmVolume < maxAlarm) {
                             alarmVolume++
@@ -210,7 +216,7 @@ fun VolumeScreen(
             val brightnessControl: @Composable (Modifier) -> Unit = { itemModifier ->
                 VolumeControl(
                     title = stringResource(R.string.volume_brightness),
-                    subtitle = stringResource(R.string.volume_brightness_desc),
+                    subtitle = stringResource(R.string.volume_brightness_desc, brightnessMin),
                     icon = Icons.Default.BrightnessHigh,
                     backgroundColor = LauncherColors.Green50,
                     borderColor = LauncherColors.Green200,
@@ -222,6 +228,7 @@ fun VolumeScreen(
                     decreaseDescription = stringResource(R.string.settings_brightness_decrease),
                     increaseDescription = stringResource(R.string.settings_brightness_increase),
                     modifier = itemModifier,
+                    compact = compact,
                     onVolumeUp = {
                         if (brightnessPercent < BrightnessHelper.MAX_PERCENT) {
                             viewModel.setBrightnessPercent(
@@ -230,7 +237,7 @@ fun VolumeScreen(
                         }
                     },
                     onVolumeDown = {
-                        if (brightnessPercent > BrightnessHelper.MIN_PERCENT) {
+                        if (brightnessPercent > brightnessMin) {
                             viewModel.setBrightnessPercent(
                                 brightnessPercent - BrightnessHelper.STEP
                             )
@@ -283,7 +290,10 @@ fun VolumeScreen(
         }
     }
     if (showBrightnessFloor) {
-        com.elderlylauncher.ui.BrightnessFloorDialog(onDismiss = { showBrightnessFloor = false })
+        com.elderlylauncher.ui.BrightnessFloorDialog(
+            minPercent = brightnessMin,
+            onDismiss = { showBrightnessFloor = false }
+        )
     }
 }
 
@@ -315,9 +325,17 @@ fun VolumeControl(
     decreaseDescription: String,
     increaseDescription: String,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
     onVolumeUp: () -> Unit,
     onVolumeDown: () -> Unit
 ) {
+    val pad = if (compact) 10.dp else 20.dp
+    val iconBox = if (compact) 40.dp else 56.dp
+    val buttonSize = if (compact) 48.dp else 56.dp
+    val titleSize = if (compact) 16.sp else 22.sp
+    val subtitleSize = if (compact) 12.sp else 14.sp
+    val percentSize = if (compact) 22.sp else 28.sp
+    val gap = if (compact) 8.dp else 16.dp
     val percentage = if (maxVolume > 0) {
         val raw = (currentVolume.toFloat() / maxVolume) * 100
         ((raw / 5).toInt() * 5) // Round to nearest 5%
@@ -331,7 +349,7 @@ fun VolumeControl(
             .clip(RoundedCornerShape(24.dp))
             .background(backgroundColor)
             .border(2.dp, borderColor, RoundedCornerShape(24.dp))
-            .padding(20.dp)
+            .padding(pad)
             .semantics { contentDescription = volumeDescription }
     ) {
         // Top row: Icon + Title/Subtitle
@@ -342,7 +360,7 @@ fun VolumeControl(
             // Icon - 56dp for better fit
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(iconBox)
                     .shadow(4.dp, RoundedCornerShape(16.dp))
                     .clip(RoundedCornerShape(16.dp))
                     .background(iconBackgroundColor),
@@ -356,7 +374,7 @@ fun VolumeControl(
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(gap))
 
             // Title and subtitle - takes remaining space
             Column(modifier = Modifier.weight(1f)) {
@@ -364,19 +382,21 @@ fun VolumeControl(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
                     color = textColor,
-                    fontSize = 22.sp
+                    fontSize = titleSize,
+                    maxLines = 1
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
                     color = textColor.copy(alpha = 0.7f),
-                    fontSize = 14.sp,
-                    maxLines = 2
+                    fontSize = subtitleSize,
+                    maxLines = if (compact) 2 else 2,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(gap))
 
         // Volume controls row - full width, centered
         Row(
@@ -387,7 +407,7 @@ fun VolumeControl(
             // Minus button - 56dp touch target
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(buttonSize)
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color.White)
                     .border(2.dp, borderColor, RoundedCornerShape(16.dp))
@@ -412,16 +432,19 @@ fun VolumeControl(
                 text = "$percentage%",
                 style = MaterialTheme.typography.headlineMedium,
                 color = textColor,
-                modifier = Modifier.padding(horizontal = 24.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = if (compact) 4.dp else 12.dp),
                 textAlign = TextAlign.Center,
-                fontSize = 28.sp,
+                fontSize = percentSize,
+                maxLines = 1,
                 fontWeight = FontWeight.Bold
             )
 
             // Plus button - 56dp touch target
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(buttonSize)
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color.White)
                     .border(2.dp, borderColor, RoundedCornerShape(16.dp))
@@ -442,7 +465,7 @@ fun VolumeControl(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(gap))
 
         // Volume bars with accessibility
         val filledBars = if (maxVolume > 0) {

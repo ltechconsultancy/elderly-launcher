@@ -10,12 +10,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -106,22 +107,32 @@ fun PageOrderDialog(
                             fontWeight = FontWeight.Bold,
                             color = LauncherColors.Gray800
                         )
-                        Button(
+                        IconButton(
                             onClick = { viewModel.movePage(index, -1) },
                             enabled = index > 0,
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = LauncherColors.Blue500)
+                            modifier = Modifier
+                                .size(56.dp)
+                                .background(LauncherColors.Blue500, RoundedCornerShape(12.dp))
                         ) {
-                            Text(stringResource(R.string.page_order_up), fontSize = 16.sp)
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowUp,
+                                contentDescription = stringResource(R.string.page_order_up),
+                                tint = Color.White
+                            )
                         }
                         Spacer(modifier = Modifier.width(8.dp))
-                        Button(
+                        IconButton(
                             onClick = { viewModel.movePage(index, 1) },
                             enabled = index < pages.lastIndex,
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = LauncherColors.Blue500)
+                            modifier = Modifier
+                                .size(56.dp)
+                                .background(LauncherColors.Blue500, RoundedCornerShape(12.dp))
                         ) {
-                            Text(stringResource(R.string.page_order_down), fontSize = 16.sp)
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = stringResource(R.string.page_order_down),
+                                tint = Color.White
+                            )
                         }
                     }
                 }

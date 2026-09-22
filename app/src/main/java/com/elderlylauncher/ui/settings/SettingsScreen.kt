@@ -550,6 +550,7 @@ fun SettingsContent(
     val currentVersion = remember { AppUpdater.currentVersionName(context) }
 
     val brightnessPercent by viewModel.brightnessPercent.collectAsState()
+    val brightnessMin by viewModel.brightnessMinPercent.collectAsState()
     val brightnessLocked by viewModel.brightnessLocked.collectAsState()
     val layout = rememberDeviceLayout()
 
@@ -810,9 +811,11 @@ fun SettingsContent(
     if (showBrightnessDialog) {
         BrightnessDialog(
             percent = brightnessPercent,
+            minPercent = brightnessMin,
             locked = brightnessLocked,
             onDismiss = { showBrightnessDialog = false },
             onPercentChange = { viewModel.setBrightnessPercent(it) },
+            onMinPercentChange = { viewModel.setBrightnessMinPercent(it) },
             onLockedChange = { viewModel.setBrightnessLocked(it) }
         )
     }
@@ -2662,9 +2665,11 @@ fun PhotoListItem(
 @Composable
 fun BrightnessDialog(
     percent: Int,
+    minPercent: Int,
     locked: Boolean,
     onDismiss: () -> Unit,
     onPercentChange: (Int) -> Unit,
+    onMinPercentChange: (Int) -> Unit,
     onLockedChange: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
@@ -2683,7 +2688,10 @@ fun BrightnessDialog(
     }
 
     if (showFloor) {
-        com.elderlylauncher.ui.BrightnessFloorDialog(onDismiss = { showFloor = false })
+        com.elderlylauncher.ui.BrightnessFloorDialog(
+            minPercent = minPercent,
+            onDismiss = { showFloor = false }
+        )
     }
 
     Dialog(onDismissRequest = onDismiss) {
@@ -2757,7 +2765,7 @@ fun BrightnessDialog(
                         val increaseDesc = stringResource(R.string.settings_brightness_increase)
                         IconButton(
                             onClick = {
-                                if (percent > BrightnessHelper.MIN_PERCENT) {
+                                if (percent > minPercent) {
                                     onPercentChange(percent - BrightnessHelper.STEP)
                                 } else {
                                     showFloor = true
@@ -2800,6 +2808,58 @@ fun BrightnessDialog(
                                 fontSize = 32.sp,
                                 color = LauncherColors.Gray800
                             )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = stringResource(R.string.settings_brightness_minimum),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = LauncherColors.Gray800
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_brightness_minimum_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = LauncherColors.Gray500,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        IconButton(
+                            onClick = {
+                                onMinPercentChange(minPercent - BrightnessHelper.STEP)
+                            },
+                            enabled = minPercent > BrightnessHelper.ABSOLUTE_MIN_PERCENT,
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(LauncherColors.Gray100)
+                        ) {
+                            Text(text = "−", fontSize = 32.sp, color = LauncherColors.Gray800)
+                        }
+                        Text(
+                            text = stringResource(R.string.settings_brightness_value, minPercent),
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = LauncherColors.Gray800,
+                            fontWeight = FontWeight.Bold
+                        )
+                        IconButton(
+                            onClick = {
+                                val next = minPercent + BrightnessHelper.STEP
+                                if (next <= percent) onMinPercentChange(next)
+                            },
+                            enabled = minPercent < BrightnessHelper.MAX_OF_MINIMUM && minPercent < percent,
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(LauncherColors.Gray100)
+                        ) {
+                            Text(text = "+", fontSize = 32.sp, color = LauncherColors.Gray800)
                         }
                     }
 
