@@ -74,7 +74,8 @@ fun NotificationsScreen(viewModel: LauncherViewModel = viewModel()) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val layout = rememberDeviceLayout()
-    val blocked by viewModel.notificationBlockedApps.collectAsState()
+    val appsPageAllowed by viewModel.appsPageAllowed.collectAsState()
+    val extraApps by viewModel.notificationExtraApps.collectAsState()
     val inbox by NotificationInbox.items.collectAsState()
     var accessEnabled by remember { mutableStateOf(ElderlyNotificationListener.isEnabled(context)) }
     var confirmAll by remember { mutableStateOf(false) }
@@ -92,8 +93,8 @@ fun NotificationsScreen(viewModel: LauncherViewModel = viewModel()) {
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    val visible = remember(inbox, blocked) {
-        inbox.filter { it.packageName !in blocked }
+    val visible = remember(inbox, appsPageAllowed, extraApps) {
+        inbox.filter { it.packageName in appsPageAllowed || it.packageName in extraApps }
     }
     val pageSize = when {
         layout.isTablet && !layout.isLandscape -> 3
@@ -357,7 +358,8 @@ private fun NotificationCard(
 @Composable
 fun NotificationAppsDialog(
     installedApps: List<AppInfo>,
-    blockedApps: Set<String>,
+    appsPageAllowed: Set<String>,
+    extraApps: Set<String>,
     onDismiss: () -> Unit,
     onToggleApp: (String) -> Unit
 ) {
@@ -405,13 +407,14 @@ fun NotificationAppsDialog(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) { app ->
-                    val shown = app.packageName !in blockedApps
+                    val onAppsPage = app.packageName in appsPageAllowed
+                    val shown = onAppsPage || app.packageName in extraApps
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
                             .background(if (shown) LauncherColors.Green50 else LauncherColors.Gray100)
-                            .clickable { onToggleApp(app.packageName) }
+                            .clickable(enabled = !onAppsPage) { onToggleApp(app.packageName) }
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {

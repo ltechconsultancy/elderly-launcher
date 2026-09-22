@@ -77,6 +77,19 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <activity
+            android:name="net.sourceforge.solitaire_cg_re.SolitaireCGRE"
+            android:exported="false"
+            android:screenOrientation="unspecified"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
+            android:theme="@style/AppTheme"
+            android:label="@string/solitaire_title" />
+
+        <activity
+            android:name="net.sourceforge.solitaire_cg_re.Help"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+
         <service
             android:name=".util.ElderlyNotificationListener"
             android:exported="true"

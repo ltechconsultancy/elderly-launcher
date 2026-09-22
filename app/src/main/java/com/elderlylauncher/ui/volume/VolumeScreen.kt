@@ -46,6 +46,7 @@ fun VolumeScreen(
         context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
     }
     val brightnessPercent by viewModel.brightnessPercent.collectAsState()
+    var showBrightnessFloor by remember { mutableStateOf(false) }
 
     if (audioManager == null) {
         // Fallback UI if AudioManager is unavailable
@@ -233,6 +234,8 @@ fun VolumeScreen(
                             viewModel.setBrightnessPercent(
                                 brightnessPercent - BrightnessHelper.STEP
                             )
+                        } else {
+                            showBrightnessFloor = true
                         }
                     }
                 )
@@ -278,6 +281,9 @@ fun VolumeScreen(
                 }
             }
         }
+    }
+    if (showBrightnessFloor) {
+        com.elderlylauncher.ui.BrightnessFloorDialog(onDismiss = { showBrightnessFloor = false })
     }
 }
 

@@ -51,9 +51,12 @@ import com.elderlylauncher.util.BrightnessLockWatcher
 
 @Composable
 fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
-    val totalPages = 7
+    val pageOrder by viewModel.pageOrder.collectAsState()
+    val pages = if (pageOrder.isEmpty()) LauncherPage.DEFAULT else pageOrder
+    val totalPages = pages.size
     var currentPage by rememberSaveable { mutableIntStateOf(0) }
     val pageStateHolder = rememberSaveableStateHolder()
+    if (currentPage > pages.lastIndex) currentPage = pages.lastIndex.coerceAtLeast(0)
 
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -89,15 +92,15 @@ fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
             .statusBarsPadding()
     ) {
         Box(modifier = Modifier.weight(1f)) {
-            pageStateHolder.SaveableStateProvider(currentPage) {
-                when (currentPage) {
-                    0 -> HomeScreen()
-                    1 -> AppsScreen()
-                    2 -> GamesScreen()
-                    3 -> PhotoCarouselScreen()
-                    4 -> VolumeScreen()
-                    5 -> NotificationsScreen()
-                    6 -> SettingsScreen()
+            pageStateHolder.SaveableStateProvider(pages[currentPage].name) {
+                when (pages[currentPage]) {
+                    LauncherPage.HOME -> HomeScreen()
+                    LauncherPage.APPS -> AppsScreen()
+                    LauncherPage.GAMES -> GamesScreen()
+                    LauncherPage.PHOTOS -> PhotoCarouselScreen()
+                    LauncherPage.VOLUME -> VolumeScreen()
+                    LauncherPage.NOTIFICATIONS -> NotificationsScreen()
+                    LauncherPage.SETTINGS -> SettingsScreen()
                 }
             }
         }

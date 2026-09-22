@@ -14,6 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
+import android.content.Intent
+import net.sourceforge.solitaire_cg_re.SolitaireCGRE
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -63,6 +65,24 @@ fun GamesScreen(
                 color = LauncherColors.Gray600,
                 fontSize = 18.sp
             )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    context.startActivity(
+                        Intent(context, SolitaireCGRE::class.java)
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(88.dp),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.solitaire_play),
+                    fontSize = 28.sp,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                )
+            }
         }
 
         if (gamesList.isEmpty()) {

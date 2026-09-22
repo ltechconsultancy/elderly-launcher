@@ -12,8 +12,8 @@ android {
         applicationId = "com.elderlylauncher"
         minSdk = 26  // Android 8.0+
         targetSdk = 35
-        versionCode = 21
-        versionName = "1.0.21"
+        versionCode = 22
+        versionName = "1.0.22"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -78,6 +78,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.foundation:foundation")
 

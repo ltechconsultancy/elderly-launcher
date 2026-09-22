@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import com.elderlylauncher.ui.LauncherPage
 import com.elderlylauncher.util.BrightnessHelper
 import java.io.IOException
 import java.security.MessageDigest
@@ -36,6 +37,8 @@ class SettingsDataStore(private val context: Context) {
         val BRIGHTNESS_PERCENT = intPreferencesKey("brightness_percent")
         val BRIGHTNESS_LOCKED = booleanPreferencesKey("brightness_locked")
         val NOTIFICATION_BLOCKED = stringSetPreferencesKey("notification_blocked_apps")
+        val NOTIFICATION_EXTRA = stringSetPreferencesKey("notification_extra_apps")
+        val PAGE_ORDER = stringPreferencesKey("page_order")
     }
 
     // Default values
@@ -173,10 +176,12 @@ class SettingsDataStore(private val context: Context) {
     suspend fun toggleAppVisibility(packageName: String) {
         context.dataStore.edit { prefs ->
             val current = prefs[Keys.APPS_PAGE_ALLOWED] ?: emptySet()
-            prefs[Keys.APPS_PAGE_ALLOWED] = if (packageName in current) {
-                current - packageName
+            if (packageName in current) {
+                prefs[Keys.APPS_PAGE_ALLOWED] = current - packageName
             } else {
-                current + packageName
+                prefs[Keys.APPS_PAGE_ALLOWED] = current + packageName
+                val extra = prefs[Keys.NOTIFICATION_EXTRA] ?: emptySet()
+                prefs[Keys.NOTIFICATION_EXTRA] = extra + packageName
             }
         }
     }
@@ -259,6 +264,32 @@ class SettingsDataStore(private val context: Context) {
                 current + packageName
             }
         }
+    }
+
+    /** Extra apps shown in notifications, beyond the Apps page. Empty means only the Apps page. */
+    val notificationExtraApps: Flow<Set<String>> = context.dataStore.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .map { it[Keys.NOTIFICATION_EXTRA] ?: emptySet() }
+
+    suspend fun toggleNotificationExtra(packageName: String) {
+        context.dataStore.edit { prefs ->
+            val onAppsPage = packageName in (prefs[Keys.APPS_PAGE_ALLOWED] ?: emptySet())
+            if (onAppsPage) return@edit
+            val current = prefs[Keys.NOTIFICATION_EXTRA] ?: emptySet()
+            prefs[Keys.NOTIFICATION_EXTRA] = if (packageName in current) {
+                current - packageName
+            } else {
+                current + packageName
+            }
+        }
+    }
+
+    val pageOrder: Flow<List<LauncherPage>> = context.dataStore.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .map { LauncherPage.decode(it[Keys.PAGE_ORDER]) }
+
+    suspend fun setPageOrder(pages: List<LauncherPage>) {
+        context.dataStore.edit { it[Keys.PAGE_ORDER] = LauncherPage.encode(pages) }
     }
 
     // First launch flag

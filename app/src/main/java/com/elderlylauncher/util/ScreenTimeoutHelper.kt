@@ -11,14 +11,9 @@ private const val TAG = "ScreenTimeoutHelper"
  * Needs the WRITE_SETTINGS permission the brightness controls already use.
  */
 object ScreenTimeoutHelper {
-    val OPTIONS_MS = listOf(
-        30_000,
-        60_000,
-        120_000,
-        300_000,
-        600_000,
-        1_800_000
-    )
+    const val MIN_MS = 15_000
+    const val NEVER_MS = Int.MAX_VALUE
+    const val MAX_HOURS = 23
 
     fun canWriteSettings(context: Context): Boolean = BrightnessHelper.canWriteSettings(context)
 
@@ -37,14 +32,16 @@ object ScreenTimeoutHelper {
         }
     }
 
-    fun apply(context: Context, millis: Int): Boolean {
-        if (millis !in OPTIONS_MS) return false
+    fun isNever(millis: Int): Boolean = millis >= 12 * 60 * 60 * 1000
+
+    fun applyMillis(context: Context, millis: Int): Boolean {
+        val value = if (millis >= NEVER_MS) NEVER_MS else millis.coerceAtLeast(MIN_MS)
         if (!canWriteSettings(context)) return false
         return try {
             Settings.System.putInt(
                 context.contentResolver,
                 Settings.System.SCREEN_OFF_TIMEOUT,
-                millis
+                value
             )
         } catch (e: SecurityException) {
             Log.e(TAG, "WRITE_SETTINGS not granted", e)
@@ -54,4 +51,13 @@ object ScreenTimeoutHelper {
             false
         }
     }
+
+    fun applyParts(context: Context, hours: Int, minutes: Int, seconds: Int): Boolean {
+        val total = hours.coerceIn(0, MAX_HOURS) * 3_600_000 +
+            minutes.coerceIn(0, 59) * 60_000 +
+            seconds.coerceIn(0, 59) * 1_000
+        return applyMillis(context, total)
+    }
+
+    fun applyNever(context: Context): Boolean = applyMillis(context, NEVER_MS)
 }

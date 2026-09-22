@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright 2008 Google Inc.
+  
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+  Modified by Curtis Gedak 2015, 2016, 2017
+  -->
+<resources>
+    <string name="menu_bakersgame">Freecell (by suit: Baker\'s)</string>
+    <string name="menu_blackwidow">Spider (1 suit: black widow)</string>
+    <string name="menu_fortythieves">Forty Thieves</string>
+    <string name="menu_freecell">Freecell (by alt-color)</string>
+    <string name="menu_golf">Golf (no build on king)</string>
+    <string name="menu_golf_wrapcards">Golf (wrap cards)</string>
+    <string name="menu_klondike_dealone">Solitaire</string>
+    <string name="menu_klondike_dealthree">Klondike (deal 3)</string>
+    <string name="menu_spider">Spider (4 suits)</string>
+    <string name="menu_tarantula">Spider (2 suits: tarantula)</string>
+    <string name="menu_tripeaks">TriPeaks (no build on king)</string>
+    <string name="menu_tripeaks_wrapcards">TriPeaks (wrap cards)</string>
+    <string name="menu_vegas_dealone">Vegas (deal 1)</string>
+    <string name="menu_vegas_dealthree">Vegas (deal 3)</string>
+    <string name="menu_selectgame">Spel</string>
+    <string name="menu_new">Nieuw</string>
+    <string name="menu_restart">Opnieuw</string>
+    <string name="menu_options">Opties</string>
+    <string name="menu_stats">Score</string>
+    <string name="menu_help">Hulp</string>
+    <string name="menu_exit">Stop</string>
+    <string name="menu_blank"></string>
+    <string name="solitaire_layout_text_text"></string>
+
+    <!-- Shown on the options preference screen -->
+    <string name="options_title">Opties</string>
+    <string name="big_cards">Grote kaarten</string>
+    <string name="display_time">Tijd tonen</string>
+    <string name="lock_landscape">Alleen liggend</string>
+    <string name="auto_move">Automatisch verplaatsen</string>
+    <string name="always">Altijd</string>
+    <string name="fling_only">Alleen vegen</string>
+    <string name="never">Nooit</string>
+
+    <!-- Shown in the game if needed -->
+    <string name="toast_blank_menu">This menu item intentionally left blank.</string>
+    <string name="toast_restart_invalid">Spel afgelopen. Opnieuw kan niet.</string>
+    <string name="toast_use_start_menu">Spel afgelopen. Tik op Nieuw.</string>
+    <string name="toast_no_undo_left">Niets meer om ongedaan te maken.</string>
+
+    <!-- Shown on the splash screen at first startup -->
+    <string name="splash_text">Tik ergens om te beginnen \nTik op Nieuw voor een nieuw spel</string>
+
+    <!-- Shown when a game is won -->
+    <string name="win_text">Gewonnen!\n\nTik op Nieuw voor een nieuw spel.</string>
+
+    <!-- Messages shown on the help window -->
+
+    <!-- The argument is the version number of the SolitaireCG application -->
+    <string name="help_window_title">Solitaire %s hulp</string>
+    <string name="readme_header">README file from source code</string>
+    <string name="copying_header">COPYING file from source code</string>
+
+    <!-- Messages shown on the stats window -->
+
+    <string name="accept">Klaar</string>
+    <string name="clear">Score wissen</string>
+
+    <!-- The argument is the pretty game name, such as "Klondike (Dealing Three)" or "Golf" -->
+    <string name="stats_for_game">Score %s</string>
+
+    <string name="stats_wins_and_attempts">Gewonnen: %1$d  Pogingen: %2$d</string>
+    <string name="stats_winning_percentage">Percentage: %s%%</string>
+    <string name="stats_fastest_time">Snelste tijd: %s</string>
+
+    <!-- The argument is the user's high score as an integer -->
+    <string name="stats_high_score">Hoogste score: %d</string>
+
+    <string name="mode_fortythieves">FortyThieves</string>
+    <string name="mode_freecell">Freecell</string>
+    <string name="mode_bakersgame">Bakersgame</string>
+    <string name="mode_golf">Golf</string>
+    <string name="mode_golf_wrapcards">Golf Wrapcards</string>
+    <string name="mode_klondike_dealone">Klondike Deal One</string>
+    <string name="mode_klondike_dealthree">Klondike Deal Three</string>
+    <string name="mode_spider">Spider</string>
+    <string name="mode_blackwidow">Blackwidow</string>
+    <string name="mode_tarantula">Tarantula</string>
+    <string name="mode_tripeaks">Tripeaks</string>
+    <string name="mode_tripeaks_wrapcards">Tripeaks Wrapcards</string>
+    <string name="mode_vegas_dealone">Vegas Deal One</string>
+    <string name="mode_vegas_dealthree">Vegas Deal Three</string>
+
+</resources>
