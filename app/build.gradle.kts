@@ -12,8 +12,8 @@ android {
         applicationId = "com.elderlylauncher"
         minSdk = 26  // Android 8.0+
         targetSdk = 35
-        versionCode = 20
-        versionName = "1.0.20"
+        versionCode = 21
+        versionName = "1.0.21"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
