@@ -2,6 +2,7 @@ package com.elderlylauncher.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -133,9 +135,23 @@ fun <T> ButtonPagedColumn(
     pageSize: Int,
     modifier: Modifier = Modifier,
     fillRemaining: Boolean = true,
+    fitToHeight: Boolean = false,
+    rowHeight: Dp = 88.dp,
+    columns: Int = 1,
     verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(8.dp),
     itemContent: @Composable (T) -> Unit
 ) {
+    if (fitToHeight) {
+        FittedPagedColumn(
+            items = items,
+            pageSize = pageSize,
+            rowHeight = rowHeight,
+            columns = columns.coerceAtLeast(1),
+            modifier = modifier,
+            itemContent = itemContent
+        )
+        return
+    }
     var page by rememberSaveable { mutableIntStateOf(0) }
     val pageCount = maxOf(1, (items.size + pageSize - 1) / pageSize)
     LaunchedEffect(items.size, pageSize) {
@@ -158,6 +174,64 @@ fun <T> ButtonPagedColumn(
             }
             if (fillRemaining) {
                 Spacer(modifier = Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun <T> FittedPagedColumn(
+    items: List<T>,
+    pageSize: Int,
+    rowHeight: Dp,
+    columns: Int,
+    modifier: Modifier,
+    itemContent: @Composable (T) -> Unit
+) {
+    BoxWithConstraints(modifier = modifier) {
+        val gap = 8.dp
+        val rowCount = (items.size + columns - 1) / columns
+        val rowsPerPage = fittedPageSize(maxHeight, rowHeight, gap, rowCount)
+            .coerceAtMost(pageSize.coerceAtLeast(1))
+            .coerceAtLeast(1)
+        val perPage = (rowsPerPage * columns).coerceAtLeast(1)
+        var page by rememberSaveable { mutableIntStateOf(0) }
+        val pageCount = maxOf(1, (items.size + perPage - 1) / perPage)
+        LaunchedEffect(items.size, perPage) {
+            if (page >= pageCount) page = pageCount - 1
+        }
+        val pageItems = items.drop(page * perPage).take(perPage)
+        PagedSideNav(
+            currentPage = page,
+            pageCount = pageCount,
+            onPageChange = { page = it },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(gap)
+            ) {
+                pageItems.chunked(columns).forEach { rowItems ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(rowHeight),
+                        horizontalArrangement = Arrangement.spacedBy(gap)
+                    ) {
+                        rowItems.forEach { item ->
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                            ) {
+                                itemContent(item)
+                            }
+                        }
+                        repeat(columns - rowItems.size) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
             }
         }
     }
