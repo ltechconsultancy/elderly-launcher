@@ -13,6 +13,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.*
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,12 +33,15 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
 import com.elderlylauncher.ui.LauncherViewModel
+import com.elderlylauncher.ui.volumeStackFit
 import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.ButtonPagedColumn
 import com.elderlylauncher.ui.theme.LauncherColors
 import com.elderlylauncher.util.BrightnessHelper
 
 private const val TAG = "VolumeScreen"
+
+private val LocalVolumeWide = staticCompositionLocalOf { false }
 
 @Composable
 fun VolumeScreen(
@@ -248,49 +253,17 @@ fun VolumeScreen(
                 )
             }
 
-            val rowModifier = if (compact) {
-                Modifier.fillMaxWidth()
-            } else {
-                Modifier
-                    .fillMaxWidth()
+            VolumeCardGrid(
+                brightness = brightnessControl,
+                media = mediaControl,
+                notification = notificationControl,
+                alarm = alarmControl,
+                tablet = layout.isTablet,
+                landscape = twoColumn,
+                modifier = Modifier
                     .weight(1f)
-            }
-            if (!layout.isTablet) {
-                brightnessControl(Modifier.weight(1f).fillMaxWidth())
-                mediaControl(Modifier.weight(1f).fillMaxWidth())
-                notificationControl(Modifier.weight(1f).fillMaxWidth())
-                alarmControl(Modifier.weight(1f).fillMaxWidth())
-            } else if (twoColumn) {
-                Row(
-                    modifier = rowModifier,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    mediaControl(Modifier.weight(1f))
-                    notificationControl(Modifier.weight(1f))
-                }
-                Row(
-                    modifier = rowModifier,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    alarmControl(Modifier.weight(1f))
-                    brightnessControl(Modifier.weight(1f))
-                }
-            } else {
-                Row(
-                    modifier = rowModifier,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    brightnessControl(Modifier.weight(1f))
-                    mediaControl(Modifier.weight(1f))
-                }
-                Row(
-                    modifier = rowModifier,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    notificationControl(Modifier.weight(1f))
-                    alarmControl(Modifier.weight(1f))
-                }
-            }
+                    .fillMaxWidth()
+            )
         }
     }
     if (showBrightnessFloor) {
@@ -311,6 +284,90 @@ private fun safeSetVolume(audioManager: AudioManager, streamType: Int, volume: I
         Log.e(TAG, "SecurityException setting volume", e)
     } catch (e: Exception) {
         Log.e(TAG, "Error setting volume", e)
+    }
+}
+
+@Composable
+internal fun VolumeCardGrid(
+    brightness: @Composable (Modifier) -> Unit,
+    media: @Composable (Modifier) -> Unit,
+    notification: @Composable (Modifier) -> Unit,
+    alarm: @Composable (Modifier) -> Unit,
+    tablet: Boolean = false,
+    landscape: Boolean = false,
+    modifier: Modifier = Modifier
+) {
+    if (tablet) {
+        Column(modifier = modifier) {
+            val rowModifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+            if (landscape) {
+                Row(modifier = rowModifier, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    media(Modifier.weight(1f))
+                    notification(Modifier.weight(1f))
+                }
+                Row(modifier = rowModifier, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    alarm(Modifier.weight(1f))
+                    brightness(Modifier.weight(1f))
+                }
+            } else {
+                Row(modifier = rowModifier, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    brightness(Modifier.weight(1f))
+                    media(Modifier.weight(1f))
+                }
+                Row(modifier = rowModifier, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    notification(Modifier.weight(1f))
+                    alarm(Modifier.weight(1f))
+                }
+            }
+        }
+        return
+    }
+    BoxWithConstraints(modifier = modifier) {
+        val fit = volumeStackFit(maxWidth, maxHeight, tablet = false)
+        val wideCards = !tablet && fit.columns == 1
+        CompositionLocalProvider(LocalVolumeWide provides wideCards) {
+            if (fit.columns == 1) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(fit.gap, Alignment.CenterVertically)
+                ) {
+                    brightness(Modifier.fillMaxWidth().height(fit.item))
+                    media(Modifier.fillMaxWidth().height(fit.item))
+                    notification(Modifier.fillMaxWidth().height(fit.item))
+                    alarm(Modifier.fillMaxWidth().height(fit.item))
+                }
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(fit.gap, Alignment.CenterVertically)
+                ) {
+                    val leftTop = if (tablet && landscape) media else brightness
+                    val rightTop = if (tablet && landscape) notification else media
+                    val leftBottom = if (tablet && landscape) alarm else notification
+                    val rightBottom = if (tablet && landscape) brightness else alarm
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(fit.item),
+                        horizontalArrangement = Arrangement.spacedBy(fit.gap)
+                    ) {
+                        leftTop(Modifier.weight(1f).fillMaxHeight())
+                        rightTop(Modifier.weight(1f).fillMaxHeight())
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(fit.item),
+                        horizontalArrangement = Arrangement.spacedBy(fit.gap)
+                    ) {
+                        leftBottom(Modifier.weight(1f).fillMaxHeight())
+                        rightBottom(Modifier.weight(1f).fillMaxHeight())
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -340,6 +397,7 @@ fun VolumeControl(
     val subtitleSize = if (compact) 12.sp else 14.sp
     val percentSize = if (compact) 22.sp else 28.sp
     val gap = if (compact) 8.dp else 16.dp
+    val wide = compact && LocalVolumeWide.current
     val percentage = if (maxVolume > 0) {
         val raw = (currentVolume.toFloat() / maxVolume) * 100
         ((raw / 5).toInt() * 5) // Round to nearest 5%
@@ -356,7 +414,7 @@ fun VolumeControl(
             .border(2.dp, borderColor, RoundedCornerShape(24.dp))
             .padding(pad)
             .semantics { contentDescription = volumeDescription },
-        verticalArrangement = if (compact) Arrangement.SpaceBetween else Arrangement.Top
+        verticalArrangement = if (compact) Arrangement.Center else Arrangement.Top
     ) {
         // Top row: Icon + Title/Subtitle
         Row(
@@ -401,7 +459,7 @@ fun VolumeControl(
                 )
             }
 
-            if (compact) {
+            if (wide) {
                 Spacer(modifier = Modifier.width(gap))
                 VolumeStepButton(
                     label = "−",
@@ -433,7 +491,7 @@ fun VolumeControl(
             }
         }
 
-        if (!compact) {
+        if (!wide) {
             Spacer(modifier = Modifier.height(gap))
             Row(
                 modifier = Modifier.fillMaxWidth(),

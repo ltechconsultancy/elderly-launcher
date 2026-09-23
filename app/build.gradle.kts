@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("app.cash.paparazzi") version "1.3.5"
 }
 
 android {
@@ -12,8 +13,8 @@ android {
         applicationId = "com.elderlylauncher"
         minSdk = 26  // Android 8.0+
         targetSdk = 35
-        versionCode = 28
-        versionName = "1.0.28"
+        versionCode = 29
+        versionName = "1.0.29"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

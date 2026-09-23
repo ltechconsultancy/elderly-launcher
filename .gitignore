@@ -26,6 +26,9 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
+# Local Compose renders. Not committed and not uploaded to GitHub.
+app/src/test/snapshots/
+
 # Playwright artifacts
 mockups/test-results/
 mockups/playwright-report/
