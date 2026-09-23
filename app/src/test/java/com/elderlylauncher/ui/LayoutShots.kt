@@ -30,7 +30,9 @@ import android.graphics.drawable.ColorDrawable
 import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.data.QuickContact
 import com.elderlylauncher.ui.home.CallContactPages
+import com.elderlylauncher.ui.notifications.NotificationCard
 import com.elderlylauncher.ui.settings.AppSlotItem
+import com.elderlylauncher.util.InboxNotification
 import com.elderlylauncher.ui.theme.LauncherColors
 import com.elderlylauncher.ui.volume.VolumeCardGrid
 import com.elderlylauncher.ui.volume.VolumeControl
@@ -74,6 +76,31 @@ class LayoutShots {
 
     @Test
     fun homeTilesPhoneLandscape() = tiles(DeviceConfig.PIXEL_5.landscape(), tablet = false, landscape = true, "home-tiles-phone-landscape")
+
+    @Test
+    fun notificationCardPhone() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = DeviceConfig.PIXEL_5.copy(locale = "nl"))
+        paparazzi.snapshot("notification-open-app") {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White)
+                    .padding(16.dp)
+            ) {
+                NotificationCard(
+                    item = InboxNotification(
+                        key = "1",
+                        packageName = "com.example.messages",
+                        title = "Nieuw bericht",
+                        text = "Kom je zo eten?",
+                        postedAt = 1_700_000_000_000L
+                    ),
+                    onOpen = {},
+                    onDelete = {}
+                )
+            }
+        }
+    }
 
     private fun volume(device: DeviceConfig, tablet: Boolean, landscape: Boolean, name: String) {
         paparazzi.unsafeUpdateConfig(deviceConfig = device)

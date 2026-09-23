@@ -204,8 +204,9 @@
     <string name="error_no_permission">Permission denied</string>
 
     <string name="notifications_title">Notifications</string>
-    <string name="notifications_subtitle">Messages and apps. Tap Delete to remove one.</string>
+    <string name="notifications_subtitle">Messages and apps. Tap Open app, or Delete to remove one.</string>
     <string name="notifications_empty">No notifications</string>
+    <string name="notifications_open">Open app</string>
     <string name="notifications_delete">Delete</string>
     <string name="notifications_clear_all">Delete all</string>
     <string name="notifications_clear_all_title">Delete all notifications?</string>

@@ -204,8 +204,9 @@
     <string name="error_no_permission">Geen toestemming</string>
 
     <string name="notifications_title">Meldingen</string>
-    <string name="notifications_subtitle">Berichten en apps. Tik op Wis om er één weg te halen.</string>
+    <string name="notifications_subtitle">Berichten en apps. Tik op App openen, of op Wis om er één weg te halen.</string>
     <string name="notifications_empty">Geen meldingen</string>
+    <string name="notifications_open">App openen</string>
     <string name="notifications_delete">Wis</string>
     <string name="notifications_clear_all">Wis alles</string>
     <string name="notifications_clear_all_title">Alle meldingen wissen?</string>

@@ -195,6 +195,7 @@ fun NotificationsScreen(viewModel: LauncherViewModel = viewModel()) {
             ) { item ->
                 NotificationCard(
                     item = item,
+                    onOpen = { NotificationInbox.open(context, item) },
                     onDelete = { NotificationInbox.dismiss(item.key) }
                 )
             }
@@ -258,8 +259,9 @@ fun NotificationsScreen(viewModel: LauncherViewModel = viewModel()) {
 }
 
 @Composable
-private fun NotificationCard(
+internal fun NotificationCard(
     item: InboxNotification,
+    onOpen: () -> Unit,
     onDelete: () -> Unit
 ) {
     val context = LocalContext.current
@@ -338,19 +340,37 @@ private fun NotificationCard(
             )
         }
         Spacer(modifier = Modifier.height(10.dp))
-        Button(
-            onClick = onDelete,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = LauncherColors.Red500)
-        ) {
-            Text(
-                text = stringResource(R.string.notifications_delete),
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold
-            )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = onOpen,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(64.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = LauncherColors.Green500)
+            ) {
+                Text(
+                    text = stringResource(R.string.notifications_open),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1
+                )
+            }
+            Button(
+                onClick = onDelete,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(64.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = LauncherColors.Red500)
+            ) {
+                Text(
+                    text = stringResource(R.string.notifications_delete),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1
+                )
+            }
         }
     }
 }
