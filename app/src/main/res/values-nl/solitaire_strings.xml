@@ -17,20 +17,20 @@
   Modified by Curtis Gedak 2015, 2016, 2017
   -->
 <resources>
-    <string name="menu_bakersgame">Freecell (by suit: Baker\'s)</string>
-    <string name="menu_blackwidow">Spider (1 suit: black widow)</string>
-    <string name="menu_fortythieves">Forty Thieves</string>
-    <string name="menu_freecell">Freecell (by alt-color)</string>
-    <string name="menu_golf">Golf (no build on king)</string>
-    <string name="menu_golf_wrapcards">Golf (wrap cards)</string>
+    <string name="menu_bakersgame">Freecell (op kleur)</string>
+    <string name="menu_blackwidow">Spider (1 kleur)</string>
+    <string name="menu_fortythieves">Veertig Dieven</string>
+    <string name="menu_freecell">Freecell (op wisselkleur)</string>
+    <string name="menu_golf">Golf (niet op heer)</string>
+    <string name="menu_golf_wrapcards">Golf (doordraaien)</string>
     <string name="menu_klondike_dealone">Solitaire</string>
-    <string name="menu_klondike_dealthree">Klondike (deal 3)</string>
-    <string name="menu_spider">Spider (4 suits)</string>
-    <string name="menu_tarantula">Spider (2 suits: tarantula)</string>
-    <string name="menu_tripeaks">TriPeaks (no build on king)</string>
-    <string name="menu_tripeaks_wrapcards">TriPeaks (wrap cards)</string>
-    <string name="menu_vegas_dealone">Vegas (deal 1)</string>
-    <string name="menu_vegas_dealthree">Vegas (deal 3)</string>
+    <string name="menu_klondike_dealthree">Klondike (3 kaarten)</string>
+    <string name="menu_spider">Spider (4 kleuren)</string>
+    <string name="menu_tarantula">Spider (2 kleuren)</string>
+    <string name="menu_tripeaks">TriPeaks (niet op heer)</string>
+    <string name="menu_tripeaks_wrapcards">TriPeaks (doordraaien)</string>
+    <string name="menu_vegas_dealone">Vegas (1 kaart)</string>
+    <string name="menu_vegas_dealthree">Vegas (3 kaarten)</string>
     <string name="menu_selectgame">Spel</string>
     <string name="menu_new">Nieuw</string>
     <string name="menu_restart">Opnieuw</string>
@@ -52,7 +52,7 @@
     <string name="never">Nooit</string>
 
     <!-- Shown in the game if needed -->
-    <string name="toast_blank_menu">This menu item intentionally left blank.</string>
+    <string name="toast_blank_menu">Dit menu-item is bewust leeg.</string>
     <string name="toast_restart_invalid">Spel afgelopen. Opnieuw kan niet.</string>
     <string name="toast_use_start_menu">Spel afgelopen. Tik op Nieuw.</string>
     <string name="toast_no_undo_left">Niets meer om ongedaan te maken.</string>

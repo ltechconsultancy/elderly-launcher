@@ -121,7 +121,7 @@ fun VolumeScreen(
                 .weight(1f)
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 12.dp)
         ) {
             val mediaControl: @Composable (Modifier) -> Unit = { itemModifier ->
                 VolumeControl(
@@ -255,7 +255,12 @@ fun VolumeScreen(
                     .fillMaxWidth()
                     .weight(1f)
             }
-            if (twoColumn) {
+            if (!layout.isTablet) {
+                brightnessControl(Modifier.fillMaxWidth())
+                mediaControl(Modifier.fillMaxWidth())
+                notificationControl(Modifier.fillMaxWidth())
+                alarmControl(Modifier.fillMaxWidth())
+            } else if (twoColumn) {
                 Row(
                     modifier = rowModifier,
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -389,82 +394,84 @@ fun VolumeControl(
                     style = MaterialTheme.typography.bodyMedium,
                     color = textColor.copy(alpha = 0.7f),
                     fontSize = subtitleSize,
-                    maxLines = if (compact) 3 else 2,
+                    maxLines = 2,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
             }
-        }
 
-        Spacer(modifier = Modifier.height(gap))
-
-        // Volume controls row - full width, centered
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            // Minus button - 56dp touch target
-            Box(
-                modifier = Modifier
-                    .size(buttonSize)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
-                    .border(2.dp, borderColor, RoundedCornerShape(16.dp))
-                    .clickable(
-                        indication = ripple(color = accentColor),
-                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-                        onClick = onVolumeDown
-                    )
-                    .semantics { contentDescription = decreaseDescription },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "−",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor
+            if (compact) {
+                Spacer(modifier = Modifier.width(gap))
+                VolumeStepButton(
+                    label = "−",
+                    size = buttonSize,
+                    borderColor = borderColor,
+                    accentColor = accentColor,
+                    textColor = textColor,
+                    description = decreaseDescription,
+                    onClick = onVolumeDown
                 )
-            }
-
-            // Percentage - centered with fixed width
-            Text(
-                text = "$percentage%",
-                style = MaterialTheme.typography.headlineMedium,
-                color = textColor,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = if (compact) 4.dp else 12.dp),
-                textAlign = TextAlign.Center,
-                fontSize = percentSize,
-                maxLines = 1,
-                fontWeight = FontWeight.Bold
-            )
-
-            // Plus button - 56dp touch target
-            Box(
-                modifier = Modifier
-                    .size(buttonSize)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
-                    .border(2.dp, borderColor, RoundedCornerShape(16.dp))
-                    .clickable(
-                        indication = ripple(color = accentColor),
-                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-                        onClick = onVolumeUp
-                    )
-                    .semantics { contentDescription = increaseDescription },
-                contentAlignment = Alignment.Center
-            ) {
                 Text(
-                    text = "+",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor
+                    text = "$percentage%",
+                    color = textColor,
+                    modifier = Modifier.width(64.dp),
+                    textAlign = TextAlign.Center,
+                    fontSize = percentSize,
+                    maxLines = 1,
+                    fontWeight = FontWeight.Bold
+                )
+                VolumeStepButton(
+                    label = "+",
+                    size = buttonSize,
+                    borderColor = borderColor,
+                    accentColor = accentColor,
+                    textColor = textColor,
+                    description = increaseDescription,
+                    onClick = onVolumeUp
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(gap))
+        if (!compact) {
+            Spacer(modifier = Modifier.height(gap))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                VolumeStepButton(
+                    label = "−",
+                    size = buttonSize,
+                    borderColor = borderColor,
+                    accentColor = accentColor,
+                    textColor = textColor,
+                    description = decreaseDescription,
+                    onClick = onVolumeDown
+                )
+                Text(
+                    text = "$percentage%",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = textColor,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 12.dp),
+                    textAlign = TextAlign.Center,
+                    fontSize = percentSize,
+                    maxLines = 1,
+                    fontWeight = FontWeight.Bold
+                )
+                VolumeStepButton(
+                    label = "+",
+                    size = buttonSize,
+                    borderColor = borderColor,
+                    accentColor = accentColor,
+                    textColor = textColor,
+                    description = increaseDescription,
+                    onClick = onVolumeUp
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(if (compact) 6.dp else gap))
 
         // Volume bars with accessibility
         val filledBars = if (maxVolume > 0) {
@@ -482,7 +489,7 @@ fun VolumeControl(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .height(12.dp)
+                        .height(if (compact) 8.dp else 12.dp)
                         .clip(RoundedCornerShape(6.dp))
                         .background(
                             if (index < filledBars) accentColor
@@ -491,5 +498,38 @@ fun VolumeControl(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun VolumeStepButton(
+    label: String,
+    size: androidx.compose.ui.unit.Dp,
+    borderColor: Color,
+    accentColor: Color,
+    textColor: Color,
+    description: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White)
+            .border(2.dp, borderColor, RoundedCornerShape(16.dp))
+            .clickable(
+                indication = ripple(color = accentColor),
+                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                onClick = onClick
+            )
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = textColor
+        )
     }
 }
