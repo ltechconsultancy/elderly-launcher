@@ -298,27 +298,30 @@ internal fun VolumeCardGrid(
     modifier: Modifier = Modifier
 ) {
     if (tablet) {
-        Column(modifier = modifier) {
+        Column(
+            modifier = modifier,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             val rowModifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
             if (landscape) {
                 Row(modifier = rowModifier, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    media(Modifier.weight(1f))
-                    notification(Modifier.weight(1f))
+                    media(Modifier.weight(1f).fillMaxHeight())
+                    notification(Modifier.weight(1f).fillMaxHeight())
                 }
                 Row(modifier = rowModifier, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    alarm(Modifier.weight(1f))
-                    brightness(Modifier.weight(1f))
+                    alarm(Modifier.weight(1f).fillMaxHeight())
+                    brightness(Modifier.weight(1f).fillMaxHeight())
                 }
             } else {
-                Row(modifier = rowModifier, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    brightness(Modifier.weight(1f))
-                    media(Modifier.weight(1f))
+                Row(modifier = rowModifier, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    brightness(Modifier.weight(1f).fillMaxHeight())
+                    media(Modifier.weight(1f).fillMaxHeight())
                 }
-                Row(modifier = rowModifier, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    notification(Modifier.weight(1f))
-                    alarm(Modifier.weight(1f))
+                Row(modifier = rowModifier, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    notification(Modifier.weight(1f).fillMaxHeight())
+                    alarm(Modifier.weight(1f).fillMaxHeight())
                 }
             }
         }
@@ -390,12 +393,12 @@ fun VolumeControl(
     onVolumeUp: () -> Unit,
     onVolumeDown: () -> Unit
 ) {
-    val pad = if (compact) 10.dp else 20.dp
-    val iconBox = if (compact) 40.dp else 56.dp
-    val buttonSize = if (compact) 48.dp else 56.dp
-    val titleSize = if (compact) 16.sp else 22.sp
-    val subtitleSize = if (compact) 12.sp else 14.sp
-    val percentSize = if (compact) 22.sp else 28.sp
+    val pad = if (compact) 10.dp else 24.dp
+    val iconBox = if (compact) 40.dp else 80.dp
+    val buttonSize = if (compact) 48.dp else 72.dp
+    val titleSize = if (compact) 16.sp else 26.sp
+    val subtitleSize = if (compact) 12.sp else 18.sp
+    val percentSize = if (compact) 22.sp else 36.sp
     val gap = if (compact) 8.dp else 16.dp
     val wide = compact && LocalVolumeWide.current
     val percentage = if (maxVolume > 0) {
@@ -408,13 +411,13 @@ fun VolumeControl(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .then(if (compact) Modifier.fillMaxHeight() else Modifier)
+            .fillMaxHeight()
             .clip(RoundedCornerShape(24.dp))
             .background(backgroundColor)
             .border(2.dp, borderColor, RoundedCornerShape(24.dp))
             .padding(pad)
             .semantics { contentDescription = volumeDescription },
-        verticalArrangement = if (compact) Arrangement.Center else Arrangement.Top
+        verticalArrangement = Arrangement.Center
     ) {
         // Top row: Icon + Title/Subtitle
         Row(
@@ -434,7 +437,7 @@ fun VolumeControl(
                     imageVector = icon,
                     contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(iconBox * 0.5f)
                 )
             }
 

@@ -489,7 +489,8 @@ fun HomeAppGrid(
         val pageCount = maxOf(1, (positions.size + pageSize - 1) / pageSize)
         if (page >= pageCount) page = pageCount - 1
         val pageItems = positions.drop(page * pageSize).take(pageSize)
-        val scale = tileScaleFor(fit.tile)
+        val tileWidth = (maxWidth - fit.gap * (fit.columns - 1)) / fit.columns
+        val scale = tileScaleFor(tileWidth, fit.tile)
         PagedSideNav(
             currentPage = page,
             pageCount = pageCount,
@@ -531,24 +532,25 @@ fun HomeAppGrid(
     }
 }
 
-private data class TileScale(
+internal data class TileScale(
     val iconBox: Dp,
     val glyph: Dp,
     val label: TextUnit,
     val padding: Dp
 )
 
-private fun tileScaleFor(tile: Dp): TileScale {
-    val iconBox = (tile * 0.42f).coerceIn(44.dp, 80.dp)
+internal fun tileScaleFor(width: Dp, height: Dp): TileScale {
+    val short = minOf(width, height)
+    val iconBox = (short * 0.62f).coerceIn(72.dp, 220.dp)
     return TileScale(
         iconBox = iconBox,
-        glyph = iconBox * 0.5f,
+        glyph = iconBox * 0.86f,
         label = when {
-            tile < 130.dp -> 16.sp
-            tile < 170.dp -> 18.sp
-            else -> 22.sp
+            short < 150.dp -> 18.sp
+            short < 240.dp -> 24.sp
+            else -> 28.sp
         },
-        padding = (tile * 0.08f).coerceIn(8.dp, 16.dp)
+        padding = 12.dp
     )
 }
 
@@ -560,7 +562,7 @@ private fun HomeAppTile(
     context: Context,
     viewModel: LauncherViewModel,
     modifier: Modifier = Modifier,
-    scale: TileScale = tileScaleFor(160.dp),
+    scale: TileScale = tileScaleFor(160.dp, 160.dp),
     onCall: () -> Unit = {}
 ) {
     val customPackage = homeApps[position]

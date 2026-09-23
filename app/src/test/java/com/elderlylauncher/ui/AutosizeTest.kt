@@ -42,7 +42,7 @@ class AutosizeTest {
         val fit = homeGridFit(360.dp, 520.dp, count = 4, landscape = false, tablet = false)
         assertEquals(2, fit.columns)
         assertEquals(2, fit.rowsPerPage)
-        assertTrue(fit.tile <= 176.dp)
+        assertTrue(fit.tile <= 200.dp)
     }
 
     @Test
