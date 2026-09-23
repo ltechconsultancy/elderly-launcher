@@ -99,6 +99,48 @@ fun homeGridFit(
     return HomeGridFit(columns = columns, rowsPerPage = rows, tile = tile, gap = gap)
 }
 
+/**
+ * Apps and games: pick the column count that makes each tile as large as possible.
+ * A tall screen with two apps stacks them, so the icons stay big and the page is used.
+ */
+fun appGridFit(
+    width: Dp,
+    height: Dp,
+    count: Int,
+    tablet: Boolean
+): HomeGridFit {
+    val gap = 12.dp
+    val minTile = if (tablet) 140.dp else 108.dp
+    val maxTile = if (tablet) 420.dp else 280.dp
+    val safeCount = count.coerceAtLeast(1)
+    val maxColumns = (if (tablet) 4 else 3).coerceAtMost(safeCount)
+    var best = HomeGridFit(columns = 1, rowsPerPage = 1, tile = minTile, gap = gap)
+    var bestShort = 0.dp
+    for (columns in 1..maxColumns) {
+        val rowsNeeded = (safeCount + columns - 1) / columns
+        val paging = rowsNeeded > rowsThatFit(height, minTile, gap)
+        val rows = if (paging) rowsThatFit(height - 64.dp, minTile, gap) else rowsNeeded
+        val tileWidth = (width - gap * (columns - 1)) / columns
+        val budget = height - (if (paging) 64.dp else 0.dp) - gap * (rows - 1).coerceAtLeast(0)
+        val tile = (budget / rows)
+            .coerceIn(minTile, maxTile)
+            .coerceAtMost(tileWidth * 1.2f)
+        val short = minOf(tileWidth, tile)
+        val wideBanner = tileWidth > tile * 1.35f
+        val score = if (wideBanner) short / 2 else short
+        if (score > bestShort) {
+            bestShort = score
+            best = HomeGridFit(columns = columns, rowsPerPage = rows, tile = tile, gap = gap)
+        }
+    }
+    return best
+}
+
+private fun rowsThatFit(budget: Dp, minTile: Dp, gap: Dp): Int {
+    if (budget <= minTile) return 1
+    return ((budget + gap) / (minTile + gap)).toInt().coerceAtLeast(1)
+}
+
 /** How many uniform rows fit above the pager buttons. */
 fun fittedPageSize(height: Dp, row: Dp, gap: Dp, count: Int, nav: Dp = 64.dp): Int {
     if (count <= 0 || row <= 0.dp) return 1

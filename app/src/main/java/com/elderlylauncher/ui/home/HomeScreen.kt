@@ -47,6 +47,7 @@ import com.elderlylauncher.data.QuickContact
 import com.elderlylauncher.ui.LauncherViewModel
 import com.elderlylauncher.ui.PagedSideNav
 import com.elderlylauncher.ui.homeGridFit
+import com.elderlylauncher.ui.iconColors
 import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
 import java.time.LocalDate
@@ -108,16 +109,6 @@ private val defaultApps = listOf(
         textColor = LauncherColors.Pink700,
         launchIntent = { Intent(Intent.ACTION_VIEW).apply { type = "image/*" } }
     )
-)
-
-// Color schemes for custom apps
-private val appColorSchemes = listOf(
-    Triple(LauncherColors.Green50, LauncherColors.Green200, LauncherColors.Green500),
-    Triple(LauncherColors.Blue50, LauncherColors.Blue200, LauncherColors.Blue500),
-    Triple(LauncherColors.Purple50, LauncherColors.Purple200, LauncherColors.Purple500),
-    Triple(LauncherColors.Pink50, LauncherColors.Pink200, LauncherColors.Pink500),
-    Triple(LauncherColors.Orange50, LauncherColors.Orange200, LauncherColors.Orange500),
-    Triple(LauncherColors.Red50, LauncherColors.Red200, LauncherColors.Red500)
 )
 
 @Composable
@@ -567,14 +558,10 @@ private fun HomeAppTile(
 ) {
     val customPackage = homeApps[position]
     val customApp = customPackage?.let { pkg -> installedApps.find { it.packageName == pkg } }
-    val colorScheme = appColorSchemes[position % appColorSchemes.size]
 
     if (customApp != null) {
         CustomAppTile(
             appInfo = customApp,
-            backgroundColor = colorScheme.first,
-            borderColor = colorScheme.second,
-            iconTint = colorScheme.third,
             modifier = modifier,
             iconBoxSize = scale.iconBox,
             glyphSize = scale.glyph,
@@ -614,9 +601,6 @@ private fun HomeAppTile(
 @Composable
 fun CustomAppTile(
     appInfo: AppInfo,
-    backgroundColor: Color,
-    borderColor: Color,
-    iconTint: Color,
     modifier: Modifier = Modifier,
     iconBoxSize: Dp = 80.dp,
     glyphSize: Dp = 56.dp,
@@ -624,14 +608,15 @@ fun CustomAppTile(
     contentPadding: Dp = 16.dp,
     onClick: () -> Unit
 ) {
+    val colors = remember(appInfo.packageName) { iconColors(appInfo.icon) }
     Box(
         modifier = modifier
             .fillMaxSize()
             .clip(RoundedCornerShape(24.dp))
-            .background(backgroundColor)
-            .border(2.dp, borderColor, RoundedCornerShape(24.dp))
+            .background(colors.background)
+            .border(2.dp, colors.border, RoundedCornerShape(24.dp))
             .clickable(
-                indication = ripple(color = iconTint),
+                indication = ripple(color = colors.accent),
                 interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
                 onClick = onClick
             )
@@ -664,7 +649,7 @@ fun CustomAppTile(
             Text(
                 text = appInfo.label,
                 style = MaterialTheme.typography.titleLarge,
-                color = iconTint,
+                color = colors.accent,
                 textAlign = TextAlign.Center,
                 fontSize = labelSize,
                 maxLines = 2

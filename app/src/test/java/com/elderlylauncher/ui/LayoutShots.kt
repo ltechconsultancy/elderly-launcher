@@ -1,9 +1,11 @@
 package com.elderlylauncher.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -82,6 +84,12 @@ class LayoutShots {
 
     @Test
     fun homeTilesTabletPortrait() = tiles(DeviceConfig.NEXUS_10.portrait(), tablet = true, landscape = false, "home-tiles-tablet-portrait")
+
+    @Test
+    fun appCardsPhonePortrait() = appCards(DeviceConfig.PIXEL_5, tablet = false, "app-cards-phone")
+
+    @Test
+    fun appCardsTabletPortrait() = appCards(DeviceConfig.NEXUS_10.portrait(), tablet = true, "app-cards-tablet")
 
     @Test
     fun notificationCardPhone() {
@@ -307,6 +315,50 @@ class LayoutShots {
                     contentAlignment = Alignment.Center
                 ) {
                     Text("Noodgeval", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+
+    private fun appCards(device: DeviceConfig, tablet: Boolean, name: String) {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device.copy(locale = "nl"))
+        paparazzi.snapshot(name) {
+            val green = AppInfo("com.whatsapp", "WhatsApp", ColorDrawable(0xFF25D366.toInt()))
+            val blue = AppInfo("com.digid", "DigiD", ColorDrawable(0xFF1D4ED8.toInt()))
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White)
+                    .padding(16.dp)
+            ) {
+                Text("Spelletjes", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                ) {
+                    val apps = listOf(green, blue)
+                    val fit = appGridFit(maxWidth, maxHeight, apps.size, tablet = tablet)
+                    Column(verticalArrangement = Arrangement.spacedBy(fit.gap)) {
+                        apps.chunked(fit.columns).forEach { row ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(fit.tile),
+                                horizontalArrangement = Arrangement.spacedBy(fit.gap)
+                            ) {
+                                row.forEach { app ->
+                                    AppIconCard(
+                                        appInfo = app,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(fit.tile),
+                                        onClick = {}
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -1,31 +1,24 @@
 package com.elderlylauncher.ui.apps
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
-import com.elderlylauncher.data.AppInfo
+import com.elderlylauncher.ui.AppIconCard
 import com.elderlylauncher.ui.ButtonPagedGrid
 import com.elderlylauncher.ui.LauncherViewModel
+import com.elderlylauncher.ui.appGridFit
 import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
 
@@ -41,9 +34,6 @@ fun AppsScreen(
     val visibleApps = remember(installedApps, allowedApps) {
         installedApps.filter { it.packageName in allowedApps }
     }
-    val columns = layout.appGridColumns
-    val rows = layout.appGridRows
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -101,65 +91,37 @@ fun AppsScreen(
                 }
             }
         } else {
-            ButtonPagedGrid(
-                items = visibleApps,
-                columns = columns,
-                rows = rows,
+            BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 8.dp)
-            ) { app ->
-                AppGridItem(
-                    appInfo = app,
-                    compact = true,
-                    onClick = {
-                        val intent = context.packageManager.getLaunchIntentForPackage(app.packageName)
-                        if (intent != null) {
-                            context.startActivity(intent)
-                        }
-                    }
+            ) {
+                val fit = appGridFit(
+                    width = maxWidth,
+                    height = maxHeight,
+                    count = visibleApps.size,
+                    tablet = layout.isTablet
                 )
+                ButtonPagedGrid(
+                    items = visibleApps,
+                    columns = fit.columns,
+                    rows = fit.rowsPerPage,
+                    modifier = Modifier.fillMaxSize()
+                ) { app ->
+                    AppIconCard(
+                        appInfo = app,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(fit.tile),
+                        onClick = {
+                            val intent = context.packageManager.getLaunchIntentForPackage(app.packageName)
+                            if (intent != null) {
+                                context.startActivity(intent)
+                            }
+                        }
+                    )
+                }
             }
         }
-    }
-}
-
-@Composable
-fun AppGridItem(
-    appInfo: AppInfo,
-    onClick: () -> Unit,
-    compact: Boolean = false
-) {
-    val iconSize = if (compact) 48.dp else 64.dp
-    val fontSize = if (compact) 16.sp else 14.sp
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(LauncherColors.Gray50)
-            .border(1.dp, LauncherColors.Gray200, RoundedCornerShape(20.dp))
-            .clickable(onClick = onClick)
-            .padding(if (compact) 8.dp else 12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Image(
-            bitmap = appInfo.icon.toBitmap(128, 128).asImageBitmap(),
-            contentDescription = appInfo.label,
-            modifier = Modifier
-                .size(iconSize)
-                .clip(RoundedCornerShape(12.dp))
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = appInfo.label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = LauncherColors.Gray800,
-            fontSize = fontSize,
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
     }
 }
