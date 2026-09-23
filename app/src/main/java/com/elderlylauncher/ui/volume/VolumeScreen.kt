@@ -256,10 +256,10 @@ fun VolumeScreen(
                     .weight(1f)
             }
             if (!layout.isTablet) {
-                brightnessControl(Modifier.fillMaxWidth())
-                mediaControl(Modifier.fillMaxWidth())
-                notificationControl(Modifier.fillMaxWidth())
-                alarmControl(Modifier.fillMaxWidth())
+                brightnessControl(Modifier.weight(1f).fillMaxWidth())
+                mediaControl(Modifier.weight(1f).fillMaxWidth())
+                notificationControl(Modifier.weight(1f).fillMaxWidth())
+                alarmControl(Modifier.weight(1f).fillMaxWidth())
             } else if (twoColumn) {
                 Row(
                     modifier = rowModifier,
@@ -350,11 +350,13 @@ fun VolumeControl(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .then(if (compact) Modifier.fillMaxHeight() else Modifier)
             .clip(RoundedCornerShape(24.dp))
             .background(backgroundColor)
             .border(2.dp, borderColor, RoundedCornerShape(24.dp))
             .padding(pad)
-            .semantics { contentDescription = volumeDescription }
+            .semantics { contentDescription = volumeDescription },
+        verticalArrangement = if (compact) Arrangement.SpaceBetween else Arrangement.Top
     ) {
         // Top row: Icon + Title/Subtitle
         Row(

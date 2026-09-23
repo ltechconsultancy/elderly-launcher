@@ -3,6 +3,8 @@ package com.elderlylauncher.ui.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -37,12 +40,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.elderlylauncher.R
 import com.elderlylauncher.data.QuickContact
-import com.elderlylauncher.ui.ButtonPagedColumn
+import com.elderlylauncher.ui.PagedSideNav
 import com.elderlylauncher.ui.theme.LauncherColors
 
 @Composable
@@ -99,47 +103,22 @@ fun CallPickerDialog(
                         }
                     )
                 } else {
-                    Column(modifier = Modifier.weight(1f)) {
-                        if (favorites.isNotEmpty()) {
-                            Text(
-                                text = stringResource(R.string.call_favorites),
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = LauncherColors.Gray600
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            favorites.forEach { contact ->
-                                ContactCallRow(contact, pinned = true) {
-                                    onCall(contact.phoneNumber)
-                                }
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
-                        }
-                        if (others.isEmpty() && favorites.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.call_empty),
-                                color = LauncherColors.Gray600,
-                                fontSize = 20.sp,
-                                modifier = Modifier.padding(top = 8.dp)
-                            )
-                        } else if (others.isNotEmpty()) {
-                            Text(
-                                text = stringResource(R.string.call_others),
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = LauncherColors.Gray600
-                            )
-                            ButtonPagedColumn(
-                                items = others,
-                                pageSize = 4,
-                                modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) { contact ->
-                                ContactCallRow(contact, pinned = false) {
-                                    onCall(contact.phoneNumber)
-                                }
-                            }
-                        }
+                    if (favorites.isEmpty() && others.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.call_empty),
+                            color = LauncherColors.Gray600,
+                            fontSize = 20.sp,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(top = 8.dp)
+                        )
+                    } else {
+                        CallContactPages(
+                            favorites = favorites,
+                            others = others,
+                            onCall = onCall,
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
@@ -163,9 +142,14 @@ fun CallPickerDialog(
 }
 
 @Composable
-private fun ContactCallRow(contact: QuickContact, pinned: Boolean, onClick: () -> Unit) {
+private fun ContactCallRow(
+    contact: QuickContact,
+    pinned: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(if (pinned) LauncherColors.Green50 else LauncherColors.Gray100)
@@ -200,6 +184,139 @@ private fun ContactCallRow(contact: QuickContact, pinned: Boolean, onClick: () -
             )
         }
     }
+}
+
+private sealed interface CallLine {
+    data class Label(val textRes: Int) : CallLine
+    data class Person(val contact: QuickContact, val pinned: Boolean) : CallLine
+}
+
+@Composable
+private fun CallContactPages(
+    favorites: List<QuickContact>,
+    others: List<QuickContact>,
+    onCall: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        val pages = callPages(favorites, others, maxHeight)
+        var page by rememberSaveable { mutableIntStateOf(0) }
+        val safePage = page.coerceIn(0, pages.lastIndex.coerceAtLeast(0))
+        PagedSideNav(
+            currentPage = safePage,
+            pageCount = pages.size,
+            onPageChange = { page = it },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                pages[safePage].forEach { line ->
+                    when (line) {
+                        is CallLine.Label -> Text(
+                            text = stringResource(line.textRes),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = LauncherColors.Gray600
+                        )
+                        is CallLine.Person -> Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                        ) {
+                            ContactCallRow(
+                                contact = line.contact,
+                                pinned = line.pinned,
+                                modifier = Modifier.fillMaxSize(),
+                                onClick = { onCall(line.contact.phoneNumber) }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun callPages(
+    favorites: List<QuickContact>,
+    others: List<QuickContact>,
+    maxHeight: Dp
+): List<List<CallLine>> {
+    val minRow = 80.dp
+    val gap = 8.dp
+    val label = 28.dp
+    val nav = 68.dp
+    val people = buildList {
+        favorites.forEach { add(it to true) }
+        others.forEach { add(it to false) }
+    }
+    if (people.isEmpty()) return listOf(emptyList())
+    val height = if (maxHeight.value.isFinite() && maxHeight > 0.dp) maxHeight else 480.dp
+    val pages = mutableListOf<List<CallLine>>()
+    var index = 0
+    while (index < people.size) {
+        val rest = people.size - index
+        val withoutNav = packCallCount(people, index, height, minRow, gap, label)
+        val count = if (pages.isNotEmpty() || withoutNav < rest) {
+            packCallCount(people, index, height - nav, minRow, gap, label).coerceAtLeast(1)
+        } else {
+            withoutNav.coerceAtLeast(1)
+        }
+        pages.add(callLines(people.subList(index, (index + count).coerceAtMost(people.size))))
+        index += count
+    }
+    return pages
+}
+
+private fun packCallCount(
+    people: List<Pair<QuickContact, Boolean>>,
+    start: Int,
+    budget: Dp,
+    minRow: Dp,
+    gap: Dp,
+    label: Dp
+): Int {
+    if (budget <= minRow) return 1
+    var used = 0.dp
+    var count = 0
+    var sawFavorite = false
+    var sawOther = false
+    while (start + count < people.size && count < 8) {
+        val pinned = people[start + count].second
+        var add = minRow
+        if (used > 0.dp) add += gap
+        val needsLabel = (pinned && !sawFavorite) || (!pinned && !sawOther)
+        if (needsLabel) {
+            if (used > 0.dp) add += gap
+            add += label
+        }
+        if (count > 0 && used + add > budget) break
+        used += add
+        if (pinned) sawFavorite = true else sawOther = true
+        count++
+        if (used > budget) break
+    }
+    return count
+}
+
+private fun callLines(people: List<Pair<QuickContact, Boolean>>): List<CallLine> {
+    val lines = mutableListOf<CallLine>()
+    var sawFavorite = false
+    var sawOther = false
+    people.forEach { (contact, pinned) ->
+        if (pinned && !sawFavorite) {
+            lines.add(CallLine.Label(R.string.call_favorites))
+            sawFavorite = true
+        }
+        if (!pinned && !sawOther) {
+            lines.add(CallLine.Label(R.string.call_others))
+            sawOther = true
+        }
+        lines.add(CallLine.Person(contact, pinned))
+    }
+    return lines
 }
 
 @Composable
