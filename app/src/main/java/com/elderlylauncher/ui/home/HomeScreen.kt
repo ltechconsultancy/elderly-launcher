@@ -45,6 +45,8 @@ import com.elderlylauncher.R
 import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.data.QuickContact
 import com.elderlylauncher.ui.LauncherViewModel
+import com.elderlylauncher.ui.PagedSideNav
+import com.elderlylauncher.ui.homeGridFit
 import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
 import java.time.LocalDate
@@ -480,53 +482,53 @@ fun HomeAppGrid(
             .sorted()
         defaultSlots + extraSlots
     }
-    val (columns, _) = homeGridShape(positions.size, landscape, tablet)
-    val scale = tileScale(positions.size, tablet)
-    val rowsOfItems = positions.chunked(columns)
-
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        rowsOfItems.forEach { rowItems ->
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val fit = homeGridFit(maxWidth, maxHeight, positions.size, landscape, tablet)
+        val pageSize = (fit.rowsPerPage * fit.columns).coerceAtLeast(1)
+        var page by rememberSaveable { mutableIntStateOf(0) }
+        val pageCount = maxOf(1, (positions.size + pageSize - 1) / pageSize)
+        if (page >= pageCount) page = pageCount - 1
+        val pageItems = positions.drop(page * pageSize).take(pageSize)
+        val scale = tileScaleFor(fit.tile)
+        PagedSideNav(
+            currentPage = page,
+            pageCount = pageCount,
+            onPageChange = { page = it },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(fit.gap, Alignment.CenterVertically)
             ) {
-                rowItems.forEach { position ->
-                    HomeAppTile(
-                        position = position,
-                        homeApps = homeApps,
-                        installedApps = installedApps,
-                        context = context,
-                        viewModel = viewModel,
-                        scale = scale,
-                        onCall = onCall,
+                pageItems.chunked(fit.columns).forEach { rowItems ->
+                    Row(
                         modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                    )
-                }
-                repeat(columns - rowItems.size) {
-                    Spacer(modifier = Modifier.weight(1f))
+                            .fillMaxWidth()
+                            .height(fit.tile),
+                        horizontalArrangement = Arrangement.spacedBy(fit.gap)
+                    ) {
+                        rowItems.forEach { position ->
+                            HomeAppTile(
+                                position = position,
+                                homeApps = homeApps,
+                                installedApps = installedApps,
+                                context = context,
+                                viewModel = viewModel,
+                                scale = scale,
+                                onCall = onCall,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                            )
+                        }
+                        repeat(fit.columns - rowItems.size) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
                 }
             }
         }
     }
-}
-
-private fun homeGridShape(count: Int, landscape: Boolean, tablet: Boolean): Pair<Int, Int> {
-    if (count <= 1) return 1 to 1
-    if (count == 2) return 2 to 1
-    if (landscape && !tablet) {
-        val cols = count.coerceAtMost(4)
-        return cols to ((count + cols - 1) / cols)
-    }
-    if (count <= 4) return 2 to 2
-    if (count <= 6) return if (landscape || tablet) 3 to 2 else 2 to 3
-    return if (landscape || tablet) 4 to 2 else 2 to 4
 }
 
 private data class TileScale(
@@ -536,18 +538,17 @@ private data class TileScale(
     val padding: Dp
 )
 
-private fun tileScale(count: Int, tablet: Boolean): TileScale {
-    val base = when {
-        count <= 4 -> TileScale(80.dp, 40.dp, 22.sp, 16.dp)
-        count <= 6 -> TileScale(64.dp, 32.dp, 18.sp, 12.dp)
-        else -> TileScale(48.dp, 24.dp, 16.sp, 8.dp)
-    }
-    if (tablet) return base
+private fun tileScaleFor(tile: Dp): TileScale {
+    val iconBox = (tile * 0.42f).coerceIn(44.dp, 80.dp)
     return TileScale(
-        iconBox = base.iconBox * 0.72f,
-        glyph = base.glyph * 0.72f,
-        label = (base.label.value * 0.85f).sp,
-        padding = base.padding * 0.6f
+        iconBox = iconBox,
+        glyph = iconBox * 0.5f,
+        label = when {
+            tile < 130.dp -> 16.sp
+            tile < 170.dp -> 18.sp
+            else -> 22.sp
+        },
+        padding = (tile * 0.08f).coerceIn(8.dp, 16.dp)
     )
 }
 
@@ -559,7 +560,7 @@ private fun HomeAppTile(
     context: Context,
     viewModel: LauncherViewModel,
     modifier: Modifier = Modifier,
-    scale: TileScale = tileScale(4, tablet = true),
+    scale: TileScale = tileScaleFor(160.dp),
     onCall: () -> Unit = {}
 ) {
     val customPackage = homeApps[position]

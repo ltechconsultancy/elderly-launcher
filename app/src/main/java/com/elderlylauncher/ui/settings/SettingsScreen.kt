@@ -2171,11 +2171,15 @@ fun HomeAppsDialog(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    BoxWithConstraints(modifier = Modifier.weight(1f)) {
+                    val slotColumns = if (maxWidth > maxHeight && maxWidth >= 520.dp) 2 else 1
                     ButtonPagedColumn(
                         items = (0 until LauncherViewModel.DEFAULT_HOME_SLOTS).toList() + extraSlots,
-                        pageSize = 6,
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        pageSize = 12,
+                        fitToHeight = true,
+                        rowHeight = 88.dp,
+                        columns = slotColumns,
+                        modifier = Modifier.fillMaxSize()
                     ) { position ->
                             val packageName = currentHomeApps[position]
                             val appInfo = installedApps.find { it.packageName == packageName }
@@ -2188,6 +2192,7 @@ fun HomeAppsDialog(
                                     { onAppCleared(position) }
                                 } else null
                             )
+                    }
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -2273,15 +2278,22 @@ fun AppSlotItem(
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .clip(RoundedCornerShape(16.dp))
             .background(LauncherColors.Gray50)
             .border(1.dp, LauncherColors.Gray200, RoundedCornerShape(16.dp))
-            .clickable(onClick = onClick)
-            .padding(12.dp),
+            .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // App icon or placeholder
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .clip(RoundedCornerShape(12.dp))
+                .clickable(onClick = onClick),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
         Box(
             modifier = Modifier
                 .size(48.dp)
@@ -2317,14 +2329,16 @@ fun AppSlotItem(
             Text(
                 text = appInfo?.label ?: stringResource(R.string.settings_apps_tap_to_select),
                 style = MaterialTheme.typography.titleMedium,
-                color = if (appInfo != null) LauncherColors.Gray800 else LauncherColors.Gray500
+                color = if (appInfo != null) LauncherColors.Gray800 else LauncherColors.Gray500,
+                maxLines = 1
             )
+        }
         }
 
         if (onClear != null) {
             IconButton(
                 onClick = onClear,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(48.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Clear,

@@ -2,6 +2,7 @@ package com.elderlylauncher.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,8 +26,11 @@ import androidx.compose.ui.unit.sp
 import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.Paparazzi
 import com.android.resources.ScreenOrientation
+import android.graphics.drawable.ColorDrawable
+import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.data.QuickContact
 import com.elderlylauncher.ui.home.CallContactPages
+import com.elderlylauncher.ui.settings.AppSlotItem
 import com.elderlylauncher.ui.theme.LauncherColors
 import com.elderlylauncher.ui.volume.VolumeCardGrid
 import com.elderlylauncher.ui.volume.VolumeControl
@@ -58,6 +62,18 @@ class LayoutShots {
 
     @Test
     fun callsPhoneLandscape() = calls(DeviceConfig.PIXEL_5.landscape(), "calls-phone-landscape")
+
+    @Test
+    fun homeSlotsPhonePortrait() = slots(DeviceConfig.PIXEL_5, "home-slots-phone-portrait")
+
+    @Test
+    fun homeSlotsPhoneLandscape() = slots(DeviceConfig.PIXEL_5.landscape(), "home-slots-phone-landscape")
+
+    @Test
+    fun homeTilesPhonePortrait() = tiles(DeviceConfig.PIXEL_5, tablet = false, landscape = false, "home-tiles-phone-portrait")
+
+    @Test
+    fun homeTilesPhoneLandscape() = tiles(DeviceConfig.PIXEL_5.landscape(), tablet = false, landscape = true, "home-tiles-phone-landscape")
 
     private fun volume(device: DeviceConfig, tablet: Boolean, landscape: Boolean, name: String) {
         paparazzi.unsafeUpdateConfig(deviceConfig = device)
@@ -154,6 +170,100 @@ class LayoutShots {
                             Text("Zelf een nummer", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                         }
                     }
+                }
+            }
+        }
+    }
+
+    private fun slots(device: DeviceConfig, name: String) {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device)
+        paparazzi.snapshot(name) {
+            val icon = ColorDrawable(0xFF16A34A.toInt())
+            val app = AppInfo("demo.app", "Camera", icon)
+            Surface(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(12.dp),
+                shape = RoundedCornerShape(24.dp),
+                color = Color.White
+            ) {
+                Column(modifier = Modifier.padding(16.dp).fillMaxSize()) {
+                    Text("Startscherm", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    androidx.compose.foundation.layout.Spacer(Modifier.height(12.dp))
+                    BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                    val columns = if (maxWidth > maxHeight && maxWidth >= 520.dp) 2 else 1
+                    ButtonPagedColumn(
+                        items = (0 until 8).toList(),
+                        pageSize = 12,
+                        fitToHeight = true,
+                        rowHeight = 88.dp,
+                        columns = columns,
+                        modifier = Modifier.fillMaxSize()
+                    ) { index ->
+                        AppSlotItem(
+                            slotName = "Plek ${index + 1}",
+                            appInfo = app,
+                            onClick = {},
+                            onClear = {}
+                        )
+                    }
+                    }
+                    androidx.compose.foundation.layout.Spacer(Modifier.height(12.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(64.dp)
+                            .background(LauncherColors.Green500, RoundedCornerShape(16.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("App toevoegen", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun tiles(device: DeviceConfig, tablet: Boolean, landscape: Boolean, name: String) {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device)
+        paparazzi.snapshot(name) {
+            Column(modifier = Modifier.fillMaxSize().background(Color.White).padding(16.dp)) {
+                Text("12:30", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                androidx.compose.foundation.layout.Spacer(Modifier.height(8.dp))
+                BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                    val fit = homeGridFit(maxWidth, maxHeight, 8, landscape, tablet)
+                    val pageSize = fit.rowsPerPage * fit.columns
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(fit.gap, Alignment.CenterVertically)
+                    ) {
+                        (0 until minOf(8, pageSize)).toList().chunked(fit.columns).forEach { row ->
+                            androidx.compose.foundation.layout.Row(
+                                modifier = Modifier.fillMaxWidth().height(fit.tile),
+                                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(fit.gap)
+                            ) {
+                                row.forEach { index ->
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .fillMaxSize()
+                                            .background(LauncherColors.Blue50, RoundedCornerShape(24.dp)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("App ${index + 1}", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .background(LauncherColors.Red500, RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Noodgeval", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
         }
