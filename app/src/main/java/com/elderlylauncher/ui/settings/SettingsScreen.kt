@@ -329,14 +329,17 @@ fun PasswordDialog(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                val passwordHint = stringResource(R.string.settings_password_hint)
                 OutlinedTextField(
                     value = password,
                     onValueChange = onPasswordChange,
-                    label = { Text(stringResource(R.string.settings_password_hint)) },
+                    label = null,
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                     isError = showError,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentDescription = passwordHint },
                     shape = RoundedCornerShape(16.dp),
                     textStyle = MaterialTheme.typography.titleLarge.copy(
                         textAlign = TextAlign.Center,
