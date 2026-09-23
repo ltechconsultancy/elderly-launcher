@@ -72,8 +72,8 @@ fun homeGridFit(
     tablet: Boolean
 ): HomeGridFit {
     val gap = 12.dp
-    val minTile = if (tablet) 140.dp else 108.dp
-    val maxTile = if (tablet) 220.dp else 176.dp
+    val minTile = if (tablet) 180.dp else 108.dp
+    val maxTile = if (tablet) 420.dp else 200.dp
     val minTileWidth = if (tablet) 180.dp else 140.dp
     val safeCount = count.coerceAtLeast(1)
     val columns = when {
@@ -81,10 +81,8 @@ fun homeGridFit(
         landscape && !tablet -> {
             ((width + gap) / (minTileWidth + gap)).toInt().coerceIn(2, 4).coerceAtMost(safeCount)
         }
-        tablet && landscape && safeCount <= 4 -> 2
-        tablet && landscape -> 4.coerceAtMost(safeCount)
-        tablet && safeCount <= 4 -> 2
-        tablet -> 3.coerceAtMost(safeCount)
+        tablet && landscape -> 4.coerceAtMost(safeCount).coerceAtLeast(2)
+        tablet -> 2
         safeCount == 2 && width >= minTileWidth * 2 -> 2
         else -> 2
     }

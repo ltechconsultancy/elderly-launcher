@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -30,6 +32,7 @@ import android.graphics.drawable.ColorDrawable
 import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.data.QuickContact
 import com.elderlylauncher.ui.home.CallContactPages
+import com.elderlylauncher.ui.home.tileScaleFor
 import com.elderlylauncher.ui.notifications.NotificationCard
 import com.elderlylauncher.ui.settings.AppSlotItem
 import com.elderlylauncher.util.InboxNotification
@@ -76,6 +79,9 @@ class LayoutShots {
 
     @Test
     fun homeTilesPhoneLandscape() = tiles(DeviceConfig.PIXEL_5.landscape(), tablet = false, landscape = true, "home-tiles-phone-landscape")
+
+    @Test
+    fun homeTilesTabletPortrait() = tiles(DeviceConfig.NEXUS_10.portrait(), tablet = true, landscape = false, "home-tiles-tablet-portrait")
 
     @Test
     fun notificationCardPhone() {
@@ -258,6 +264,8 @@ class LayoutShots {
                 androidx.compose.foundation.layout.Spacer(Modifier.height(8.dp))
                 BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
                     val fit = homeGridFit(maxWidth, maxHeight, 8, landscape, tablet)
+                    val tileWidth = (maxWidth - fit.gap * (fit.columns - 1)) / fit.columns
+                    val scale = tileScaleFor(tileWidth, fit.tile)
                     val pageSize = fit.rowsPerPage * fit.columns
                     Column(
                         modifier = Modifier.fillMaxSize(),
@@ -276,7 +284,15 @@ class LayoutShots {
                                             .background(LauncherColors.Blue50, RoundedCornerShape(24.dp)),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text("App ${index + 1}", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(scale.iconBox)
+                                                    .background(LauncherColors.Blue500, CircleShape)
+                                            )
+                                            androidx.compose.foundation.layout.Spacer(Modifier.height(8.dp))
+                                            Text("App ${index + 1}", fontSize = scale.label, fontWeight = FontWeight.Bold)
+                                        }
                                     }
                                 }
                             }
