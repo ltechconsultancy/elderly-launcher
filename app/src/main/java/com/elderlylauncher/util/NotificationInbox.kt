@@ -1,6 +1,9 @@
 package com.elderlylauncher.util
 
 import android.app.Notification
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -13,7 +16,8 @@ data class InboxNotification(
     val packageName: String,
     val title: String,
     val text: String,
-    val postedAt: Long
+    val postedAt: Long,
+    val contentIntent: PendingIntent? = null
 )
 
 /**
@@ -56,6 +60,25 @@ object NotificationInbox {
         _items.value = _items.value.filter { it.key != key }
     }
 
+    fun open(context: Context, item: InboxNotification) {
+        val pending = item.contentIntent
+        if (pending != null) {
+            try {
+                pending.send()
+                return
+            } catch (e: Exception) {
+                Log.e(TAG, "Could not open the notification", e)
+            }
+        }
+        val launch = context.packageManager.getLaunchIntentForPackage(item.packageName) ?: return
+        launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        try {
+            context.startActivity(launch)
+        } catch (e: Exception) {
+            Log.e(TAG, "Could not open the app", e)
+        }
+    }
+
     fun dismiss(key: String) {
         try {
             service?.cancelNotification(key)
@@ -94,6 +117,7 @@ private fun StatusBarNotification.toInbox(): InboxNotification? {
         packageName = packageName,
         title = title.ifBlank { text },
         text = if (title.isBlank()) "" else text,
-        postedAt = postTime
+        postedAt = postTime,
+        contentIntent = notice.contentIntent
     )
 }
