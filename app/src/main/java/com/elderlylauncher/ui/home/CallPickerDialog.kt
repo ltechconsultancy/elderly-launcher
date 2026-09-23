@@ -192,14 +192,15 @@ private sealed interface CallLine {
 }
 
 @Composable
-private fun CallContactPages(
+internal fun CallContactPages(
     favorites: List<QuickContact>,
     others: List<QuickContact>,
     onCall: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
-        val pages = callPages(favorites, others, maxHeight)
+        val columns = if (maxWidth > maxHeight && maxWidth >= 520.dp) 2 else 1
+        val pages = callPages(favorites, others, maxHeight, columns)
         var page by rememberSaveable { mutableIntStateOf(0) }
         val safePage = page.coerceIn(0, pages.lastIndex.coerceAtLeast(0))
         PagedSideNav(
@@ -208,32 +209,63 @@ private fun CallContactPages(
             onPageChange = { page = it },
             modifier = Modifier.fillMaxSize()
         ) {
+            val lines = pages[safePage]
+            val people = lines.count { it is CallLine.Person }
+            val labels = lines.count { it is CallLine.Label }
+            val visualRows = if (people == 0) 1 else (people + columns - 1) / columns
+            val nav = if (pages.size > 1) 64.dp else 0.dp
+            val gaps = 8.dp * (visualRows + labels - 1).coerceAtLeast(0)
+            val room = (maxHeight - nav - 26.dp * labels - gaps).coerceAtLeast(72.dp)
+            val rowCap = if (columns > 1) 160.dp else 96.dp
+            val rowHeight = (room / visualRows).coerceIn(72.dp, rowCap)
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                pages[safePage].forEach { line ->
-                    when (line) {
-                        is CallLine.Label -> Text(
-                            text = stringResource(line.textRes),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = LauncherColors.Gray600
-                        )
-                        is CallLine.Person -> Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth()
-                        ) {
+                val pending = mutableListOf<CallLine.Person>()
+                @Composable
+                fun flushRow() {
+                    if (pending.isEmpty()) return
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(rowHeight),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        pending.forEach { person ->
                             ContactCallRow(
-                                contact = line.contact,
-                                pinned = line.pinned,
-                                modifier = Modifier.fillMaxSize(),
-                                onClick = { onCall(line.contact.phoneNumber) }
+                                contact = person.contact,
+                                pinned = person.pinned,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight(),
+                                onClick = { onCall(person.contact.phoneNumber) }
                             )
+                        }
+                        repeat(columns - pending.size) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                    pending.clear()
+                }
+                lines.forEach { line ->
+                    when (line) {
+                        is CallLine.Label -> {
+                            flushRow()
+                            Text(
+                                text = stringResource(line.textRes),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = LauncherColors.Gray600
+                            )
+                        }
+                        is CallLine.Person -> {
+                            pending.add(line)
+                            if (pending.size == columns) flushRow()
                         }
                     }
                 }
+                flushRow()
             }
         }
     }
@@ -242,12 +274,13 @@ private fun CallContactPages(
 private fun callPages(
     favorites: List<QuickContact>,
     others: List<QuickContact>,
-    maxHeight: Dp
+    maxHeight: Dp,
+    columns: Int
 ): List<List<CallLine>> {
-    val minRow = 80.dp
+    val minRow = 72.dp
     val gap = 8.dp
-    val label = 28.dp
-    val nav = 68.dp
+    val label = 26.dp
+    val nav = 64.dp
     val people = buildList {
         favorites.forEach { add(it to true) }
         others.forEach { add(it to false) }
@@ -258,9 +291,9 @@ private fun callPages(
     var index = 0
     while (index < people.size) {
         val rest = people.size - index
-        val withoutNav = packCallCount(people, index, height, minRow, gap, label)
+        val withoutNav = packCallCount(people, index, height, minRow, gap, label, columns)
         val count = if (pages.isNotEmpty() || withoutNav < rest) {
-            packCallCount(people, index, height - nav, minRow, gap, label).coerceAtLeast(1)
+            packCallCount(people, index, height - nav, minRow, gap, label, columns).coerceAtLeast(1)
         } else {
             withoutNav.coerceAtLeast(1)
         }
@@ -276,25 +309,32 @@ private fun packCallCount(
     budget: Dp,
     minRow: Dp,
     gap: Dp,
-    label: Dp
+    label: Dp,
+    columns: Int
 ): Int {
     if (budget <= minRow) return 1
     var used = 0.dp
     var count = 0
+    var inRow = 0
     var sawFavorite = false
     var sawOther = false
     while (start + count < people.size && count < 8) {
         val pinned = people[start + count].second
-        var add = minRow
-        if (used > 0.dp) add += gap
         val needsLabel = (pinned && !sawFavorite) || (!pinned && !sawOther)
+        var add = 0.dp
         if (needsLabel) {
             if (used > 0.dp) add += gap
-            add += label
+            add += label + gap
+            inRow = 0
+        }
+        if (inRow == 0) {
+            if (used > 0.dp && !needsLabel) add += gap
+            add += minRow
         }
         if (count > 0 && used + add > budget) break
         used += add
         if (pinned) sawFavorite = true else sawOther = true
+        inRow = (inRow + 1) % columns.coerceAtLeast(1)
         count++
         if (used > budget) break
     }
