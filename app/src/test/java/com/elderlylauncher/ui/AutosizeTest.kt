@@ -54,6 +54,28 @@ class AutosizeTest {
     }
 
     @Test
+    fun twoAppsOnATallPhoneStackIntoLargeTiles() {
+        val fit = appGridFit(width = 360.dp, height = 700.dp, count = 2, tablet = false)
+        assertEquals(1, fit.columns)
+        assertTrue(fit.tile >= 200.dp)
+        assertTrue(fit.tile <= 280.dp)
+    }
+
+    @Test
+    fun twoAppsOnAWideTabletStaySideBySide() {
+        val fit = appGridFit(width = 800.dp, height = 1100.dp, count = 2, tablet = true)
+        assertEquals(2, fit.columns)
+        assertTrue(fit.tile >= 180.dp)
+    }
+
+    @Test
+    fun manyAppsStayLargeEnoughToPage() {
+        val fit = appGridFit(width = 360.dp, height = 700.dp, count = 12, tablet = false)
+        assertTrue(fit.tile >= 108.dp)
+        assertTrue(fit.rowsPerPage * fit.columns < 12)
+    }
+
+    @Test
     fun listPagesWhenRowsWouldSitUnderThePager() {
         assertEquals(1, fittedPageSize(height = 200.dp, row = 88.dp, gap = 8.dp, count = 6))
         assertTrue(fittedPageSize(height = 700.dp, row = 88.dp, gap = 8.dp, count = 4) >= 4)
