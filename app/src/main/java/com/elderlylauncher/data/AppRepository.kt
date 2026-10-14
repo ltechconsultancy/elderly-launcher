@@ -118,6 +118,7 @@ class AppRepository(context: Context) {
      * @return true if app was launched successfully, false otherwise
      */
     fun launchApp(packageName: String): Boolean {
+        WebTiles.urlFor(packageName)?.let { url -> return openUrl(url) }
         return try {
             val intent = packageManager.getLaunchIntentForPackage(packageName)
             if (intent != null) {
@@ -133,6 +134,18 @@ class AppRepository(context: Context) {
             false
         } catch (e: SecurityException) {
             Log.e(TAG, "Security exception launching $packageName", e)
+            false
+        }
+    }
+
+    private fun openUrl(url: String): Boolean {
+        return try {
+            val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            appContext.startActivity(intent)
+            true
+        } catch (e: ActivityNotFoundException) {
+            Log.e(TAG, "No browser for $url", e)
             false
         }
     }

@@ -118,7 +118,7 @@ fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
     var showEmergencyConfirm by rememberSaveable { mutableStateOf(false) }
 
     val homeApps by viewModel.homeApps.collectAsState()
-    val installedApps by viewModel.installedApps.collectAsState()
+    val installedApps by viewModel.tileApps.collectAsState()
     val quickContacts by viewModel.quickContacts.collectAsState()
     val contacts by viewModel.contacts.collectAsState()
     var showCallPicker by rememberSaveable { mutableStateOf(false) }

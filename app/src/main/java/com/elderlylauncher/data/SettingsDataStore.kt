@@ -40,6 +40,8 @@ class SettingsDataStore(private val context: Context) {
         val NOTIFICATION_BLOCKED = stringSetPreferencesKey("notification_blocked_apps")
         val NOTIFICATION_EXTRA = stringSetPreferencesKey("notification_extra_apps")
         val PAGE_ORDER = stringPreferencesKey("page_order")
+        val WEB_TILES_SEEDED = stringSetPreferencesKey("web_tiles_seeded")
+        val PUIK_HOME_ADDED = booleanPreferencesKey("puik_home_added")
     }
 
     // Default values
@@ -265,9 +267,27 @@ class SettingsDataStore(private val context: Context) {
         }
     }
 
+    /** Web tiles that were already placed on Home once (never re-added after removal). */
+    val webTilesSeeded: Flow<Set<String>> = context.dataStore.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .map { it[Keys.WEB_TILES_SEEDED] ?: emptySet() }
+
+    suspend fun setWebTilesSeeded(keys: Set<String>) {
+        context.dataStore.edit { it[Keys.WEB_TILES_SEEDED] = keys }
+    }
+
     val brightnessLocked: Flow<Boolean> = context.dataStore.data
         .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
         .map { it[Keys.BRIGHTNESS_LOCKED] ?: false }
+
+    /** One-time migration: Puik tile placed on Home once. */
+    val puikHomeAdded: Flow<Boolean> = context.dataStore.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .map { it[Keys.PUIK_HOME_ADDED] ?: false }
+
+    suspend fun setPuikHomeAdded() {
+        context.dataStore.edit { it[Keys.PUIK_HOME_ADDED] = true }
+    }
 
     suspend fun setBrightnessLocked(locked: Boolean) {
         context.dataStore.edit { it[Keys.BRIGHTNESS_LOCKED] = locked }

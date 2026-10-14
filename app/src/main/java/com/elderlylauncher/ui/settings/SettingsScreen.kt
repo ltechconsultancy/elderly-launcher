@@ -705,7 +705,7 @@ fun SettingsContent(
 
     // Apps Dialog - Select home screen apps
     if (showAppsDialog) {
-        val installedApps by viewModel.installedApps.collectAsState()
+        val installedApps by viewModel.tileApps.collectAsState()
         val homeApps by viewModel.homeApps.collectAsState()
 
         // Refresh the app list each time the selector opens (new installs)
@@ -749,7 +749,7 @@ fun SettingsContent(
 
     // Apps Page visibility dialog
     if (showAppsPageDialog) {
-        val installedApps by viewModel.installedApps.collectAsState()
+        val installedApps by viewModel.tileApps.collectAsState()
         val allowedApps by viewModel.appsPageAllowed.collectAsState()
 
         // Refresh the app list each time the selector opens (new installs)
