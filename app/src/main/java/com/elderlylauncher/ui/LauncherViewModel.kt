@@ -55,6 +55,12 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     private val _installedApps = MutableStateFlow<List<AppInfo>>(emptyList())
     val installedApps: StateFlow<List<AppInfo>> = _installedApps.asStateFlow()
 
+    // Installed apps plus website tiles (Puik). Used for Home and the Apps page.
+    private val webTiles = WebTiles.all(application)
+    val tileApps: StateFlow<List<AppInfo>> = _installedApps
+        .map { apps -> webTiles + apps }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, webTiles)
+
     // Contacts
     private val _contacts = MutableStateFlow<List<QuickContact>>(emptyList())
     val contacts: StateFlow<List<QuickContact>> = _contacts.asStateFlow()
@@ -133,6 +139,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     init {
         loadApps()
         loadContacts()
+        addPuikToHomeOnce()
         try {
             val filter = IntentFilter().apply {
                 addAction(Intent.ACTION_PACKAGE_ADDED)
@@ -266,6 +273,49 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 persistHomeApps(currentApps)
             } catch (e: Exception) {
                 Log.e(TAG, "Error clearing home app", e)
+            }
+        }
+    }
+
+    /** Put the Puik tile on Home once; the caregiver can remove it afterwards. */
+    private fun addPuikToHomeOnce() {
+        viewModelScope.launch(exceptionHandler) {
+            if (settingsDataStore.puikHomeAdded.first()) return@launch
+            val current = settingsDataStore.visibleApps.first()
+                .mapNotNull { parseHomeApp(it) }.toMap().toMutableMap()
+            if (WebTiles.PUIK !in current.values) {
+                val slot = (DEFAULT_HOME_SLOTS until MAX_HOME_APPS).firstOrNull { it !in current }
+                if (slot != null) {
+                    current[slot] = WebTiles.PUIK
+                    persistHomeApps(current)
+                }
+            }
+            settingsDataStore.setPuikHomeAdded()
+        }
+    }
+
+    /**
+     * Put new web tiles (Puik, Puzzelwoorden) on Home once, in the first free
+     * slots. A tile the user removes later is not added again.
+     */
+    private fun seedWebTilesOnHome() {
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                val seeded = settingsDataStore.webTilesSeeded.first()
+                val todo = WebTiles.homeDefaults.filter { it !in seeded }
+                if (todo.isEmpty()) return@launch
+                val current = settingsDataStore.visibleApps.first()
+                    .mapNotNull { parseHomeApp(it) }.toMap().toMutableMap()
+                for (key in todo) {
+                    if (key in current.values) continue
+                    val slot = (DEFAULT_HOME_SLOTS until MAX_HOME_APPS)
+                        .firstOrNull { it !in current } ?: break
+                    current[slot] = key
+                }
+                persistHomeApps(current)
+                settingsDataStore.setWebTilesSeeded(seeded + todo)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error seeding web tiles", e)
             }
         }
     }

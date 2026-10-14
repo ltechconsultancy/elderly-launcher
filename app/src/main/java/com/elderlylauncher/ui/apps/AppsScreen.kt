@@ -26,9 +26,8 @@ import com.elderlylauncher.ui.theme.LauncherColors
 fun AppsScreen(
     viewModel: LauncherViewModel = viewModel()
 ) {
-    val context = LocalContext.current
     val layout = rememberDeviceLayout()
-    val installedApps by viewModel.installedApps.collectAsState()
+    val installedApps by viewModel.tileApps.collectAsState()
     val allowedApps by viewModel.appsPageAllowed.collectAsState()
 
     val visibleApps = remember(installedApps, allowedApps) {
@@ -114,10 +113,7 @@ fun AppsScreen(
                             .fillMaxWidth()
                             .height(fit.tile),
                         onClick = {
-                            val intent = context.packageManager.getLaunchIntentForPackage(app.packageName)
-                            if (intent != null) {
-                                context.startActivity(intent)
-                            }
+                            viewModel.launchApp(app.packageName)
                         }
                     )
                 }
