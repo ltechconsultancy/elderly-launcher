@@ -1,7 +1,12 @@
 package com.elderlylauncher.ui
 
 import android.app.Application
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.elderlylauncher.data.*
@@ -117,9 +122,38 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     val pageOrder: StateFlow<List<LauncherPage>> = settingsDataStore.pageOrder
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LauncherPage.DEFAULT)
 
+    // Reload the app list whenever an app is installed, removed or updated,
+    // so a freshly installed app shows up in every selector without a restart.
+    private val packageReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            loadApps()
+        }
+    }
+
     init {
         loadApps()
         loadContacts()
+        try {
+            val filter = IntentFilter().apply {
+                addAction(Intent.ACTION_PACKAGE_ADDED)
+                addAction(Intent.ACTION_PACKAGE_REMOVED)
+                addAction(Intent.ACTION_PACKAGE_REPLACED)
+                addAction(Intent.ACTION_PACKAGE_CHANGED)
+                addDataScheme("package")
+            }
+            ContextCompat.registerReceiver(application, packageReceiver, filter, ContextCompat.RECEIVER_EXPORTED)
+        } catch (e: Exception) {
+            Log.e(TAG, "Could not register package receiver", e)
+        }
+    }
+
+    override fun onCleared() {
+        try {
+            getApplication<Application>().unregisterReceiver(packageReceiver)
+        } catch (e: Exception) {
+            Log.w(TAG, "Package receiver already unregistered", e)
+        }
+        super.onCleared()
     }
 
     fun loadApps() {

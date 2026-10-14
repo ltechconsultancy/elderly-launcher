@@ -708,6 +708,9 @@ fun SettingsContent(
         val installedApps by viewModel.installedApps.collectAsState()
         val homeApps by viewModel.homeApps.collectAsState()
 
+        // Refresh the app list each time the selector opens (new installs)
+        LaunchedEffect(Unit) { viewModel.loadApps() }
+
         HomeAppsDialog(
             installedApps = installedApps,
             currentHomeApps = homeApps,
@@ -749,6 +752,9 @@ fun SettingsContent(
         val installedApps by viewModel.installedApps.collectAsState()
         val allowedApps by viewModel.appsPageAllowed.collectAsState()
 
+        // Refresh the app list each time the selector opens (new installs)
+        LaunchedEffect(Unit) { viewModel.loadApps() }
+
         AppsPageDialog(
             installedApps = installedApps,
             allowedApps = allowedApps,
@@ -763,6 +769,9 @@ fun SettingsContent(
     if (showGamesDialog) {
         val installedApps by viewModel.installedApps.collectAsState()
         val gameApps by viewModel.gameApps.collectAsState()
+
+        // Refresh the app list each time the selector opens (new installs)
+        LaunchedEffect(Unit) { viewModel.loadApps() }
 
         GamesSelectionDialog(
             installedApps = installedApps,
@@ -794,6 +803,9 @@ fun SettingsContent(
         val installedApps by viewModel.installedApps.collectAsState()
         val appsPageAllowed by viewModel.appsPageAllowed.collectAsState()
         val extraApps by viewModel.notificationExtraApps.collectAsState()
+        // Refresh the app list each time the selector opens (new installs)
+        LaunchedEffect(Unit) { viewModel.loadApps() }
+
         NotificationAppsDialog(
             installedApps = installedApps,
             appsPageAllowed = appsPageAllowed,

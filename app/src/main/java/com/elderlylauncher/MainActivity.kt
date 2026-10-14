@@ -77,6 +77,8 @@ class MainActivity : ComponentActivity() {
                     val observer = LifecycleEventObserver { _, event ->
                         if (event == Lifecycle.Event.ON_RESUME) {
                             lifecycleResumeCount++
+                            // Pick up apps installed while the launcher was in the background
+                            viewModel.loadApps()
                         }
                     }
                     lifecycleOwner.lifecycle.addObserver(observer)
