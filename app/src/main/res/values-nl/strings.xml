@@ -261,4 +261,11 @@
     <string name="settings_web_tiles_hint">Uit haalt de tegel van het startscherm en de Apps-pagina.</string>
     <string name="web_tile_on">Aan</string>
     <string name="web_tile_off">Uit</string>
+    <string name="all_apps_title">Alle apps</string>
+    <string name="all_apps_subtitle">Elke app zoeken en openen, of naar de Play Store</string>
+    <string name="all_apps_search">App zoeken</string>
+    <string name="all_apps_clear">Wissen</string>
+    <string name="all_apps_play_store">Play Store</string>
+    <string name="all_apps_none">Geen app gevonden. Tik op Play Store om daar te zoeken.</string>
+    <string name="all_apps_open">Open</string>
 </resources>

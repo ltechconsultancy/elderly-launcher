@@ -261,4 +261,11 @@
     <string name="settings_web_tiles_hint">Off removes the tile from Home and the Apps page.</string>
     <string name="web_tile_on">On</string>
     <string name="web_tile_off">Off</string>
+    <string name="all_apps_title">All apps</string>
+    <string name="all_apps_subtitle">Search every app, open it or go to the Play Store</string>
+    <string name="all_apps_search">Search app</string>
+    <string name="all_apps_clear">Clear</string>
+    <string name="all_apps_play_store">Play Store</string>
+    <string name="all_apps_none">No app found. Tap Play Store to search there.</string>
+    <string name="all_apps_open">Open</string>
 </resources>

@@ -539,6 +539,7 @@ fun SettingsContent(
     var showContactsDialog by rememberSaveable { mutableStateOf(false) }
     var showGamesDialog by rememberSaveable { mutableStateOf(false) }
     var showWebTilesDialog by rememberSaveable { mutableStateOf(false) }
+    var showAllAppsDialog by rememberSaveable { mutableStateOf(false) }
     var showPhotosDialog by rememberSaveable { mutableStateOf(false) }
     var showBrightnessDialog by rememberSaveable { mutableStateOf(false) }
     var showNotificationsDialog by rememberSaveable { mutableStateOf(false) }
@@ -766,6 +767,17 @@ fun SettingsContent(
         )
     }
 
+    // All apps: search, open, Play Store
+    if (showAllAppsDialog) {
+        val installedApps by viewModel.installedApps.collectAsState()
+        LaunchedEffect(Unit) { viewModel.loadApps() }
+        AllAppsDialog(
+            installedApps = installedApps,
+            onDismiss = { showAllAppsDialog = false },
+            onOpenApp = { viewModel.launchApp(it) }
+        )
+    }
+
     // Website tiles on/off
     if (showWebTilesDialog) {
         val disabled by viewModel.webTilesDisabled.collectAsState()
@@ -915,6 +927,7 @@ fun SettingsContent(
 
         val settingsKeys = buildList {
             add("update")
+            add("all_apps")
             addAll(listOf("colors", "language", "brightness", "screen_timeout", "notifications", "page_order", "apps", "apps_page", "web_tiles", "games", "photos"))
             if (layout.hasTelephony) {
                 add("contacts")
@@ -1014,6 +1027,13 @@ fun SettingsContent(
                     icon = Icons.Default.GridView,
                     iconColor = LauncherColors.Teal500,
                     onClick = { showAppsPageDialog = true }
+                )
+                "all_apps" -> SettingsItem(
+                    title = stringResource(R.string.all_apps_title),
+                    subtitle = stringResource(R.string.all_apps_subtitle),
+                    icon = Icons.Default.Search,
+                    iconColor = LauncherColors.Green500,
+                    onClick = { showAllAppsDialog = true }
                 )
                 "web_tiles" -> SettingsItem(
                     title = stringResource(R.string.settings_web_tiles),
