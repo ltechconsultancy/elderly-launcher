@@ -35,7 +35,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.foundation.layout.widthIn
 import com.elderlylauncher.R
+import com.elderlylauncher.ui.DialogHeader
 import com.elderlylauncher.ui.ButtonPagedColumn
 import com.elderlylauncher.ui.LauncherPage
 import com.elderlylauncher.ui.LauncherViewModel
@@ -47,10 +50,14 @@ fun PageOrderDialog(
     viewModel: LauncherViewModel = viewModel()
 ) {
     val pages by viewModel.pageOrder.collectAsState()
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 720.dp)
                 .fillMaxHeight(0.9f)
                 .padding(8.dp),
             shape = RoundedCornerShape(24.dp),
@@ -61,29 +68,10 @@ fun PageOrderDialog(
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.settings_page_order),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = LauncherColors.Gray800,
-                        modifier = Modifier.weight(1f)
-                    )
-                    IconButton(onClick = onDismiss) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = stringResource(R.string.cancel),
-                            tint = LauncherColors.Gray600
-                        )
-                    }
-                }
-                Text(
-                    text = stringResource(R.string.settings_page_order_hint),
-                    color = LauncherColors.Gray600,
-                    fontSize = 18.sp
+                DialogHeader(
+                    title = stringResource(R.string.settings_page_order),
+                    info = stringResource(R.string.settings_page_order_hint),
+                    onClose = onDismiss
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 ButtonPagedColumn(

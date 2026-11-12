@@ -57,7 +57,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.graphics.drawable.toBitmap
+import androidx.compose.foundation.layout.widthIn
 import com.elderlylauncher.R
+import com.elderlylauncher.ui.DialogHeader
 import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.ui.ButtonPagedColumn
 import com.elderlylauncher.ui.theme.LauncherColors
@@ -95,24 +97,11 @@ fun AllAppsDialog(
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.all_apps_title),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = LauncherColors.Gray800
-                    )
-                    IconButton(onClick = onDismiss, modifier = Modifier.size(48.dp)) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = stringResource(R.string.cancel),
-                            tint = LauncherColors.Gray600
-                        )
-                    }
-                }
+                DialogHeader(
+                    title = stringResource(R.string.all_apps_title),
+                    info = null,
+                    onClose = onDismiss
+                )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -164,7 +153,7 @@ fun AllAppsDialog(
                 } else {
                     ButtonPagedColumn(
                         items = results,
-                        pageSize = 6,
+                        pageSize = 10,
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) { app ->

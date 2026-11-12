@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -92,10 +94,10 @@ class LayoutShots {
     fun appCardsTabletPortrait() = appCards(DeviceConfig.NEXUS_10.portrait(), tablet = true, "app-cards-tablet")
 
     @Test
-    fun selectorPhonePortrait() = selector(DeviceConfig.PIXEL_5, "selector-phone-portrait")
+    fun selectorPhonePortrait() = selector(DeviceConfig.PIXEL_5.copy(fontScale = 1.3f), "selector-phone-portrait")
 
     @Test
-    fun selectorPhoneLandscape() = selector(DeviceConfig.PIXEL_5.landscape(), "selector-phone-landscape")
+    fun selectorPhoneLandscape() = selector(DeviceConfig.PIXEL_5.landscape().copy(fontScale = 1.3f), "selector-phone-landscape")
 
     @Test
     fun notificationCardPhone() {
@@ -222,38 +224,43 @@ class LayoutShots {
         }
     }
 
-    /** App selector like the Settings dialogs: the last row on a page must be fully visible. */
+    /** Selection dialog as on the device: wide card, header with (i), the last row fully visible. */
     private fun selector(device: DeviceConfig, name: String) {
-        paparazzi.unsafeUpdateConfig(deviceConfig = device)
+        paparazzi.unsafeUpdateConfig(deviceConfig = device.copy(locale = "nl"))
         paparazzi.snapshot(name) {
-            Surface(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp),
-                shape = RoundedCornerShape(24.dp),
-                color = Color.White
+            Box(
+                modifier = Modifier.fillMaxSize().background(Color(0xFF888888)),
+                contentAlignment = Alignment.Center
             ) {
-                Column(modifier = Modifier.padding(16.dp).fillMaxSize()) {
-                    Text("Apps pagina", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                    Text("Tik op een app om hem aan of uit te zetten.", fontSize = 14.sp)
-                    androidx.compose.foundation.layout.Spacer(Modifier.height(12.dp))
-                    ButtonPagedColumn(
-                        items = (1..14).toList(),
-                        pageSize = 6,
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) { index ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(64.dp)
-                                .background(LauncherColors.Green50, RoundedCornerShape(12.dp))
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(Modifier.size(40.dp).background(LauncherColors.Green500, RoundedCornerShape(10.dp)))
-                            androidx.compose.foundation.layout.Spacer(Modifier.size(12.dp))
-                            Text("App $index", fontSize = 18.sp)
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .widthIn(max = 720.dp)
+                        .fillMaxHeight(0.85f)
+                        .padding(8.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    color = Color.White
+                ) {
+                    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                        DialogHeader(title = "Meldingen-apps", info = "Uitleg", onClose = {})
+                        androidx.compose.foundation.layout.Spacer(Modifier.height(12.dp))
+                        ButtonPagedColumn(
+                            items = listOf("Agenda", "Camera", "Chrome", "Contacten", "Gmail", "Klok", "Maps", "WhatsApp", "YouTube"),
+                            pageSize = 10,
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) { label ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(LauncherColors.Gray100, RoundedCornerShape(12.dp))
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(Modifier.size(40.dp).background(LauncherColors.Blue500, RoundedCornerShape(10.dp)))
+                                androidx.compose.foundation.layout.Spacer(Modifier.size(12.dp))
+                                Text(label, style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+                            }
                         }
                     }
                 }

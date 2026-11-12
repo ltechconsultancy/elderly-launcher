@@ -275,4 +275,6 @@
     <string name="power_setup_title">Switch on once</string>
     <string name="power_setup_message">To switch off or restart from Klaro, turn on “Klaro power button” once under Accessibility (Downloaded apps). If Android blocks it: App info › ⋮ › Allow restricted settings.</string>
     <string name="power_setup_button">Open settings</string>
+    <string name="dialog_info">Explanation</string>
+    <string name="dialog_info_ok">OK</string>
 </resources>

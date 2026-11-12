@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.core.graphics.drawable.toBitmap
 import com.elderlylauncher.R
+import com.elderlylauncher.ui.DialogHeader
 import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.ui.theme.LauncherColors
 
@@ -56,28 +57,10 @@ fun WebTilesDialog(
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.settings_web_tiles),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = LauncherColors.Gray800
-                    )
-                    IconButton(onClick = onDismiss, modifier = Modifier.size(48.dp)) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = stringResource(R.string.cancel),
-                            tint = LauncherColors.Gray600
-                        )
-                    }
-                }
-                Text(
-                    text = stringResource(R.string.settings_web_tiles_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = LauncherColors.Gray600
+                DialogHeader(
+                    title = stringResource(R.string.settings_web_tiles),
+                    info = stringResource(R.string.settings_web_tiles_hint),
+                    onClose = onDismiss
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

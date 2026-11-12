@@ -32,8 +32,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
+import com.elderlylauncher.ui.DialogHeader
 import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.data.QuickContact
 import com.elderlylauncher.ui.ButtonPagedColumn
@@ -1590,10 +1592,14 @@ fun AppsPageDialog(
     onDismiss: () -> Unit,
     onToggleApp: (String) -> Unit
 ) {
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 720.dp)
                 .fillMaxHeight(0.85f)
                 .padding(8.dp),
             shape = RoundedCornerShape(24.dp),
@@ -1605,36 +1611,17 @@ fun AppsPageDialog(
                     .padding(16.dp)
             ) {
                 // Header
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.settings_apps_page),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = LauncherColors.Gray800
-                    )
-                    IconButton(onClick = onDismiss) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = stringResource(R.string.cancel),
-                            tint = LauncherColors.Gray600
-                        )
-                    }
-                }
-
-                Text(
-                    text = stringResource(R.string.settings_apps_page_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = LauncherColors.Gray500
+                DialogHeader(
+                    title = stringResource(R.string.settings_apps_page),
+                    info = stringResource(R.string.settings_apps_page_hint),
+                    onClose = onDismiss
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 ButtonPagedColumn(
                     items = installedApps,
-                    pageSize = 6,
+                    pageSize = 10,
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) { app ->
@@ -1687,10 +1674,14 @@ fun QuickContactsDialog(
 ) {
     var showAddScreen by rememberSaveable { mutableStateOf(false) }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 720.dp)
                 .fillMaxHeight(0.85f)
                 .padding(8.dp),
             shape = RoundedCornerShape(24.dp),
@@ -1765,7 +1756,7 @@ fun QuickContactsDialog(
                     } else {
                         ButtonPagedColumn(
                             items = allContacts,
-                            pageSize = 6,
+                            pageSize = 10,
                             modifier = Modifier.weight(1f),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) { contact ->
@@ -1810,7 +1801,7 @@ fun QuickContactsDialog(
                     } else {
                         ButtonPagedColumn(
                             items = quickContacts,
-                            pageSize = 6,
+                            pageSize = 10,
                             modifier = Modifier.weight(1f),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) { contact ->
@@ -2222,10 +2213,14 @@ fun HomeAppsDialog(
     val nextExtraSlot = (LauncherViewModel.DEFAULT_HOME_SLOTS until LauncherViewModel.MAX_HOME_APPS)
         .firstOrNull { it !in currentHomeApps }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 720.dp)
                 .fillMaxHeight(0.9f)
                 .padding(8.dp),
             shape = RoundedCornerShape(24.dp),
@@ -2236,24 +2231,11 @@ fun HomeAppsDialog(
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.settings_apps),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = LauncherColors.Gray800
-                    )
-                    IconButton(onClick = onDismiss) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = stringResource(R.string.cancel),
-                            tint = LauncherColors.Gray600
-                        )
-                    }
-                }
+                DialogHeader(
+                    title = stringResource(R.string.settings_apps),
+                    info = null,
+                    onClose = onDismiss
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -2344,7 +2326,7 @@ fun HomeAppsDialog(
 
                     ButtonPagedColumn(
                         items = installedApps,
-                        pageSize = 6,
+                        pageSize = 10,
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) { app ->
@@ -2498,10 +2480,14 @@ fun GamesSelectionDialog(
     onDismiss: () -> Unit,
     onToggleApp: (String) -> Unit
 ) {
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 720.dp)
                 .fillMaxHeight(0.85f)
                 .padding(8.dp),
             shape = RoundedCornerShape(24.dp),
@@ -2513,36 +2499,17 @@ fun GamesSelectionDialog(
                     .padding(16.dp)
             ) {
                 // Header
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.settings_games),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = LauncherColors.Gray800
-                    )
-                    IconButton(onClick = onDismiss) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = stringResource(R.string.cancel),
-                            tint = LauncherColors.Gray600
-                        )
-                    }
-                }
-
-                Text(
-                    text = stringResource(R.string.settings_games_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = LauncherColors.Gray500
+                DialogHeader(
+                    title = stringResource(R.string.settings_games),
+                    info = stringResource(R.string.settings_games_hint),
+                    onClose = onDismiss
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 ButtonPagedColumn(
                     items = installedApps,
-                    pageSize = 6,
+                    pageSize = 10,
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) { app ->
@@ -2611,10 +2578,14 @@ fun PhotosSelectionDialog(
         }
     }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 720.dp)
                 .fillMaxHeight(0.85f)
                 .padding(8.dp),
             shape = RoundedCornerShape(24.dp),
@@ -2626,29 +2597,10 @@ fun PhotosSelectionDialog(
                     .padding(16.dp)
             ) {
                 // Header
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.settings_photos),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = LauncherColors.Gray800
-                    )
-                    IconButton(onClick = onDismiss) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = stringResource(R.string.cancel),
-                            tint = LauncherColors.Gray600
-                        )
-                    }
-                }
-
-                Text(
-                    text = stringResource(R.string.settings_photos_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = LauncherColors.Gray500
+                DialogHeader(
+                    title = stringResource(R.string.settings_photos),
+                    info = stringResource(R.string.settings_photos_hint),
+                    onClose = onDismiss
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))

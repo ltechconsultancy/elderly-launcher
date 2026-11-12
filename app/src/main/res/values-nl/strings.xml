@@ -275,4 +275,6 @@
     <string name="power_setup_title">Eén keer aanzetten</string>
     <string name="power_setup_message">Om vanuit Klaro uit te zetten of te herstarten: zet één keer “Klaro aan/uit-knop” aan onder Toegankelijkheid (Gedownloade apps). Blokkeert Android dat? App-info › ⋮ › Beperkte instellingen toestaan.</string>
     <string name="power_setup_button">Instellingen openen</string>
+    <string name="dialog_info">Uitleg</string>
+    <string name="dialog_info_ok">Begrepen</string>
 </resources>

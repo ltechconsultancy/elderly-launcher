@@ -57,7 +57,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.foundation.layout.widthIn
 import com.elderlylauncher.R
+import com.elderlylauncher.ui.DialogHeader
 import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.ui.ButtonPagedColumn
 import com.elderlylauncher.ui.LauncherViewModel
@@ -382,10 +385,14 @@ fun NotificationAppsDialog(
     onDismiss: () -> Unit,
     onToggleApp: (String) -> Unit
 ) {
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 720.dp)
                 .fillMaxHeight(0.85f)
                 .padding(8.dp),
             shape = RoundedCornerShape(24.dp),
@@ -396,33 +403,15 @@ fun NotificationAppsDialog(
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.settings_notifications),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = LauncherColors.Gray800
-                    )
-                    IconButton(onClick = onDismiss) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = stringResource(R.string.cancel),
-                            tint = LauncherColors.Gray600
-                        )
-                    }
-                }
-                Text(
-                    text = stringResource(R.string.settings_notifications_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = LauncherColors.Gray600
+                DialogHeader(
+                    title = stringResource(R.string.settings_notifications),
+                    info = stringResource(R.string.settings_notifications_hint),
+                    onClose = onDismiss
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 ButtonPagedColumn(
                     items = installedApps,
-                    pageSize = 6,
+                    pageSize = 10,
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) { app ->
