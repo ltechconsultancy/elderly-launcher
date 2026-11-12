@@ -214,8 +214,8 @@
     <string name="notifications_access_needed">Sta één keer toe dat deze app meldingen mag lezen.</string>
     <string name="notifications_access_button">Meldingen toestaan</string>
     <string name="settings_notifications">Meldingen-apps</string>
-    <string name="settings_notifications_subtitle">Kies welke apps getoond worden</string>
-    <string name="settings_notifications_hint">Apps van de Apps-pagina staan aan. Tik om extra apps toe te voegen. Die blijven aan, ook als je ze later van Apps haalt.</string>
+    <string name="settings_notifications_subtitle">Kies welke apps meldingen mogen sturen</string>
+    <string name="settings_notifications_hint">Apps van de Apps-pagina staan altijd aan. Apps op het startscherm staan aan; tik om ze uit te zetten. Tik op een andere app om hem aan te zetten. Meldingen van apps die uit staan worden weggehaald en maken geen geluid. Bellen, wekker en noodmeldingen komen altijd door.</string>
     <string name="settings_screen_timeout">Scherm uit</string>
     <string name="settings_screen_timeout_subtitle">Uren, minuten, seconden, of nooit</string>
     <string name="screen_timeout_hours">Uren</string>
@@ -256,4 +256,23 @@
         <item quantity="one">%d minuut</item>
         <item quantity="other">%d minuten</item>
     </plurals>
+    <string name="settings_web_tiles">Websites</string>
+    <string name="settings_web_tiles_subtitle">Puik en Puzzelwoorden aan of uit</string>
+    <string name="settings_web_tiles_hint">Uit haalt de tegel van het startscherm en de Apps-pagina.</string>
+    <string name="web_tile_on">Aan</string>
+    <string name="web_tile_off">Uit</string>
+    <string name="all_apps_title">Alle apps</string>
+    <string name="all_apps_subtitle">Elke app zoeken en openen, of naar de Play Store</string>
+    <string name="all_apps_search">App zoeken</string>
+    <string name="all_apps_clear">Wissen</string>
+    <string name="all_apps_play_store">Play Store</string>
+    <string name="all_apps_none">Geen app gevonden. Tik op Play Store om daar te zoeken.</string>
+    <string name="all_apps_open">Open</string>
+    <string name="power_title">Uit / opnieuw opstarten</string>
+    <string name="power_subtitle">Opent het menu om het toestel uit te zetten of te herstarten</string>
+    <string name="power_service_label">Klaro aan/uit-knop</string>
+    <string name="power_service_description">Laat Klaro het menu openen om het toestel uit te zetten of te herstarten. Klaro leest niets op het scherm.</string>
+    <string name="power_setup_title">Eén keer aanzetten</string>
+    <string name="power_setup_message">Om vanuit Klaro uit te zetten of te herstarten: zet één keer “Klaro aan/uit-knop” aan onder Toegankelijkheid (Gedownloade apps). Blokkeert Android dat? App-info › ⋮ › Beperkte instellingen toestaan.</string>
+    <string name="power_setup_button">Instellingen openen</string>
 </resources>

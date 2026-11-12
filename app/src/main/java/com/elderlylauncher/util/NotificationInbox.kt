@@ -22,7 +22,7 @@ data class InboxNotification(
 
 /**
  * Active notifications published by [ElderlyNotificationListener].
- * The UI filters this list with the caregiver blocklist.
+ * Unapproved apps are removed by the listener; the UI shows only approved apps.
  */
 object NotificationInbox {
     private const val TAG = "NotificationInbox"

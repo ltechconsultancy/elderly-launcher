@@ -55,11 +55,25 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     private val _installedApps = MutableStateFlow<List<AppInfo>>(emptyList())
     val installedApps: StateFlow<List<AppInfo>> = _installedApps.asStateFlow()
 
-    // Installed apps plus website tiles (Puik). Used for Home and the Apps page.
-    private val webTiles = WebTiles.all(application)
-    val tileApps: StateFlow<List<AppInfo>> = _installedApps
-        .map { apps -> webTiles + apps }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, webTiles)
+    // Website tiles (Puik, Puzzelwoorden) and the ones the caregiver switched off.
+    val webTiles: List<AppInfo> = WebTiles.all(application)
+    val webTilesDisabled: StateFlow<Set<String>> = settingsDataStore.webTilesDisabled
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+
+    // Installed apps plus the website tiles that are on. Used for Home and the Apps page.
+    val tileApps: StateFlow<List<AppInfo>> = combine(_installedApps, webTilesDisabled) { apps, off ->
+        webTiles.filter { it.packageName !in off } + apps
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, webTiles)
+
+    fun setWebTileEnabled(key: String, enabled: Boolean) {
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                settingsDataStore.setWebTileEnabled(key, enabled)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error switching web tile", e)
+            }
+        }
+    }
 
     // Contacts
     private val _contacts = MutableStateFlow<List<QuickContact>>(emptyList())
@@ -119,7 +133,10 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     val brightnessLocked: StateFlow<Boolean> = settingsDataStore.brightnessLocked
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    val notificationBlockedApps: StateFlow<Set<String>> = settingsDataStore.notificationBlockedApps
+    val notificationAlwaysOnApps: StateFlow<Set<String>> = settingsDataStore.notificationAlwaysOnApps
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    val notificationAllowedApps: StateFlow<Set<String>> = settingsDataStore.notificationAllowedApps
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     val notificationExtraApps: StateFlow<Set<String>> = settingsDataStore.notificationExtraApps
@@ -247,6 +264,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 val currentApps = homeApps.value.toMutableMap()
                 currentApps[position] = packageName
                 persistHomeApps(currentApps)
+                settingsDataStore.enableNotificationsForHomeApp(packageName)
             } catch (e: Exception) {
                 Log.e(TAG, "Error setting home app", e)
             }
@@ -281,6 +299,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     private fun addPuikToHomeOnce() {
         viewModelScope.launch(exceptionHandler) {
             if (settingsDataStore.puikHomeAdded.first()) return@launch
+            if (WebTiles.PUIK in settingsDataStore.webTilesDisabled.first()) return@launch
             val current = settingsDataStore.visibleApps.first()
                 .mapNotNull { parseHomeApp(it) }.toMap().toMutableMap()
             if (WebTiles.PUIK !in current.values) {
@@ -302,7 +321,8 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch(exceptionHandler) {
             try {
                 val seeded = settingsDataStore.webTilesSeeded.first()
-                val todo = WebTiles.homeDefaults.filter { it !in seeded }
+                val off = settingsDataStore.webTilesDisabled.first()
+                val todo = WebTiles.homeDefaults.filter { it !in seeded && it !in off }
                 if (todo.isEmpty()) return@launch
                 val current = settingsDataStore.visibleApps.first()
                     .mapNotNull { parseHomeApp(it) }.toMap().toMutableMap()
@@ -379,16 +399,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 settingsDataStore.toggleAppVisibility(packageName)
             } catch (e: Exception) {
                 Log.e(TAG, "Error toggling app visibility", e)
-            }
-        }
-    }
-
-    fun toggleNotificationBlocked(packageName: String) {
-        viewModelScope.launch(exceptionHandler) {
-            try {
-                settingsDataStore.toggleNotificationBlocked(packageName)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error toggling notification app", e)
             }
         }
     }

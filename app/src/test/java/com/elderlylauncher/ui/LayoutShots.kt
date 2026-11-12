@@ -92,6 +92,12 @@ class LayoutShots {
     fun appCardsTabletPortrait() = appCards(DeviceConfig.NEXUS_10.portrait(), tablet = true, "app-cards-tablet")
 
     @Test
+    fun selectorPhonePortrait() = selector(DeviceConfig.PIXEL_5, "selector-phone-portrait")
+
+    @Test
+    fun selectorPhoneLandscape() = selector(DeviceConfig.PIXEL_5.landscape(), "selector-phone-landscape")
+
+    @Test
     fun notificationCardPhone() {
         paparazzi.unsafeUpdateConfig(deviceConfig = DeviceConfig.PIXEL_5.copy(locale = "nl"))
         paparazzi.snapshot("notification-open-app") {
@@ -209,6 +215,45 @@ class LayoutShots {
                             contentAlignment = Alignment.Center
                         ) {
                             Text("Zelf een nummer", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /** App selector like the Settings dialogs: the last row on a page must be fully visible. */
+    private fun selector(device: DeviceConfig, name: String) {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device)
+        paparazzi.snapshot(name) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp),
+                shape = RoundedCornerShape(24.dp),
+                color = Color.White
+            ) {
+                Column(modifier = Modifier.padding(16.dp).fillMaxSize()) {
+                    Text("Apps pagina", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    Text("Tik op een app om hem aan of uit te zetten.", fontSize = 14.sp)
+                    androidx.compose.foundation.layout.Spacer(Modifier.height(12.dp))
+                    ButtonPagedColumn(
+                        items = (1..14).toList(),
+                        pageSize = 6,
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) { index ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(64.dp)
+                                .background(LauncherColors.Green50, RoundedCornerShape(12.dp))
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(Modifier.size(40.dp).background(LauncherColors.Green500, RoundedCornerShape(10.dp)))
+                            androidx.compose.foundation.layout.Spacer(Modifier.size(12.dp))
+                            Text("App $index", fontSize = 18.sp)
                         }
                     }
                 }

@@ -74,8 +74,7 @@ fun NotificationsScreen(viewModel: LauncherViewModel = viewModel()) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val layout = rememberDeviceLayout()
-    val appsPageAllowed by viewModel.appsPageAllowed.collectAsState()
-    val extraApps by viewModel.notificationExtraApps.collectAsState()
+    val allowedApps by viewModel.notificationAllowedApps.collectAsState()
     val inbox by NotificationInbox.items.collectAsState()
     var accessEnabled by remember { mutableStateOf(ElderlyNotificationListener.isEnabled(context)) }
     var confirmAll by remember { mutableStateOf(false) }
@@ -93,8 +92,8 @@ fun NotificationsScreen(viewModel: LauncherViewModel = viewModel()) {
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    val visible = remember(inbox, appsPageAllowed, extraApps) {
-        inbox.filter { it.packageName in appsPageAllowed || it.packageName in extraApps }
+    val visible = remember(inbox, allowedApps) {
+        inbox.filter { it.packageName in allowedApps }
     }
     val pageSize = when {
         layout.isTablet && !layout.isLandscape -> 3
@@ -378,7 +377,7 @@ internal fun NotificationCard(
 @Composable
 fun NotificationAppsDialog(
     installedApps: List<AppInfo>,
-    appsPageAllowed: Set<String>,
+    alwaysOnApps: Set<String>,
     extraApps: Set<String>,
     onDismiss: () -> Unit,
     onToggleApp: (String) -> Unit
@@ -427,14 +426,14 @@ fun NotificationAppsDialog(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) { app ->
-                    val onAppsPage = app.packageName in appsPageAllowed
-                    val shown = onAppsPage || app.packageName in extraApps
+                    val alwaysOn = app.packageName in alwaysOnApps
+                    val shown = alwaysOn || app.packageName in extraApps
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
                             .background(if (shown) LauncherColors.Green50 else LauncherColors.Gray100)
-                            .clickable(enabled = !onAppsPage) { onToggleApp(app.packageName) }
+                            .clickable(enabled = !alwaysOn) { onToggleApp(app.packageName) }
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {

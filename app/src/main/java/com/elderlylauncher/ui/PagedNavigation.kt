@@ -29,7 +29,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.elderlylauncher.R
@@ -153,31 +155,63 @@ fun <T> ButtonPagedColumn(
         return
     }
     var page by rememberSaveable { mutableIntStateOf(0) }
-    val pageCount = maxOf(1, (items.size + pageSize - 1) / pageSize)
-    LaunchedEffect(items.size, pageSize) {
-        if (page >= pageCount) page = pageCount - 1
-    }
-    val pageItems = items.drop(page * pageSize).take(pageSize)
+    val gap = verticalArrangement.spacing
 
-    PagedSideNav(
-        currentPage = page,
-        pageCount = if (items.size > pageSize) pageCount else 1,
-        onPageChange = { page = it },
-        modifier = modifier
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = verticalArrangement
-        ) {
-            pageItems.forEach { item ->
-                itemContent(item)
+    // Measure the rows first, so a page never holds more rows than fit.
+    // Otherwise the bottom row is cut off by the clip and cannot be reached.
+    SubcomposeLayout(modifier = modifier) { constraints ->
+        val limit = pageSize.coerceAtLeast(1)
+        val perPage = if (!constraints.hasBoundedHeight || items.isEmpty()) {
+            limit
+        } else {
+            val probe = items.take(limit)
+            val itemConstraints = Constraints(maxWidth = constraints.maxWidth)
+            val rowPx = subcompose("probe") {
+                probe.forEach { item -> Box { itemContent(item) } }
+            }.maxOfOrNull { it.measure(itemConstraints).height } ?: 0
+            val gapPx = gap.roundToPx()
+            fun fit(heightPx: Int): Int =
+                if (rowPx <= 0) limit else ((heightPx + gapPx) / (rowPx + gapPx)).coerceAtLeast(1)
+            val withoutNav = minOf(limit, fit(constraints.maxHeight))
+            if (items.size <= withoutNav) {
+                withoutNav
+            } else {
+                minOf(limit, fit(constraints.maxHeight - PAGE_NAV_HEIGHT.roundToPx()))
             }
-            if (fillRemaining) {
-                Spacer(modifier = Modifier.weight(1f))
+        }
+        val pageCount = maxOf(1, (items.size + perPage - 1) / perPage)
+        val current = page.coerceIn(0, pageCount - 1)
+        val pageItems = items.drop(current * perPage).take(perPage)
+
+        val content = subcompose("content") {
+            PagedSideNav(
+                currentPage = current,
+                pageCount = pageCount,
+                onPageChange = { page = it }
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = verticalArrangement
+                ) {
+                    pageItems.forEach { item ->
+                        itemContent(item)
+                    }
+                    if (fillRemaining) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
             }
+        }.map { it.measure(constraints) }
+        val width = content.maxOfOrNull { it.width } ?: constraints.minWidth
+        val height = content.maxOfOrNull { it.height } ?: constraints.minHeight
+        layout(width, height) {
+            content.forEach { it.place(0, 0) }
         }
     }
 }
+
+/** Height of the Previous/Next row under a paged list: 56 dp buttons plus padding. */
+private val PAGE_NAV_HEIGHT = 68.dp
 
 @Composable
 private fun <T> FittedPagedColumn(
