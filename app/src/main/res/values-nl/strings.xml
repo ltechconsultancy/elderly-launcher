@@ -268,4 +268,11 @@
     <string name="all_apps_play_store">Play Store</string>
     <string name="all_apps_none">Geen app gevonden. Tik op Play Store om daar te zoeken.</string>
     <string name="all_apps_open">Open</string>
+    <string name="power_title">Uit / opnieuw opstarten</string>
+    <string name="power_subtitle">Opent het menu om het toestel uit te zetten of te herstarten</string>
+    <string name="power_service_label">Klaro aan/uit-knop</string>
+    <string name="power_service_description">Laat Klaro het menu openen om het toestel uit te zetten of te herstarten. Klaro leest niets op het scherm.</string>
+    <string name="power_setup_title">Eén keer aanzetten</string>
+    <string name="power_setup_message">Om vanuit Klaro uit te zetten of te herstarten: zet één keer “Klaro aan/uit-knop” aan onder Toegankelijkheid (Gedownloade apps). Blokkeert Android dat? App-info › ⋮ › Beperkte instellingen toestaan.</string>
+    <string name="power_setup_button">Instellingen openen</string>
 </resources>

@@ -42,6 +42,7 @@ import com.elderlylauncher.ui.notifications.NotificationAppsDialog
 import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
 import com.elderlylauncher.util.AppUpdater
+import com.elderlylauncher.util.PowerMenuService
 import com.elderlylauncher.util.LatestRelease
 import com.elderlylauncher.util.SignatureMismatchException
 import com.elderlylauncher.util.BrightnessHelper
@@ -540,6 +541,7 @@ fun SettingsContent(
     var showGamesDialog by rememberSaveable { mutableStateOf(false) }
     var showWebTilesDialog by rememberSaveable { mutableStateOf(false) }
     var showAllAppsDialog by rememberSaveable { mutableStateOf(false) }
+    var showPowerSetup by rememberSaveable { mutableStateOf(false) }
     var showPhotosDialog by rememberSaveable { mutableStateOf(false) }
     var showBrightnessDialog by rememberSaveable { mutableStateOf(false) }
     var showNotificationsDialog by rememberSaveable { mutableStateOf(false) }
@@ -767,6 +769,37 @@ fun SettingsContent(
         )
     }
 
+    // Power menu needs the accessibility service once
+    if (showPowerSetup) {
+        AlertDialog(
+            onDismissRequest = { showPowerSetup = false },
+            title = { Text(stringResource(R.string.power_setup_title)) },
+            text = { Text(stringResource(R.string.power_setup_message)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showPowerSetup = false
+                        try {
+                            context.startActivity(
+                                android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                            )
+                        } catch (e: Exception) {
+                            // No accessibility settings screen on this device.
+                        }
+                    },
+                    modifier = Modifier.heightIn(min = 48.dp)
+                ) { Text(stringResource(R.string.power_setup_button)) }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showPowerSetup = false },
+                    modifier = Modifier.heightIn(min = 48.dp)
+                ) { Text(stringResource(R.string.cancel)) }
+            }
+        )
+    }
+
     // All apps: search, open, Play Store
     if (showAllAppsDialog) {
         val installedApps by viewModel.installedApps.collectAsState()
@@ -928,6 +961,7 @@ fun SettingsContent(
         val settingsKeys = buildList {
             add("update")
             add("all_apps")
+            add("power")
             addAll(listOf("colors", "language", "brightness", "screen_timeout", "notifications", "page_order", "apps", "apps_page", "web_tiles", "games", "photos"))
             if (layout.hasTelephony) {
                 add("contacts")
@@ -1027,6 +1061,15 @@ fun SettingsContent(
                     icon = Icons.Default.GridView,
                     iconColor = LauncherColors.Teal500,
                     onClick = { showAppsPageDialog = true }
+                )
+                "power" -> SettingsItem(
+                    title = stringResource(R.string.power_title),
+                    subtitle = stringResource(R.string.power_subtitle),
+                    icon = Icons.Default.PowerSettingsNew,
+                    iconColor = LauncherColors.Red500,
+                    onClick = {
+                        if (!PowerMenuService.openPowerMenu()) showPowerSetup = true
+                    }
                 )
                 "all_apps" -> SettingsItem(
                     title = stringResource(R.string.all_apps_title),

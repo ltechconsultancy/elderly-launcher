@@ -268,4 +268,11 @@
     <string name="all_apps_play_store">Play Store</string>
     <string name="all_apps_none">No app found. Tap Play Store to search there.</string>
     <string name="all_apps_open">Open</string>
+    <string name="power_title">Switch off / restart</string>
+    <string name="power_subtitle">Opens the menu to switch off or restart the device</string>
+    <string name="power_service_label">Klaro power button</string>
+    <string name="power_service_description">Lets Klaro open the menu to switch off or restart the device. Klaro reads nothing on the screen.</string>
+    <string name="power_setup_title">Switch on once</string>
+    <string name="power_setup_message">To switch off or restart from Klaro, turn on “Klaro power button” once under Accessibility (Downloaded apps). If Android blocks it: App info › ⋮ › Allow restricted settings.</string>
+    <string name="power_setup_button">Open settings</string>
 </resources>
