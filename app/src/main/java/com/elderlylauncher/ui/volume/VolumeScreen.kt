@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elderlylauncher.R
+import com.elderlylauncher.util.SoundTester
 import com.elderlylauncher.ui.LauncherViewModel
 import com.elderlylauncher.ui.volumeStackFit
 import com.elderlylauncher.ui.rememberDeviceLayout
@@ -93,6 +94,10 @@ fun VolumeScreen(
     }
 
     val decreaseDesc = stringResource(R.string.volume_decrease)
+    val testDesc = stringResource(R.string.volume_test)
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose { SoundTester.stop() }
+    }
     val increaseDesc = stringResource(R.string.volume_increase)
     val twoColumn = layout.isLandscape
 
@@ -155,7 +160,9 @@ fun VolumeScreen(
                             mediaVolume--
                             safeSetVolume(audioManager, AudioManager.STREAM_MUSIC, mediaVolume)
                         }
-                    }
+                    },
+                    onTest = { SoundTester.play(context, SoundTester.Channel.MEDIA) },
+                    testDescription = testDesc
                 )
             }
             val notificationControl: @Composable (Modifier) -> Unit = { itemModifier ->
@@ -185,7 +192,9 @@ fun VolumeScreen(
                             notificationVolume--
                             safeSetVolume(audioManager, AudioManager.STREAM_NOTIFICATION, notificationVolume)
                         }
-                    }
+                    },
+                    onTest = { SoundTester.play(context, SoundTester.Channel.NOTIFICATION) },
+                    testDescription = testDesc
                 )
             }
             val alarmControl: @Composable (Modifier) -> Unit = { itemModifier ->
@@ -215,7 +224,9 @@ fun VolumeScreen(
                             alarmVolume--
                             safeSetVolume(audioManager, AudioManager.STREAM_ALARM, alarmVolume)
                         }
-                    }
+                    },
+                    onTest = { SoundTester.play(context, SoundTester.Channel.ALARM) },
+                    testDescription = testDesc
                 )
             }
             val brightnessControl: @Composable (Modifier) -> Unit = { itemModifier ->
@@ -391,7 +402,9 @@ fun VolumeControl(
     modifier: Modifier = Modifier,
     compact: Boolean = false,
     onVolumeUp: () -> Unit,
-    onVolumeDown: () -> Unit
+    onVolumeDown: () -> Unit,
+    onTest: (() -> Unit)? = null,
+    testDescription: String = ""
 ) {
     val pad = if (compact) 10.dp else 24.dp
     val iconBox = if (compact) 40.dp else 80.dp
@@ -531,6 +544,15 @@ fun VolumeControl(
                     description = increaseDescription,
                     onClick = onVolumeUp
                 )
+                if (onTest != null) {
+                    Spacer(modifier = Modifier.width(gap))
+                    VolumeTestButton(
+                        size = buttonSize,
+                        accentColor = accentColor,
+                        description = testDescription,
+                        onClick = onTest
+                    )
+                }
             }
         }
 
@@ -542,9 +564,15 @@ fun VolumeControl(
         } else 0
 
         val barsDescription = stringResource(R.string.volume_bars_description, filledBars)
+        // Phone layout: the test button sits next to the bars, so the title keeps its room.
+        val testNextToBars = wide && onTest != null
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
+                .weight(1f)
                 .semantics { contentDescription = barsDescription },
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
@@ -560,6 +588,16 @@ fun VolumeControl(
                         )
                 )
             }
+        }
+        if (testNextToBars && onTest != null) {
+            Spacer(modifier = Modifier.width(gap))
+            VolumeTestButton(
+                size = buttonSize,
+                accentColor = accentColor,
+                description = testDescription,
+                onClick = onTest
+            )
+        }
         }
     }
 }
@@ -593,6 +631,32 @@ private fun VolumeStepButton(
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = textColor
+        )
+    }
+}
+
+/** Plays a sample on this channel. Filled, so it stands apart from − and +. */
+@Composable
+private fun VolumeTestButton(
+    size: androidx.compose.ui.unit.Dp,
+    accentColor: Color,
+    description: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(RoundedCornerShape(16.dp))
+            .background(accentColor)
+            .clickable(onClick = onClick)
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.PlayArrow,
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier.size(size * 0.6f)
         )
     }
 }
