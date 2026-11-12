@@ -214,8 +214,8 @@
     <string name="notifications_access_needed">Allow notification access once, in system settings.</string>
     <string name="notifications_access_button">Allow notifications</string>
     <string name="settings_notifications">Notification apps</string>
-    <string name="settings_notifications_subtitle">Choose which apps appear</string>
-    <string name="settings_notifications_hint">Apps on the Apps page are on. Tap to add extra apps. Those stay on even if you later remove them from Apps.</string>
+    <string name="settings_notifications_subtitle">Choose which apps may send notifications</string>
+    <string name="settings_notifications_hint">Apps on the Apps page and on Home are on. Tap to add extra apps. Notifications from all other apps are removed and make no sound. Calls, alarms and emergency alerts always come through.</string>
     <string name="settings_screen_timeout">Screen off</string>
     <string name="settings_screen_timeout_subtitle">Hours, minutes, seconds, or never</string>
     <string name="screen_timeout_hours">Hours</string>
@@ -256,4 +256,9 @@
         <item quantity="one">%d minute</item>
         <item quantity="other">%d minutes</item>
     </plurals>
+    <string name="settings_web_tiles">Websites</string>
+    <string name="settings_web_tiles_subtitle">Switch Puik and Puzzelwoorden on or off</string>
+    <string name="settings_web_tiles_hint">Off removes the tile from Home and the Apps page.</string>
+    <string name="web_tile_on">On</string>
+    <string name="web_tile_off">Off</string>
 </resources>

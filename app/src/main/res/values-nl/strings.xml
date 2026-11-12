@@ -214,8 +214,8 @@
     <string name="notifications_access_needed">Sta één keer toe dat deze app meldingen mag lezen.</string>
     <string name="notifications_access_button">Meldingen toestaan</string>
     <string name="settings_notifications">Meldingen-apps</string>
-    <string name="settings_notifications_subtitle">Kies welke apps getoond worden</string>
-    <string name="settings_notifications_hint">Apps van de Apps-pagina staan aan. Tik om extra apps toe te voegen. Die blijven aan, ook als je ze later van Apps haalt.</string>
+    <string name="settings_notifications_subtitle">Kies welke apps meldingen mogen sturen</string>
+    <string name="settings_notifications_hint">Apps van de Apps-pagina en het startscherm staan aan. Tik om extra apps toe te voegen. Meldingen van alle andere apps worden weggehaald en maken geen geluid. Bellen, wekker en noodmeldingen komen altijd door.</string>
     <string name="settings_screen_timeout">Scherm uit</string>
     <string name="settings_screen_timeout_subtitle">Uren, minuten, seconden, of nooit</string>
     <string name="screen_timeout_hours">Uren</string>
@@ -256,4 +256,9 @@
         <item quantity="one">%d minuut</item>
         <item quantity="other">%d minuten</item>
     </plurals>
+    <string name="settings_web_tiles">Websites</string>
+    <string name="settings_web_tiles_subtitle">Puik en Puzzelwoorden aan of uit</string>
+    <string name="settings_web_tiles_hint">Uit haalt de tegel van het startscherm en de Apps-pagina.</string>
+    <string name="web_tile_on">Aan</string>
+    <string name="web_tile_off">Uit</string>
 </resources>

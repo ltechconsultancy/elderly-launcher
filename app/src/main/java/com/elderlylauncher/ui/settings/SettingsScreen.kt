@@ -538,6 +538,7 @@ fun SettingsContent(
     var showAppsPageDialog by rememberSaveable { mutableStateOf(false) }
     var showContactsDialog by rememberSaveable { mutableStateOf(false) }
     var showGamesDialog by rememberSaveable { mutableStateOf(false) }
+    var showWebTilesDialog by rememberSaveable { mutableStateOf(false) }
     var showPhotosDialog by rememberSaveable { mutableStateOf(false) }
     var showBrightnessDialog by rememberSaveable { mutableStateOf(false) }
     var showNotificationsDialog by rememberSaveable { mutableStateOf(false) }
@@ -765,6 +766,17 @@ fun SettingsContent(
         )
     }
 
+    // Website tiles on/off
+    if (showWebTilesDialog) {
+        val disabled by viewModel.webTilesDisabled.collectAsState()
+        WebTilesDialog(
+            tiles = viewModel.webTiles,
+            disabled = disabled,
+            onDismiss = { showWebTilesDialog = false },
+            onToggle = { key, enabled -> viewModel.setWebTileEnabled(key, enabled) }
+        )
+    }
+
     // Games selection dialog
     if (showGamesDialog) {
         val installedApps by viewModel.installedApps.collectAsState()
@@ -801,14 +813,14 @@ fun SettingsContent(
 
     if (showNotificationsDialog) {
         val installedApps by viewModel.installedApps.collectAsState()
-        val appsPageAllowed by viewModel.appsPageAllowed.collectAsState()
+        val alwaysOnApps by viewModel.notificationAlwaysOnApps.collectAsState()
         val extraApps by viewModel.notificationExtraApps.collectAsState()
         // Refresh the app list each time the selector opens (new installs)
         LaunchedEffect(Unit) { viewModel.loadApps() }
 
         NotificationAppsDialog(
             installedApps = installedApps,
-            appsPageAllowed = appsPageAllowed,
+            alwaysOnApps = alwaysOnApps,
             extraApps = extraApps,
             onDismiss = { showNotificationsDialog = false },
             onToggleApp = { viewModel.toggleNotificationExtra(it) }
@@ -903,7 +915,7 @@ fun SettingsContent(
 
         val settingsKeys = buildList {
             add("update")
-            addAll(listOf("colors", "language", "brightness", "screen_timeout", "notifications", "page_order", "apps", "apps_page", "games", "photos"))
+            addAll(listOf("colors", "language", "brightness", "screen_timeout", "notifications", "page_order", "apps", "apps_page", "web_tiles", "games", "photos"))
             if (layout.hasTelephony) {
                 add("contacts")
                 add("emergency")
@@ -1002,6 +1014,13 @@ fun SettingsContent(
                     icon = Icons.Default.GridView,
                     iconColor = LauncherColors.Teal500,
                     onClick = { showAppsPageDialog = true }
+                )
+                "web_tiles" -> SettingsItem(
+                    title = stringResource(R.string.settings_web_tiles),
+                    subtitle = stringResource(R.string.settings_web_tiles_subtitle),
+                    icon = Icons.Default.Public,
+                    iconColor = LauncherColors.Teal500,
+                    onClick = { showWebTilesDialog = true }
                 )
                 "games" -> SettingsItem(
                     title = stringResource(R.string.settings_games),

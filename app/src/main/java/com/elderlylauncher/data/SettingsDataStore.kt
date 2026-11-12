@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import com.elderlylauncher.ui.LauncherPage
 import com.elderlylauncher.util.BrightnessHelper
+import org.json.JSONObject
 import java.io.IOException
 import java.security.MessageDigest
 
@@ -37,11 +38,11 @@ class SettingsDataStore(private val context: Context) {
         val BRIGHTNESS_PERCENT = intPreferencesKey("brightness_percent")
         val BRIGHTNESS_MIN_PERCENT = intPreferencesKey("brightness_min_percent")
         val BRIGHTNESS_LOCKED = booleanPreferencesKey("brightness_locked")
-        val NOTIFICATION_BLOCKED = stringSetPreferencesKey("notification_blocked_apps")
         val NOTIFICATION_EXTRA = stringSetPreferencesKey("notification_extra_apps")
         val PAGE_ORDER = stringPreferencesKey("page_order")
         val WEB_TILES_SEEDED = stringSetPreferencesKey("web_tiles_seeded")
         val PUIK_HOME_ADDED = booleanPreferencesKey("puik_home_added")
+        val WEB_TILES_DISABLED = stringSetPreferencesKey("web_tiles_disabled")
     }
 
     // Default values
@@ -289,24 +290,32 @@ class SettingsDataStore(private val context: Context) {
         context.dataStore.edit { it[Keys.PUIK_HOME_ADDED] = true }
     }
 
-    suspend fun setBrightnessLocked(locked: Boolean) {
-        context.dataStore.edit { it[Keys.BRIGHTNESS_LOCKED] = locked }
-    }
-
-    /** Apps whose notifications stay out of the overview. Empty means show all. */
-    val notificationBlockedApps: Flow<Set<String>> = context.dataStore.data
+    /** Website tiles (Puik, Puzzelwoorden) the caregiver switched off. */
+    val webTilesDisabled: Flow<Set<String>> = context.dataStore.data
         .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
-        .map { it[Keys.NOTIFICATION_BLOCKED] ?: emptySet() }
+        .map { it[Keys.WEB_TILES_DISABLED] ?: emptySet() }
 
-    suspend fun toggleNotificationBlocked(packageName: String) {
+    /** Switch a website tile on or off. Off also removes it from Home and the Apps page. */
+    suspend fun setWebTileEnabled(key: String, enabled: Boolean) {
         context.dataStore.edit { prefs ->
-            val current = prefs[Keys.NOTIFICATION_BLOCKED] ?: emptySet()
-            prefs[Keys.NOTIFICATION_BLOCKED] = if (packageName in current) {
-                current - packageName
-            } else {
-                current + packageName
+            val off = prefs[Keys.WEB_TILES_DISABLED] ?: emptySet()
+            prefs[Keys.WEB_TILES_DISABLED] = if (enabled) off - key else off + key
+            if (!enabled) {
+                prefs[Keys.VISIBLE_APPS] = (prefs[Keys.VISIBLE_APPS] ?: emptySet()).filterNot { json ->
+                    try {
+                        JSONObject(json).getString("packageName") == key
+                    } catch (e: Exception) {
+                        false
+                    }
+                }.toSet()
+                prefs[Keys.APPS_PAGE_ALLOWED] = (prefs[Keys.APPS_PAGE_ALLOWED] ?: emptySet()) - key
+                prefs[Keys.NOTIFICATION_EXTRA] = (prefs[Keys.NOTIFICATION_EXTRA] ?: emptySet()) - key
             }
         }
+    }
+
+    suspend fun setBrightnessLocked(locked: Boolean) {
+        context.dataStore.edit { it[Keys.BRIGHTNESS_LOCKED] = locked }
     }
 
     /** Extra apps shown in notifications, beyond the Apps page. Empty means only the Apps page. */
@@ -316,8 +325,9 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun toggleNotificationExtra(packageName: String) {
         context.dataStore.edit { prefs ->
-            val onAppsPage = packageName in (prefs[Keys.APPS_PAGE_ALLOWED] ?: emptySet())
-            if (onAppsPage) return@edit
+            val alwaysOn = (prefs[Keys.APPS_PAGE_ALLOWED] ?: emptySet()) +
+                homePackages(prefs[Keys.VISIBLE_APPS] ?: emptySet())
+            if (packageName in alwaysOn) return@edit
             val current = prefs[Keys.NOTIFICATION_EXTRA] ?: emptySet()
             prefs[Keys.NOTIFICATION_EXTRA] = if (packageName in current) {
                 current - packageName
@@ -326,6 +336,35 @@ class SettingsDataStore(private val context: Context) {
             }
         }
     }
+
+    /** Apps on the Apps page or on Home: their notifications are always on. */
+    val notificationAlwaysOnApps: Flow<Set<String>> = context.dataStore.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .map { prefs ->
+            (prefs[Keys.APPS_PAGE_ALLOWED] ?: emptySet()) +
+                homePackages(prefs[Keys.VISIBLE_APPS] ?: emptySet())
+        }
+
+    /**
+     * Apps whose notifications are shown in Klaro and not muted:
+     * the Apps page, Home and the extra apps. Every other app is muted.
+     */
+    val notificationAllowedApps: Flow<Set<String>> = context.dataStore.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .map { prefs ->
+            (prefs[Keys.APPS_PAGE_ALLOWED] ?: emptySet()) +
+                homePackages(prefs[Keys.VISIBLE_APPS] ?: emptySet()) +
+                (prefs[Keys.NOTIFICATION_EXTRA] ?: emptySet())
+        }
+
+    private fun homePackages(jsonSet: Set<String>): Set<String> =
+        jsonSet.mapNotNull { json ->
+            try {
+                JSONObject(json).getString("packageName")
+            } catch (e: Exception) {
+                null
+            }
+        }.toSet()
 
     val pageOrder: Flow<List<LauncherPage>> = context.dataStore.data
         .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
