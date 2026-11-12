@@ -215,7 +215,7 @@
     <string name="notifications_access_button">Meldingen toestaan</string>
     <string name="settings_notifications">Meldingen-apps</string>
     <string name="settings_notifications_subtitle">Kies welke apps meldingen mogen sturen</string>
-    <string name="settings_notifications_hint">Apps van de Apps-pagina en het startscherm staan aan. Tik om extra apps toe te voegen. Meldingen van alle andere apps worden weggehaald en maken geen geluid. Bellen, wekker en noodmeldingen komen altijd door.</string>
+    <string name="settings_notifications_hint">Apps van de Apps-pagina staan altijd aan. Apps op het startscherm staan aan; tik om ze uit te zetten. Tik op een andere app om hem aan te zetten. Meldingen van apps die uit staan worden weggehaald en maken geen geluid. Bellen, wekker en noodmeldingen komen altijd door.</string>
     <string name="settings_screen_timeout">Scherm uit</string>
     <string name="settings_screen_timeout_subtitle">Uren, minuten, seconden, of nooit</string>
     <string name="screen_timeout_hours">Uren</string>

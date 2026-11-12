@@ -215,7 +215,7 @@
     <string name="notifications_access_button">Allow notifications</string>
     <string name="settings_notifications">Notification apps</string>
     <string name="settings_notifications_subtitle">Choose which apps may send notifications</string>
-    <string name="settings_notifications_hint">Apps on the Apps page and on Home are on. Tap to add extra apps. Notifications from all other apps are removed and make no sound. Calls, alarms and emergency alerts always come through.</string>
+    <string name="settings_notifications_hint">Apps on the Apps page are always on. Apps on Home are on, tap to switch them off. Tap other apps to switch them on. Notifications from apps that are off are removed and make no sound. Calls, alarms and emergency alerts always come through.</string>
     <string name="settings_screen_timeout">Screen off</string>
     <string name="settings_screen_timeout_subtitle">Hours, minutes, seconds, or never</string>
     <string name="screen_timeout_hours">Hours</string>

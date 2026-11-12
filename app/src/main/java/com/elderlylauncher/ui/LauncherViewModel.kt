@@ -264,6 +264,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 val currentApps = homeApps.value.toMutableMap()
                 currentApps[position] = packageName
                 persistHomeApps(currentApps)
+                settingsDataStore.enableNotificationsForHomeApp(packageName)
             } catch (e: Exception) {
                 Log.e(TAG, "Error setting home app", e)
             }
