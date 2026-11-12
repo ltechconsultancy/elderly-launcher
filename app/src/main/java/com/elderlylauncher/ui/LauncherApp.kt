@@ -17,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -57,6 +58,17 @@ fun LauncherApp(viewModel: LauncherViewModel = viewModel()) {
     var currentPage by rememberSaveable { mutableIntStateOf(0) }
     val pageStateHolder = rememberSaveableStateHolder()
     if (currentPage > pages.lastIndex) currentPage = pages.lastIndex.coerceAtLeast(0)
+
+    // Android Home button: go to the chosen page (default page 1).
+    val homeButtonPage by viewModel.homeButtonPage.collectAsState()
+    val homePresses by HomeButtonEvents.presses.collectAsState()
+    var handledPresses by rememberSaveable { mutableIntStateOf(homePresses) }
+    LaunchedEffect(homePresses) {
+        if (homePresses != handledPresses) {
+            handledPresses = homePresses
+            currentPage = (homeButtonPage - 1).coerceIn(0, pages.lastIndex.coerceAtLeast(0))
+        }
+    }
 
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current

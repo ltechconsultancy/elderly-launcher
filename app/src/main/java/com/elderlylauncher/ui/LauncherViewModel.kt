@@ -142,6 +142,19 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     val notificationExtraApps: StateFlow<Set<String>> = settingsDataStore.notificationExtraApps
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
+    val homeButtonPage: StateFlow<Int> = settingsDataStore.homeButtonPage
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 1)
+
+    fun setHomeButtonPage(number: Int) {
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                settingsDataStore.setHomeButtonPage(number)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error saving home button page", e)
+            }
+        }
+    }
+
     val pageOrder: StateFlow<List<LauncherPage>> = settingsDataStore.pageOrder
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LauncherPage.DEFAULT)
 

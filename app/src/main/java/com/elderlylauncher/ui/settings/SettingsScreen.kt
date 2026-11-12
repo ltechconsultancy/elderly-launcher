@@ -549,6 +549,7 @@ fun SettingsContent(
     var showNotificationsDialog by rememberSaveable { mutableStateOf(false) }
     var showScreenTimeoutDialog by rememberSaveable { mutableStateOf(false) }
     var showPageOrderDialog by rememberSaveable { mutableStateOf(false) }
+    var showHomeButtonDialog by rememberSaveable { mutableStateOf(false) }
     var showUpdateDialog by rememberSaveable { mutableStateOf(false) }
     var updateBusy by remember { mutableStateOf(false) }
     var updateProgress by remember { mutableIntStateOf(0) }
@@ -558,6 +559,7 @@ fun SettingsContent(
     var latestRelease by remember { mutableStateOf<LatestRelease?>(null) }
     val currentVersion = remember { AppUpdater.currentVersionName(context) }
 
+    val homeButtonPage by viewModel.homeButtonPage.collectAsState()
     val brightnessPercent by viewModel.brightnessPercent.collectAsState()
     val brightnessMin by viewModel.brightnessMinPercent.collectAsState()
     val brightnessLocked by viewModel.brightnessLocked.collectAsState()
@@ -813,6 +815,20 @@ fun SettingsContent(
         )
     }
 
+    // Page the Android Home button opens
+    if (showHomeButtonDialog) {
+        val order by viewModel.pageOrder.collectAsState()
+        HomeButtonPageDialog(
+            pages = order,
+            selectedNumber = homeButtonPage,
+            onDismiss = { showHomeButtonDialog = false },
+            onSelect = {
+                viewModel.setHomeButtonPage(it)
+                showHomeButtonDialog = false
+            }
+        )
+    }
+
     // Website tiles on/off
     if (showWebTilesDialog) {
         val disabled by viewModel.webTilesDisabled.collectAsState()
@@ -964,7 +980,7 @@ fun SettingsContent(
             add("update")
             add("all_apps")
             add("power")
-            addAll(listOf("colors", "language", "brightness", "screen_timeout", "notifications", "page_order", "apps", "apps_page", "web_tiles", "games", "photos"))
+            addAll(listOf("colors", "language", "brightness", "screen_timeout", "notifications", "page_order", "home_button", "apps", "apps_page", "web_tiles", "games", "photos"))
             if (layout.hasTelephony) {
                 add("contacts")
                 add("emergency")
@@ -1042,6 +1058,13 @@ fun SettingsContent(
                     icon = Icons.Default.SwapVert,
                     iconColor = LauncherColors.Blue500,
                     onClick = { showPageOrderDialog = true }
+                )
+                "home_button" -> SettingsItem(
+                    title = stringResource(R.string.settings_home_button),
+                    subtitle = stringResource(R.string.settings_home_button_subtitle, homeButtonPage),
+                    icon = Icons.Default.Home,
+                    iconColor = LauncherColors.Blue500,
+                    onClick = { showHomeButtonDialog = true }
                 )
                 "notifications" -> SettingsItem(
                     title = stringResource(R.string.settings_notifications),

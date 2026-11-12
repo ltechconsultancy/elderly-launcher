@@ -278,4 +278,7 @@
     <string name="dialog_info">Explanation</string>
     <string name="dialog_info_ok">OK</string>
     <string name="volume_test">Play test sound</string>
+    <string name="settings_home_button">Home button</string>
+    <string name="settings_home_button_subtitle">Opens page %1$d</string>
+    <string name="settings_home_button_hint">The Home button of the device takes you to this page. The number follows the page order.</string>
 </resources>

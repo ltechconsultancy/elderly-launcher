@@ -52,6 +52,16 @@ class MainActivity : ComponentActivity() {
         super.attachBaseContext(localizedContext)
     }
 
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        // Home button while Klaro is the launcher: jump to the chosen page.
+        if (intent.action == android.content.Intent.ACTION_MAIN &&
+            intent.hasCategory(android.content.Intent.CATEGORY_HOME)
+        ) {
+            com.elderlylauncher.ui.HomeButtonEvents.pressed()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

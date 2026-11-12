@@ -40,6 +40,7 @@ class SettingsDataStore(private val context: Context) {
         val BRIGHTNESS_LOCKED = booleanPreferencesKey("brightness_locked")
         val NOTIFICATION_EXTRA = stringSetPreferencesKey("notification_extra_apps")
         val PAGE_ORDER = stringPreferencesKey("page_order")
+        val HOME_BUTTON_PAGE = intPreferencesKey("home_button_page")
         val WEB_TILES_SEEDED = stringSetPreferencesKey("web_tiles_seeded")
         val PUIK_HOME_ADDED = booleanPreferencesKey("puik_home_added")
         val WEB_TILES_DISABLED = stringSetPreferencesKey("web_tiles_disabled")
@@ -380,6 +381,15 @@ class SettingsDataStore(private val context: Context) {
                 null
             }
         }.filterNot { WebTiles.isWebTile(it) }.toSet()
+
+    /** Page number (1-based, in the current page order) the Android Home button opens. */
+    val homeButtonPage: Flow<Int> = context.dataStore.data
+        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .map { it[Keys.HOME_BUTTON_PAGE] ?: 1 }
+
+    suspend fun setHomeButtonPage(number: Int) {
+        context.dataStore.edit { it[Keys.HOME_BUTTON_PAGE] = number.coerceAtLeast(1) }
+    }
 
     val pageOrder: Flow<List<LauncherPage>> = context.dataStore.data
         .catch { if (it is IOException) emit(emptyPreferences()) else throw it }

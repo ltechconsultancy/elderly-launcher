@@ -130,7 +130,7 @@ fun PageOrderDialog(
 }
 
 @Composable
-private fun pageLabel(page: LauncherPage): String {
+internal fun pageLabel(page: LauncherPage): String {
     return when (page) {
         LauncherPage.HOME -> stringResource(R.string.page_home)
         LauncherPage.APPS -> stringResource(R.string.apps_title)
