@@ -277,4 +277,5 @@
     <string name="power_setup_button">Instellingen openen</string>
     <string name="dialog_info">Uitleg</string>
     <string name="dialog_info_ok">Begrepen</string>
+    <string name="volume_test">Testgeluid afspelen</string>
 </resources>

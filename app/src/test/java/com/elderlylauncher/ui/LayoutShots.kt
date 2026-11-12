@@ -451,6 +451,8 @@ private fun sampleCard(
         modifier = modifier,
         compact = !tablet,
         onVolumeUp = {},
-        onVolumeDown = {}
+        onVolumeDown = {},
+        onTest = if (icon == Icons.Default.BrightnessHigh) null else ({}),
+        testDescription = "Testgeluid"
     )
 }
