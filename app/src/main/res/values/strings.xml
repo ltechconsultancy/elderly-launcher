@@ -7,6 +7,8 @@
     <string name="home_messages">Messages</string>
     <string name="home_camera">Camera</string>
     <string name="home_photos">Photos</string>
+    <string name="home_flashlight">Flashlight</string>
+    <string name="home_flashlight_on">Flashlight on</string>
     <string name="home_emergency">EMERGENCY</string>
     <string name="home_page">Page %1$d of %2$d</string>
     <string name="nav_previous">Previous</string>
@@ -201,6 +203,7 @@
 
     <!-- Errors -->
     <string name="error_app_not_found">App not found</string>
+    <string name="error_flashlight">The flashlight does not work right now</string>
     <string name="error_no_permission">Permission denied</string>
 
     <string name="notifications_title">Notifications</string>

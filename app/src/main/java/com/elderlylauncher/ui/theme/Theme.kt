@@ -42,6 +42,13 @@ object LauncherColors {
     val Orange500 = Color(0xFFF97316)
     val Orange700 = Color(0xFFC2410C)
 
+    // Yellow (Zaklamp aan)
+    val Yellow50 = Color(0xFFFEFCE8)
+    val Yellow200 = Color(0xFFFEF08A)
+    val Yellow400 = Color(0xFFFACC15)
+    val Yellow500 = Color(0xFFEAB308)
+    val Yellow800 = Color(0xFF854D0E)
+
     // Red (Emergency)
     val Red50 = Color(0xFFFEF2F2)
     val Red200 = Color(0xFFFECACA)

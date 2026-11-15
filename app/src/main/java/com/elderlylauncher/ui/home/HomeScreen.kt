@@ -50,6 +50,7 @@ import com.elderlylauncher.ui.homeGridFit
 import com.elderlylauncher.ui.iconColors
 import com.elderlylauncher.ui.rememberDeviceLayout
 import com.elderlylauncher.ui.theme.LauncherColors
+import com.elderlylauncher.util.FlashlightHelper
 import java.time.LocalDate
 import java.time.LocalTime
 import kotlin.math.cos
@@ -110,6 +111,9 @@ private val defaultApps = listOf(
         launchIntent = { Intent(Intent.ACTION_VIEW).apply { type = "image/*" } }
     )
 )
+
+/** Vaste zaklamp-tegel: geen slot in DataStore, alleen op apparaten met een flitser. */
+internal const val FLASHLIGHT_SLOT = -1
 
 @Composable
 fun HomeScreen(viewModel: LauncherViewModel = viewModel()) {
@@ -462,16 +466,18 @@ fun HomeAppGrid(
     landscape: Boolean,
     tablet: Boolean,
     onCall: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    hasFlash: Boolean = remember(context) { FlashlightHelper.hasFlash(context) }
 ) {
-    val positions = remember(homeApps, hasTelephony) {
+    val positions = remember(homeApps, hasTelephony, hasFlash) {
         val defaultSlots = defaultApps.mapIndexedNotNull { index, config ->
             if (!config.requiresTelephony || hasTelephony) index else null
         }
         val extraSlots = homeApps.keys
             .filter { it !in defaultSlots }
             .sorted()
-        defaultSlots + extraSlots
+        val flashlight = if (hasFlash) listOf(FLASHLIGHT_SLOT) else emptyList()
+        defaultSlots + flashlight + extraSlots
     }
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val fit = homeGridFit(maxWidth, maxHeight, positions.size, landscape, tablet)
@@ -500,6 +506,15 @@ fun HomeAppGrid(
                         horizontalArrangement = Arrangement.spacedBy(fit.gap)
                     ) {
                         rowItems.forEach { position ->
+                            if (position == FLASHLIGHT_SLOT) {
+                                FlashlightTile(
+                                    scale = scale,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                )
+                                return@forEach
+                            }
                             HomeAppTile(
                                 position = position,
                                 homeApps = homeApps,
@@ -596,6 +611,45 @@ private fun HomeAppTile(
             }
         )
     }
+}
+
+@Composable
+internal fun FlashlightTile(
+    scale: TileScale,
+    modifier: Modifier = Modifier,
+    initialOn: Boolean = false
+) {
+    val context = LocalContext.current
+    var on by remember { mutableStateOf(initialOn) }
+    DisposableEffect(context) {
+        val unregister = FlashlightHelper.register(context) { on = it }
+        onDispose { unregister() }
+    }
+    AppTile(
+        title = stringResource(if (on) R.string.home_flashlight_on else R.string.home_flashlight),
+        icon = if (on) Icons.Default.FlashlightOn else Icons.Default.FlashlightOff,
+        backgroundColor = if (on) LauncherColors.Yellow200 else LauncherColors.Yellow50,
+        borderColor = if (on) LauncherColors.Yellow500 else LauncherColors.Yellow200,
+        iconBackgroundColor = if (on) LauncherColors.Yellow500 else LauncherColors.Gray600,
+        textColor = LauncherColors.Yellow800,
+        modifier = modifier,
+        iconBoxSize = scale.iconBox,
+        glyphSize = scale.glyph,
+        labelSize = scale.label,
+        contentPadding = scale.padding,
+        onClick = {
+            val target = !on
+            if (FlashlightHelper.setTorch(context, target)) {
+                on = target
+            } else {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.error_flashlight),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    )
 }
 
 @Composable
