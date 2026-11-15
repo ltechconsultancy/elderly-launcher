@@ -37,6 +37,7 @@ import com.elderlylauncher.data.AppInfo
 import com.elderlylauncher.data.QuickContact
 import com.elderlylauncher.ui.home.CallContactPages
 import com.elderlylauncher.ui.home.tileScaleFor
+import com.elderlylauncher.ui.home.FlashlightTile
 import com.elderlylauncher.ui.notifications.NotificationCard
 import com.elderlylauncher.ui.settings.AppSlotItem
 import com.elderlylauncher.util.InboxNotification
@@ -86,6 +87,21 @@ class LayoutShots {
 
     @Test
     fun homeTilesTabletPortrait() = tiles(DeviceConfig.NEXUS_10.portrait(), tablet = true, landscape = false, "home-tiles-tablet-portrait")
+
+    @Test
+    fun flashlightPhonePortrait() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = DeviceConfig.PIXEL_5)
+        paparazzi.snapshot("flashlight-phone-portrait") {
+            Row(
+                modifier = Modifier.fillMaxWidth().height(180.dp).background(Color.White).padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                val scale = tileScaleFor(170.dp, 150.dp)
+                FlashlightTile(scale = scale, modifier = Modifier.weight(1f).fillMaxHeight(), initialOn = false)
+                FlashlightTile(scale = scale, modifier = Modifier.weight(1f).fillMaxHeight(), initialOn = true)
+            }
+        }
+    }
 
     @Test
     fun appCardsPhonePortrait() = appCards(DeviceConfig.PIXEL_5, tablet = false, "app-cards-phone")
